@@ -94,7 +94,7 @@
 			</ConfigurationList>
 		</DatabaseConfiguration>
 		<FileList>
-			<File Name="Vip.prj" PosX="42" PosY="112" OpenEditor="True"/>
+			<File Name="Vip.prj" PosX="56" PosY="112" OpenEditor="True" Active="True"/>
 			<File Name="..\..\..\GAL\Frm\SRC\CompSrc\L\L_MCU\vip\KatMC\ObjMC\ObjMC.vih" PosX="90" PosY="29" OpenEditor="True"/>
 			<File Name="Source\IATC_IMPORT_SPSTEP\iATC_Run_PrnProtocol.frm" PosX="107" PosY="60" OpenEditor="True"/>
 			<File Name="Source\IATC_IMPORT_SPSTEP\iATC_Show_Protocol.vip" PosX="1" PosY="38" OpenEditor="True"/>
@@ -102,7 +102,7 @@
 			<File Name="Source\GRPOC\GRPOC.vip" PosX="37" PosY="519" OpenEditor="True"/>
 			<File Name="Source\alter_interface\alter_vSchetB.vip" PosX="40" PosY="170" OpenEditor="True"/>
 			<File Name="Source\iATC_Import_SpStep\iATC_Import_SpStep.vip" PosX="1" PosY="1019" OpenEditor="True"/>
-			<File Name="Source\iATC_Import_SpStep\iATC_Analiz_SpStep.vip" PosX="2" PosY="209" OpenEditor="True" Active="True"/>
+			<File Name="Source\iATC_Import_SpStep\iATC_Analiz_SpStep.vip" PosX="2" PosY="210" OpenEditor="True"/>
 		</FileList>
 		<DebugOptions StopOnStartup="False"/>
 		<MarkerList>
@@ -157,7 +157,7 @@
 			<Marker FileName="vip\interactive_report.vip" Caption="Нумерованная закладка 1" Line="765" NumIndex="1" MarkerType="mtNumBookmark" Comment="filltTree;"/>
 			<Marker FileName="vip\KatMarshStruct_report.vip" Caption="Нумерованная закладка 2" Line="490" NumIndex="2" MarkerType="mtNumBookmark"/>
 			<Marker FileName="vip\KatMarshStruct_report.vip" Caption="Нумерованная закладка 1" Line="437" NumIndex="1" MarkerType="mtNumBookmark" Comment="delete all"/>
-			<Marker FileName="Source\iATC_Import_SpStep\iATC_Analiz_SpStep.vip" Caption="Нумерованная закладка 1" Line="441" NumIndex="1" MarkerType="mtNumBookmark" Comment="if SpDocNal.cSpDoc    := SpStep.nRec;"/>
+			<Marker FileName="Source\iATC_Import_SpStep\iATC_Analiz_SpStep.vip" Caption="Нумерованная закладка 1" Line="442" NumIndex="1" MarkerType="mtNumBookmark" Comment="if SpDocNal.cSpDoc    := SpStep.nRec;"/>
 		</MarkerList>
 		<BreakPointList>
 			<BreakPoint FileName="Vip.prj" Line="90"/>
@@ -169,7 +169,7 @@
 			<BreakPoint FileName="vip\demand_report.vip" Line="710"/>
 		</BreakPointList>
 		<CompileMessengerList>
-			<CompileMessenger Name="C:\Galaktika\_git\AptekaDNR\ATC_Project\Vip.prj" DateTimeStart="45479,4294557292" DateTimeCompile="0,000185474535101093" StateHistory="False">
+			<CompileMessenger Name="C:\Galaktika\_git\AptekaDNR\ATC_Project\Vip.prj" DateTimeStart="45479,4318381713" DateTimeCompile="0,0001988657459151" StateHistory="False">
 				<CompileMessageList>
 					<CompileMessage MessageType="mtWarning" MessageText="Не задано имя компонента, компонентная принадлежность таблиц учитываться не будет" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\GRPOC\GRPOC.vip" SourceLine="4" SourceColumn="1"/>
 					<CompileMessage MessageType="mtInfo" MessageText="Компиляция ведется без файла контроля лицензий!" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\GRPOC\GRPOC.vip" SourceLine="7" SourceColumn="1"/>
@@ -229,12 +229,12 @@
 					<CompileMessage MessageType="mtWarning" MessageText="Неявное добавление таблицы _TMPUPDSP в логическую таблицу IATC_ANALIZ_SPSTEP" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\IATC_IMPORT_SPSTEP\iATC_Analiz_SpStep.vip" SourceLine="166" SourceColumn="19"/>
 					<CompileMessage MessageType="mtWarning" MessageText="Ожидалось: &quot;;&quot;" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\IATC_IMPORT_SPSTEP\iATC_Analiz_SpStep.vip" SourceLine="169" SourceColumn="5"/>
 					<CompileMessage MessageType="mtWarning" MessageText="Значение преобразовано к строке" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\IATC_IMPORT_SPSTEP\iATC_Analiz_SpStep.vip" SourceLine="171" SourceColumn="21"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Ожидалось: &quot;;&quot;" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\IATC_IMPORT_SPSTEP\iATC_Analiz_SpStep.vip" SourceLine="460" SourceColumn="23"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Ожидалось: &quot;;&quot;" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\IATC_IMPORT_SPSTEP\iATC_Analiz_SpStep.vip" SourceLine="471" SourceColumn="1"/>
+					<CompileMessage MessageType="mtWarning" MessageText="Ожидалось: &quot;;&quot;" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\IATC_IMPORT_SPSTEP\iATC_Analiz_SpStep.vip" SourceLine="461" SourceColumn="23"/>
 					<CompileMessage MessageType="mtWarning" MessageText="Ожидалось: &quot;;&quot;" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\IATC_IMPORT_SPSTEP\iATC_Analiz_SpStep.vip" SourceLine="472" SourceColumn="1"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Ожидалось: &quot;;&quot;" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\IATC_IMPORT_SPSTEP\iATC_Analiz_SpStep.vip" SourceLine="474" SourceColumn="1"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Ожидалось: &quot;;&quot;" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\IATC_IMPORT_SPSTEP\iATC_Analiz_SpStep.vip" SourceLine="491" SourceColumn="3"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Отсутствует информация о лицензировании IATC_ANALIZ_SPSTEP. Помечаем как не лицензированный." SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\IATC_IMPORT_SPSTEP\iATC_Analiz_SpStep.vip" SourceLine="536" SourceColumn="5"/>
+					<CompileMessage MessageType="mtWarning" MessageText="Ожидалось: &quot;;&quot;" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\IATC_IMPORT_SPSTEP\iATC_Analiz_SpStep.vip" SourceLine="473" SourceColumn="1"/>
+					<CompileMessage MessageType="mtWarning" MessageText="Ожидалось: &quot;;&quot;" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\IATC_IMPORT_SPSTEP\iATC_Analiz_SpStep.vip" SourceLine="475" SourceColumn="1"/>
+					<CompileMessage MessageType="mtWarning" MessageText="Ожидалось: &quot;;&quot;" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\IATC_IMPORT_SPSTEP\iATC_Analiz_SpStep.vip" SourceLine="492" SourceColumn="3"/>
+					<CompileMessage MessageType="mtWarning" MessageText="Отсутствует информация о лицензировании IATC_ANALIZ_SPSTEP. Помечаем как не лицензированный." SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\IATC_IMPORT_SPSTEP\iATC_Analiz_SpStep.vip" SourceLine="537" SourceColumn="5"/>
 					<CompileMessage MessageType="mtInfo" MessageText="Компиляция ведется без файла контроля лицензий!" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\IATC_IMPORT_SPSTEP\iATC_Import_Protocol.vip" SourceLine="33" SourceColumn="1"/>
 					<CompileMessage MessageType="mtWarning" MessageText="Ожидалось: &quot;;&quot;" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\IATC_IMPORT_SPSTEP\iATC_Import_Protocol.vip" SourceLine="35" SourceColumn="1"/>
 					<CompileMessage MessageType="mtWarning" MessageText="Отсутствует информация о лицензировании IATC_IVSHETB_SP. Помечаем как не лицензированный." SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\IATC_IMPORT_SPSTEP\iATC_Import_Protocol.vip" SourceLine="51" SourceColumn="5"/>
@@ -302,7 +302,7 @@
 					<CompileMessage MessageType="mtWarning" MessageText="Не найден объект" SourceLine="-1" SourceColumn="-1"/>
 					<CompileMessage MessageType="mtWarning" MessageText="Не найден объект" SourceLine="-1" SourceColumn="-1"/>
 					<CompileMessage MessageType="mtWarning" MessageText="и еще" SourceFileName="C:\G" SourceLine="758" SourceColumn="120"/>
-					<CompileMessage MessageType="mtEndCompile" MessageText="06.07.2024 10:18:41"/>
+					<CompileMessage MessageType="mtEndCompile" MessageText="06.07.2024 10:22:08"/>
 				</CompileMessageList>
 			</CompileMessenger>
 		</CompileMessengerList>
