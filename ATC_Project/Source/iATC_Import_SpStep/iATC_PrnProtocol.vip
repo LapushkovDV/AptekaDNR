@@ -1,0 +1,111 @@
+#component "ATC"
+interface iATC_PrnProtocol 'Протокол согласования цен';
+table struct local _tmp
+(
+  Npp                   : word,
+  cSpSopr               : comp,
+  lnk_RON_Proc          : double,
+  lnk_RON_Rub           : double,
+  lnk_USN_ENVED         : double,
+  lnk_Price             : double,
+  lnk_Price_W_NDS       : double
+)
+with index
+(
+  ident0   = cSpSopr + Npp
+);
+
+var
+  _KatSopr_nRec :comp;
+
+create view
+as select *
+from
+  KatSopr
+ ,KatOrg
+ ,KatOrg KatOrg_my
+ ,SpSopr
+ ,KatParty
+ ,ATC_KatParty_Atr
+ ,_tmp
+ ,_tmp _tmp_del
+where ((
+    _KatSopr_nRec            == KatSopr.nRec
+and KatSopr.nRec             == SpSopr.cSopr
+and KatSopr.cOrg             == KatOrg.nRec
+and coGetTune('MyOrg')       == KatOrg_my.NRec
+
+and SpSopr.cParty           /== KatParty.nRec
+and KatParty.nRec           /== ATC_KatParty_Atr.cParty
+
+and SpSopr.nRec              == _tmp.cSpSopr
+
+)) ;
+
+Parameters _KatSopr_nRec;
+
+datastream DS_PrnProt
+(
+  Table KatSopr(
+    [nSopr]   KatSopr.nSopr;
+    [dSopr]   KatSopr.dSopr;
+    [MyOrg]   KatOrg_my.Name;
+    [Org]     KatOrg.Name;
+    Table SpSopr(
+        [mnn]                 ATC_KatParty_Atr.Mnn;
+        [TorgName]            ATC_KatParty_Atr.TorgName;
+        [Seria]               ATC_KatParty_Atr.Seria;
+        [PROIZVODITEL]        ATC_KatParty_Atr.PROIZVODITEL;
+        [PRICEGRPOC]          ATC_KatParty_Atr.PRICEGRPOC;
+        [OTPPRICE]            ATC_KatParty_Atr.OTPPRICE;
+        [OTPPRICE_W_NDS]      ATC_KatParty_Atr.OTPPRICE_W_NDS;
+        [DREALIZ]             ATC_KatParty_Atr.DREALIZ;
+        [USN_ENVED]           ATC_KatParty_Atr.USN_ENVED;
+        [PRICE]               ATC_KatParty_Atr.PRICE;
+        [PRICE_W_NDS]         ATC_KatParty_Atr.PRICE_W_NDS;
+        Table _tmp(
+            [Npp]                _tmp.Npp;
+            [lnk_RON_Proc]       _tmp.lnk_RON_Proc;
+            [lnk_RON_Rub]        _tmp.lnk_RON_Rub;
+            [lnk_USN_ENVED]      _tmp.lnk_USN_ENVED;
+            [lnk_Price]          _tmp.lnk_Price;
+            [lnk_Price_W_NDS]    _tmp.lnk_Price_W_NDS;
+        );
+        [SpSopr_Price]         if (KatSopr.VHODNAL = 2, SpSopr.Price, SpSopr.Price-(SpSopr.SumNDS/SpSopr.Kol));
+        [SpSopr_Price_w_nds]   if (KatSopr.VHODNAL = 2, SpSopr.Price+(SpSopr.SumNDS/SpSopr.Kol), SpSopr.Price);
+    );
+  );
+)
+end;
+
+HandleEvent
+cmInit:{
+  delete all _tmp_del;
+  if GetFirst KatSopr <> tsOk
+     {
+       message('Накладная не найдена! Процедура формирования протокола согласования цен прервана.');
+       Abort; Exit;
+     }
+  _loop SpSopr
+  {
+    var j :word;
+    for(j:=1;j<=10;inc(j))
+    {
+      if ATC_KatParty_Atr.lnk_RON_Proc[j] <> 0
+         {
+           ClearBuffer(#_tmp);
+           _tmp.Npp             := j;
+           _tmp.cSpSopr         := SpSopr.nRec;
+           _tmp.lnk_RON_Proc    := ATC_KatParty_Atr.lnk_RON_Proc[j];
+           _tmp.lnk_RON_Rub     := ATC_KatParty_Atr.lnk_RON_Rub[j];
+           _tmp.lnk_USN_ENVED   := ATC_KatParty_Atr.lnk_USN_ENVED[j];
+           _tmp.lnk_Price       := ATC_KatParty_Atr.lnk_Price[j];
+           _tmp.lnk_Price_W_NDS := ATC_KatParty_Atr.lnk_Price_W_NDS[j];
+           insert current _tmp;
+         }
+    }
+  }
+  RunFReport(DS_PrnProt, '', true);
+}
+end; // HandleEvent
+end. // Interface

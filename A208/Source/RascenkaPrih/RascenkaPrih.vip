@@ -1,0 +1,599 @@
+#include marker.vih
+const
+  _ColorFldInput   = 67;
+  _ColorFldInput2  = 69;
+end;
+
+interface iATC_RascenkaPrih 'Расценка полученных МЦ';
+Show at (,,180,22);
+
+table struct local _tmpNac
+(
+  cSpSopr             :comp,
+  ProcNac             :double,
+  OptNac              :double,
+  dbl                 :word
+)
+with index
+(
+  by_cSopr = cSpSopr
+);
+
+table struct local _tmpPrice
+(
+  cSpSopr             :comp,
+  Price_1             :double,
+  cPrice_1            :comp,
+  Price_2             :double,
+  cPrice_2            :comp
+)
+with index
+(
+  by_cSopr = cSpSopr
+);
+
+var _nRecSopr          :comp;
+    pMarker            :IMarker(marker) new;
+    marker             :longInt;
+    ex                 :iExtAttr;
+    _RoundTo           :word;
+    _nRecKlPrice_Price :comp;
+    _nRecKlPrice_Rozn  :comp;
+
+create view
+as select *
+, ex.sGetAttr(word(1411),KatMC.nRec,'БлокСкидки') (fieldName = _SK)
+, if(KatSopr.VhodNal = 1, (SpSopr.Price - (SpSopr.SumNDS/SpSopr.KolFact)), SpSopr.Price) (fieldName = _Price)
+, if(KatSopr.VhodNal = 1, SpSopr.Price, SpSopr.Price+(SpSopr.SumNDS/SpSopr.KolFact)) (fieldName = _Price_s_NDS)
+, if(KatSopr.VhodNal = 1, SpSopr.Price*SpSopr.KolFact,SpSopr.Price*SpSopr.KolFact+SpSopr.SumNDS ) (fieldName = _Summa)
+, if(isValid(tn_tmpNac)
+      ,if(_tmpNac.dbl = 1,'Ok',if(_tmpNac.dbl = 0,'-','Err.'))
+      ,'-'
+    )(fieldName = _SN_Status)
+, if(KatMC.Polzak = 11,if((_Price-ATC_KatParty_Atr.OTPPRICE)/ATC_KatParty_Atr.OTPPRICE*100 > 0,(_Price-ATC_KatParty_Atr.OTPPRICE)/ATC_KatParty_Atr.OTPPRICE*100,0),0) (fieldName = _ProcNacOpt_F)
+, if(_tmpNac.ProcNac-_ProcNacOpt_F > 0,_tmpNac.ProcNac,_tmpNac.ProcNac+(_tmpNac.ProcNac-_ProcNacOpt_F)) (fieldName = _ProcNacRozn_F)
+, if(KatMC.Polzak = 11
+      ,if(ATC_KatParty_Atr.OTPPRICE>_Price,_Price*_ProcNacRozn_F/100+_Price,ATC_KatParty_Atr.OTPPRICE*_ProcNacRozn_F/100+ATC_KatParty_Atr.OTPPRICE)
+      ,(_Price*_ProcNacRozn_F/100+_Price)
+    ) (fieldName = _rPriceUpack_NotNDS)
+, _rPriceUpack_NotNDS+_rPriceUpack_NotNDS/100*SpGrNal.Nalog (fieldName = _rPriceUpack_s_NDS)
+, if(isValid(tnKatOtpEdMin), KatOtpEdMin.koef, 1) (fieldName = OEKoefDel)
+//=====================================================================================
+, Trunc((_rPriceUpack_s_NDS* OEKoefDel),_RoundTo) (fieldName = _rPriceKonVal_s_NDS)
+, Trunc((_rPriceKonVal_s_NDS/OEKoefDel),_RoundTo) (fieldName = _rPriceUpack_s_NDS)
+//=====================================================================================
+, Round((((_tmpPrice.Price_1/_Price_s_NDS)-1)*100)-_tmpNac.ProcNac,2) (fieldName = _KontrolNac)
+,((_tmpPrice.Price_1/_Price_s_NDS)-1)*100 (fieldName = _proc_Nac_Price)
+,Round(((_tmpPrice.Price_2/_Price_s_NDS)-1)*100,1) (fieldName = _proc_Nac_Rozn)
+,_tmpPrice.Price_1*SpSopr.KolFact (fieldName = _SumByPrice)
+,if(ATC_KatParty_Atr.OTPPRICE>ATC_KatParty_Atr.PRICEGRPOC,ATC_KatParty_Atr.OTPPRICE-ATC_KatParty_Atr.PRICEGRPOC,0) (fieldName = _KontrolPriceRees)
+
+from
+  KatSopr
+ ,SpSopr
+ ,KatMC
+ ,KatMC KatMC_gf
+ ,GroupMC GroupMC_gf
+ ,Prices Prices_1
+ ,Prices Prices_2
+ ,Prices Prices_gf
+ ,KlPrice KlPrice_gf
+ ,KatParty
+ ,ATC_KatParty_Atr
+ ,GrNal
+ ,Atc_ScaleNac
+ ,_tmpNac
+ ,_tmpNac _tmpNac_gf
+ ,KatOtpEd KatOtpEdMin(KATOTPED08)
+ ,_tmpPrice
+ ,_tmpPrice _tmpPrice_gf
+ ,KatOtpEd
+
+where ((
+    _nRecSopr          ==  KatSopr.nRec
+and KatSopr.nRec       ==  SpSopr.cSopr
+and 1                  ==  SpSopr.PrMC
+and SpSopr.cSpStep     ==  SpStep.nRec
+and SpSopr.cMcUsl      ==  KatMC.nRec
+and 1                  ==  KatOtpEdMin.PRMC
+and SpSopr.cMcUsl      ==  KatOtpEdMin.CMCUSL
+
+and KatMC.cGrNal       ==  GrNal.nRec
+and GrNal.nRec         ==  SpGrNal.cGrNal
+and SpStep.nRec        ==  ATC_SpStep_Atr.cSpStep
+
+and SpSopr.nRec        ==  _tmpNac.cSpSopr
+and SpSopr.nRec        ==  _tmpPrice.cSpSopr
+
+and _nRecKlPrice_Price ==  Prices_1.cKlPrice
+and SpSopr.cMcUsl      ==  Prices_1.cThing
+and _nRecKlPrice_Rozn  ==  Prices_2.cKlPrice
+and SpSopr.cMcUsl      ==  Prices_2.cThing
+
+and SpSopr.cParty      ==  KatParty.nRec
+and SpSopr.cParty      ==  ATC_KatParty_Atr.cParty
+
+and SpSopr.cOtpEd      ==  KatOtpEd.nRec
+
+));
+
+Parameters _nRecSopr;
+
+
+Function _CanClose : boolean;
+{
+  result := true;
+  StartNewVisual (vtRotateVisual, vfTimer, 'Проверка...', 1 );
+  _loop SpSopr
+  {
+    NextVisual;
+    if GetFirst Prices_1 = tsOk
+       {
+         if Prices_1.Price <> _tmpPrice.Price_1 result := false;
+       }
+    if GetFirst Prices_2 = tsOk
+       {
+         if Prices_2.Price <> _tmpPrice.Price_2 result := false;
+       }
+  }
+  StopVisual('',0);
+}
+
+Procedure InsHistoryPrice(nRec_Prices:comp);
+{
+  if boGetTune('Price.HistPrice') = false
+     {
+       Exit;
+     }
+
+  if GetFirst Prices_gf where ((nRec_Prices == Prices_gf.nRec)) = tsOk
+     {
+       if GetFirst PickRep where ((word(1114) == PickRep.wList and Prices_gf.nRec == PickRep.cRec and Cur_Date() == PickRep.LastDate(noIndex) )) <> tsOk
+          {
+            ClearBuffer(#PickRep);
+            PickRep.nRec     := GetNextNRec(#PickRep, 0);
+            PickRep.wList    := word(1114);
+            PickRep.cRec     := Prices_gf.nRec;
+            PickRep.LastDate := Cur_Date();
+            PickRep.PickKol  := Prices_gf.Price;
+            PickRep.PickNum  := 738735;
+            PickRep.cUser    := UserId();
+            insert current PickRep;
+          } else
+          {
+            PickRep.PickKol  := Prices_gf.Price;
+            update current PickRep;
+          }
+
+       if NOT Ex.dSetAttrEx (
+            word(1114),                  // _wTable  : Word;
+            Prices_gf.nRec,               // _cRec    : Comp;
+            'Дата цены',                 // _Name    : String;
+            PickRep.LastDate,            // _Val
+            true                         // bRealTbl : Boolean
+          ) {};
+     }
+}
+
+
+Browse br_Rascenka 'Расценка полученных МЦ' ('Расценка полученных МЦ',  , sci1EnIns);
+Show at (,,,18);
+table SpSopr
+recMarker = pMarker {SpSopr.nRec};
+Fields
+  SpSopr.Npp                       '№','п.п.'                                   :[4],  protect,NoPickButton, NoAutoSize;
+  KatMC.BARKOD                     'Баркод'                                     :[15], protect,NoPickButton;
+  KatMC.Name                       'Наименование'                               :[30], protect,NoPickButton;
+  KatMC.BARKOD2                    'Заводской','штрихкод'                       :[15], protect,NoPickButton;
+  ATC_KatParty_Atr.Seria           'Серия'                                      :[10], protect,NoPickButton;
+  KatMC.PRICEPU                    'Группа','менеджера'                         :[10], protect,NoPickButton;
+  KatMC.GOST                       'ПК'                                         :[15], protect,NoPickButton;
+  _SK                              'СК'                                         :[8,'\2P[|-]3666`666`666`666.88'] ,NoProtect,right,lessnull,NoPickButton,NoAutoSize;
+  KatMC.Polzak                     'ЦК'                                         :[4], protect,NoPickButton;
+  ATC_KatParty_Atr.PRICEGRPOC      'Зарег','цена','без НДС'                     :[12], [brForSopr_Price, '\2p[|-]36`666`666`666`666.88'],protect,NoAutoSize,lessnull;
+  ATC_KatParty_Atr.OTPPRICE        'Цена','завода','без НДС'                    :[12], [brForSopr_Price, '\2p[|-]36`666`666`666`666.88'],protect,NoAutoSize,lessnull;
+  ATC_KatParty_Atr.OTPPRICE_W_NDS  'Цена','завода','c НДС'                      :[12], [brForSopr_Price, '\2p[|-]36`666`666`666`666.88'],protect,NoAutoSize,lessnull;
+  ATC_KatParty_Atr.DREALIZ         'Дата','реализ.','заводом'                   :[10, 'DD/MM/YYYY'], protect, noPickButton;
+  GrNal.Name                       'Группа','налогов'                           :[20], protect,NoPickButton;
+  SpGrNal.Nalog                    'Ставка','налога'                            :[6,'\2P[|-]3666`666`666`666.88'] ,NoProtect,right,lessnull,NoPickButton,NoAutoSize;
+  SpSopr.KolFact                   'Кол-во'                                     :[12], [brForSopr_Price, '\2p[|-]36`666`666`666`666.88'],protect,NoAutoSize,lessnull;
+  _Price                           'Цена','без НДС'                             :[12], [brForSopr_Price, '\2p[|-]36`666`666`666`666.88'],protect,NoAutoSize,lessnull;
+  _Price_s_NDS                     'Цена','без НДС'                             :[12], [brForSopr_Price, '\2p[|-]36`666`666`666`666.88'],protect,NoAutoSize,lessnull;
+  SpSopr.SumNDS                    'Сумма','НДС'                                :[12], [brForSopr_Price, '\2p[|-]36`666`666`666`666.88'],protect,NoAutoSize,lessnull;
+  _Summa                           'Сумма','с НДС'                              :[12], [brForSopr_Price, '\2p[|-]36`666`666`666`666.88'],protect,NoAutoSize,lessnull;
+  _SN_Status                       'Контроль','шкалы','наценок'                 :[4],  protect,NoPickButton, NoAutoSize;
+  _tmpNac.ProcNac                  'Процент','нецен.','РОЗН по ЦК'              :[10,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;
+  _tmpNac.OptNac                   'Процент','нецен.','ОПТ по ЦК'               :[10,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;
+  _ProcNacOpt_F                    'Процент','наценки','ОПТ ФАКТ'               :[10,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;
+  _ProcNacRozn_F                   'Процент','наценки','РОЗН ФАКТ'              :[10,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;
+  _rPriceUpack_NotNDS              'Расч.цена','за упак.','без НДС','до округ.' :[12,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;
+  _rPriceUpack_s_NDS               'Расч.цена','за упак.','с НДС','до округ.'   :[12,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;
+  _rPriceKonVal_s_NDS              'Расч.цена','за конвал.','с НДС'             :[12,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;
+  _rPriceUpack_s_NDS               'Расч.цена','за упак.','с НДС'               :[12,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;
+  _tmpPrice.Price_1                'Прайсовая','цена'                           :[12,'\2P[|-]3666`666`666`666.88'] ,NoProtect,right,lessnull,NoPickButton,NoAutoSize,
+       {Font = {backColor = if(_tmpPrice.Price_1 <> Prices_1.Price, _ColorFldInput, 77)}};
+  _tmpPrice.Price_2                'Розичная','цена'                            :[12,'\2P[|-]3666`666`666`666.88'] ,NoProtect,right,lessnull,NoPickButton,NoAutoSize,
+       {Font = {backColor = if(_tmpPrice.Price_2 <> Prices_2.Price, _ColorFldInput, 77)}};
+  _KontrolNac                      'Контроль','наценки'                         :[12,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;
+  _proc_Nac_Price                  '% НАЦЕНКИ','прайс'                          :[12,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;
+  _proc_Nac_Rozn                   '% НАЦЕНКИ','розн'                           :[12,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;
+  _SumByPrice                      'СУММА','в ценах','прайса'                   :[12,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;
+  _KontrolPriceRees                'Превышение','цены','Реестра'                :[12,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;
+  OEKoefDel                        'Коэффициент','делимости'                    :[6,'\2P[|-]3666`666`666`666.88'] ,NoProtect,right,lessnull,NoPickButton,NoAutoSize;
+end; //Browse
+
+Screen scr_Rascenka (, , sci1Esc);
+Show at (,19,,) Fixed_y;
+Buttons
+  cmSavePrices,,,     'Сохранить цены в БД по помеченным записям', , sci1Esc;
+<<
+   <. Сохранить изменения .>
+
+>>
+end; // screen
+
+HandleEvent
+cmInit:{
+  SET _RoundTo := wGetTune('GALCOMMON.PARTNER2.RascenPrihod.Rascen_round');
+  SET _nRecKlPrice_Price := coGetTune('GALCOMMON.PARTNER2.RascenPrihod.A208Price_1');
+  SET _nRecKlPrice_Rozn  := coGetTune('GALCOMMON.PARTNER2.RascenPrihod.A208Price_2');
+  if (GetFirst KlPrice_gf where ((_nRecKlPrice_Price == KlPrice_gf.nRec)) <> tsOk) or
+     (GetFirst KlPrice_gf where ((_nRecKlPrice_Rozn  == KlPrice_gf.nRec)) <> tsOk)
+     {
+       message('Для корректной работы нужно установить прайс листы "Прайсовые цены" и "Розничные цены"'+chr(13)+
+               'Общие настройки системы->Параметры торговых залов->Расценка прихода'
+              );
+       abort; Exit;
+     }
+
+  delete all _tmpNac_gf;
+  delete all _tmpPrice_gf;
+  StartNewVisual (vtRotateVisual, vfTimer, 'Анализ ЦК', 1 );
+  var _npp:word = 0
+  _loop SpSopr
+  {
+    _npp++;
+    SetVisualHeader('Анализ ЦК'+chr(13)+'Всего обработано позиций: '+_npp );
+    _loop Atc_ScaleNac where (( KatMC.Polzak   == Atc_ScaleNac.Code))
+    {
+      if Atc_ScaleNac.dBeg <= KatSopr.dSopr and if(Atc_ScaleNac.dEnd = date(0,0,0),KatSopr.dSopr,Atc_ScaleNac.dEnd) >= KatSopr.dSopr
+         {
+           if Atc_ScaleNac.CenaFrom <= _Price and Atc_ScaleNac.CenaTo >= _Price
+              {
+                ClearBuffer(#_tmpNac);
+                _tmpNac.cSpSopr := SpSopr.nRec;
+                if Atc_ScaleNac.cGrNal1 = KatMC.cGrNal
+                   {
+                     _tmpNac.ProcNac := Atc_ScaleNac.ProcNac1;
+                   }
+                if Atc_ScaleNac.cGrNal2 = KatMC.cGrNal
+                   {
+                     _tmpNac.ProcNac := Atc_ScaleNac.ProcNac2;
+                   }
+                _tmpNac.OptNac  := Atc_ScaleNac.ProcOpt;
+                insert current _tmpNac;
+              }
+         } // if Atc_ScaleNac.dBeg <= KatSopr.dSopr and if(Atc_ScaleNac.dEnd = date(0,0,0),KatSopr.dSopr,Atc_ScaleNac.dEnd) >= KatSopr.dSopr
+
+      ClearBuffer(#_tmpPrice);
+      _tmpPrice.cSpSopr := SpSopr.nRec;
+      if GetFirst Prices_1 = tsOk
+         {
+           _tmpPrice.Price_1  := Prices_1.Price;
+           _tmpPrice.cPrice_1 := Prices_1.nRec;
+         }
+      if GetFirst Prices_2 = tsOk
+         {
+           _tmpPrice.Price_2  := Prices_2.Price;
+           _tmpPrice.cPrice_2 := Prices_2.nRec;
+         }
+      insert current _tmpPrice;
+
+    }// _loop Atc_ScaleNac where (( KatMC.Polzak   == Atc_ScaleNac.Code))
+  }// _loop SpSopr
+
+  SetVisualHeader('Анализ ЦК');
+  _loop SpSopr
+  {
+    NextVisual;
+    _npp := 0;
+    _loop _tmpNac
+    {
+      _npp++;
+    }
+    update _tmpNac_gf where ((SpSopr.nRec == _tmpNac_gf.cSpSopr)) SET _tmpNac_gf.dbl := _npp;
+  }
+  StopVisual('',0);
+}
+
+cmCheckField:{
+  if curField = #_tmpPrice.Price_1 or curField = #_tmpPrice.Price_2
+     {
+       update current _tmpPrice;
+     }
+  reReadRecord(#SpSopr);
+}
+
+cmHotKeys:{
+  if curTable = #SpSopr
+     {
+       PutHotCommand(RunMenu('mnu_ATC_RascenkaPrih'));
+     }
+}
+
+cmValue1:{
+  if pMarker.Count = 0
+     {
+       message('Нет помеченных записей');
+       Abort; Exit;
+     }
+  if (message('Вы уверены, что хотите перенести расчетные цены в колонку Прайсовая цена?',YesNo)<>Yes)
+     {
+       Abort; Exit;
+     }
+  var _curPos :comp = SpSopr.nRec;
+  var i:word;
+  var _nRec:comp=0;
+  marker:=InitMarker('iPpick', 8, 100, 10);
+  pMarker.ExportTo(marker);
+  for(i:=0;i<GetmarkerCount(marker);inc(i))
+  {
+    GetMarker(marker, i, _nRec);
+    if GetFirst SpSopr where (( _nRec == SpSopr.nRec)) = tsOk
+       {
+         if GetFirst _tmpPrice = tsOk
+           {
+             SET _tmpPrice.Price_1 := _rPriceUpack_s_NDS;
+             update current _tmpPrice;
+           }
+       }
+  }
+  if GetFirst SpSopr where (( _curPos == SpSopr.nRec)) = tsOk
+  ReReadRecord(#SpSopr);
+  pMarker.UnSelectAll;
+  DoneMarker(Marker,'iPpick');
+}
+
+cmValue2:{
+  if pMarker.Count = 0
+     {
+       message('Нет помеченных записей');
+       Abort; Exit;
+     }
+  if (message('Вы уверены, что хотите перенести расчетные цены в колонку Розничная цена?',YesNo)<>Yes)
+     {
+       Abort; Exit;
+     }
+  var _curPos :comp = SpSopr.nRec;
+  var i:word;
+  var _nRec:comp=0;
+  marker:=InitMarker('iPpick', 8, 100, 10);
+  pMarker.ExportTo(marker);
+  for(i:=0;i<GetmarkerCount(marker);inc(i))
+  {
+    GetMarker(marker, i, _nRec);
+    if GetFirst SpSopr where (( _nRec == SpSopr.nRec)) = tsOk
+       {
+         if GetFirst _tmpPrice = tsOk
+           {
+             SET _tmpPrice.Price_2 := _rPriceUpack_s_NDS;
+             update current _tmpPrice;
+           }
+       }
+  }
+  if GetFirst SpSopr where (( _curPos == SpSopr.nRec)) = tsOk
+  ReReadRecord(#SpSopr);
+  pMarker.UnSelectAll;
+  DoneMarker(Marker,'iPpick');
+}
+
+cmValue3:{
+  if pMarker.Count = 0
+     {
+       message('Нет помеченных записей');
+       Abort; Exit;
+     }
+  if (message('Вы уверены, что хотите загрузить цены из текущих прайсов?',YesNo)<>Yes)
+     {
+       Abort; Exit;
+     }
+  var _curPos :comp = SpSopr.nRec;
+  var i:word;
+  var _nRec:comp=0;
+  marker:=InitMarker('iPpick', 8, 100, 10);
+  pMarker.ExportTo(marker);
+  for(i:=0;i<GetmarkerCount(marker);inc(i))
+  {
+    GetMarker(marker, i, _nRec);
+    if GetFirst SpSopr where (( _nRec == SpSopr.nRec)) = tsOk
+       {
+         if GetFirst _tmpPrice = tsOk
+           {
+             SET _tmpPrice.Price_1 := Prices_1.Price;
+             SET _tmpPrice.Price_2 := Prices_2.Price;
+             update current _tmpPrice;
+           }
+       }
+  }
+  if GetFirst SpSopr where (( _curPos == SpSopr.nRec)) = tsOk
+  ReReadRecord(#SpSopr);
+  pMarker.UnSelectAll;
+  DoneMarker(Marker,'iPpick');
+}
+
+cmSavePrices:{
+  var _curPos :comp = SpSopr.nRec;
+  if pMarker.Count = 0
+     {
+       Message('Нет отмеченных записей'); abort; exit;
+     }
+  if (message(''#3'Сохранить цены в прайс листе по отмеченным позициям?',YesNo)<>Yes)
+     {
+       Abort; Exit;
+     }
+
+
+  StartNewVisual (vtRotateVisual, vfTimer, 'Сохранение цен...', 1 );
+  _loop SpSopr
+  {
+    if GetFirst Prices_1 = tsOk
+       {
+         Prices_1.SrPrice  := _tmpPrice.Price_1;
+         Update current Prices_1;
+/*
+         if NOT Ex.doSetAttrEx (
+              word(1114),                  // _wTable  : Word;
+              Prices_1.NREC,               // _cRec    : Comp;
+              'Наценка %',                 // _Name    : String;
+              _tmpPrices_1.ProcNacRozn,    // _Val
+              true                         // bRealTbl : Boolean
+            ) {};
+*/
+       } else
+       {
+         var _npp_sp: word = 0;
+         if GetLast Prices_gf(Prices_104) where ((_nRecKlPrice_Price == Prices_gf.CKLPRICE)) = tsOk _npp_sp := Prices_gf.npp;
+         if GetFirst KatMC_gf where ((SpSopr.cMcUsl == KatMC_gf.nRec)) = tsOk
+            {
+              ClearBuffer(#Prices_1);
+              Prices_1.NREC       :=  GetNextNRec(#Prices_1, 0);
+              Prices_1.CKLPRICE   :=  _nRecKlPrice_Price;
+              Prices_1.NPP        :=  _npp_sp+1;
+              Prices_1.CTHING     :=  KatMC_gf.nRec;
+              Prices_1.TIP        :=  0;
+              Prices_1.NAME       :=  KatMC_gf.NAME;
+              Prices_1.BARKOD     :=  KatMC_gf.BARKOD;
+              if GetFirst GroupMC_gf where ((KatMC_gf.CGROUPMC == GroupMC_gf.nRec )) = tsOk
+                 {
+                   Prices_1.KOD   :=  GroupMC_gf.KOD;
+                 }
+              Prices_1.DISKRET    :=  KatOtpEd.DISKRET;
+              Prices_1.PRICE      :=  _tmpPrice.Price_1;
+//              Prices_1.SrPrice    :=  _tmpPrices_1.SpSopr_Price;
+              Prices_1.COTPED     :=  SpSopr.cOtpEd;
+              insert current Prices_1;
+/*
+              if NOT Ex.doSetAttrEx (
+                   word(1114),                  // _wTable  : Word;
+                   Prices_1.NREC,               // _cRec    : Comp;
+                   'Наценка %',                 // _Name    : String;
+                   _tmpPrices_1.ProcNacRozn,    // _Val
+                   true                         // bRealTbl : Boolean
+                 ) {};
+*/
+            }
+
+       }
+
+    if GetFirst Prices_2 = tsOk
+       {
+         Prices_2.SrPrice  := _tmpPrice.Price_1;
+         Update current Prices_2;
+/*
+         if NOT Ex.doSetAttrEx (
+              word(1114),                  // _wTable  : Word;
+              Prices_2.NREC,               // _cRec    : Comp;
+              'Наценка %',                 // _Name    : String;
+              _tmpPrices_2.ProcNacRozn,    // _Val
+              true                         // bRealTbl : Boolean
+            ) {};
+*/
+       } else
+       {
+         var _npp_sp: word = 0;
+         if GetLast Prices_gf(Prices_204) where ((_nRecKlPrice_Rozn == Prices_gf.CKLPRICE)) = tsOk _npp_sp := Prices_gf.npp;
+         if GetFirst KatMC_gf where ((SpSopr.cMcUsl == KatMC_gf.nRec)) = tsOk
+            {
+              ClearBuffer(#Prices_2);
+              Prices_2.NREC       :=  GetNextNRec(#Prices_2, 0);
+              Prices_2.CKLPRICE   :=  _nRecKlPrice_Rozn;
+              Prices_2.NPP        :=  _npp_sp+1;
+              Prices_2.CTHING     :=  KatMC_gf.nRec;
+              Prices_2.TIP        :=  0;
+              Prices_2.NAME       :=  KatMC_gf.NAME;
+              Prices_2.BARKOD     :=  KatMC_gf.BARKOD;
+              if GetFirst GroupMC_gf where ((KatMC_gf.CGROUPMC == GroupMC_gf.nRec )) = tsOk
+                 {
+                   Prices_2.KOD   :=  GroupMC_gf.KOD;
+                 }
+              Prices_2.DISKRET    :=  KatOtpEd.DISKRET;
+              Prices_2.PRICE      :=  _tmpPrice.Price_2;
+//              Prices_2.SrPrice    :=  _tmpPrices_2.SpSopr_Price;
+              Prices_2.COTPED     :=  SpSopr.cOtpEd;
+              insert current Prices_2;
+/*
+              if NOT Ex.doSetAttrEx (
+                   word(1114),                  // _wTable  : Word;
+                   Prices_2.NREC,               // _cRec    : Comp;
+                   'Наценка %',                 // _Name    : String;
+                   _tmpPrices_2.ProcNacRozn,    // _Val
+                   true                         // bRealTbl : Boolean
+                 ) {};
+*/
+            }
+
+       }
+
+  }
+
+  var i:word;
+  var _nRec:comp=0;
+  marker:=InitMarker('iPpick', 8, 100, 10);
+  pMarker.ExportTo(marker);
+  for(i:=0;i<GetmarkerCount(marker);inc(i))
+  {
+    NextVisual;
+    GetMarker(marker, i, _nrec);
+    if GetFirst SpSopr where ((_nrec == SpSopr.nRec)) = tsOk and GetFirst _tmpPrice = tsOk
+       {
+         if GetFirst Prices_1 = tsOk
+            {
+              Prices_1.Price    := _tmpPrice.Price_1;
+//              Prices_1.SrPrice  := _tmpPrice.Price;
+              Update current Prices_1;
+              InsHistoryPrice(Prices_1.nRec);
+            }
+
+         if GetFirst Prices_2 = tsOk
+            {
+              Prices_2.Price    := _tmpPrice.Price_2;
+//              Prices_1.SrPrice  := _tmpPrice.Price;
+              Update current Prices_2;
+              InsHistoryPrice(Prices_2.nRec);
+            }
+
+       }
+  }
+
+  pMarker.UnSelectAll;
+  DoneMarker(Marker,'iPpick');
+
+  StopVisual('',0);
+  if GetFirst SpSopr where (( _curPos == SpSopr.nRec)) = tsOk
+  ReReadRecord(#SpSopr);
+}
+
+cmClose:{
+  if NOT _CanClose
+     {
+       if (message('Внимание! Есть позиции по котором не сохранены цены в прайс листы!' + chr(13) +
+                   'В уверены, что хотите завершить расценку?',YesNo)<>Yes)
+          {
+            Abort; Exit;
+          }
+     }
+}
+
+cmCancel:{
+  PutCommand(cmClose);
+  Abort;
+}
+
+end;
+end.
+
+mnu_ATC_RascenkaPrih Menu {
+   - 'Перенести расчетные цены в колонку Прайсовая цена',            cmValue1, '', hcNoContext, '',, sci1Esc;
+   - 'Перенести расчетные цены в колонку Розничная цена',            cmValue2, '', hcNoContext, '',, sci1Esc;
+   - 'Загрузить цены из текущих прайсов',                            cmValue3, '', hcNoContext, '',, sci1Esc;
+}

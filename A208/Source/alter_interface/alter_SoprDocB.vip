@@ -1,0 +1,40 @@
+#COMPONENT "L_SOPRDOC"
+alter interface SoprDocB;
+
+create view
+//var
+//  ex           : iExtAttr;
+as select *
+from
+   SpSopr SpSopr_gf
+;
+
+window editsopr
+ExtendFormats SCRHEADER;
+screen SCRHEADER ('', hcZakupWNaklEditTopPan, sci178Esc);
+table KatSopr;
+Buttons
+  cmATC_PricesPrih ,,, 'Расценить приход',,;
+<<
+
+
+                                                                                                                                            <.     Расценить приход     .>
+>>
+end; //screen
+HandleEvent
+
+cmATC_PricesPrih:{
+//  message('Интерфейс в разработке');
+//  abort;
+//  exit;
+//  if KatSopr.dOpr = date(0,0,0)
+//     {
+       if RunInterface('ATC_A208::iATC_RascenkaPrih',KatSopr.nRec) = cmDefault {};
+//     } else
+//     {
+//       message('Накладная уже оприходована.');
+//     }
+}
+end;
+end; //window
+end.

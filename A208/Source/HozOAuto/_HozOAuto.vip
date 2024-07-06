@@ -1,0 +1,207 @@
+/*╔═════════════════════════════════════════════════════════════════════════════════════════════╗
+  ║ Проект         : ГАЛАКТИКА                                                                  ║
+  ║ Система        :                                                                            ║
+  ║ Назначение     : Привязка TXO и формирование бух.проводок                                   ║
+  ╚═════════════════════════════════════════════════════════════════════════════════════════════╝*/
+#include G_TXO_EF.inc
+#component "L_Kassa"
+Interface _HOZOAUTO 'Автоматическа привязка TXO и формирование бух.проводок' EscClose, Cyan;
+Show at (1,2,79,21);
+Create View
+var
+  Loop				: word;			// Счетчик для циклов FOR
+  Loop1				: word;			// Счетчик для циклов FOR
+  iMode				: integer;      // Режим задания даты 1-через диалог/N-Вчера (CUR_DATE-1)
+  DateOperation     : date;			// Дата документов 
+(
+  fNameRep			//-- Имена Файлов:	Протокол
+)
+as select
+  'C:\_Hoz'+DateToStr(DateOperation,'YYYYMMDD')+'.txt',	//-- Значения для:	Протокол
+  *
+from KatEd;
+
+Parameters iMode;       //-- Режим работы интерфейса 1-Дата задается через диалог/N-Вчера (CUR_DATE-1)
+
+file fRep;              //-- Файлы:	Протокол
+
+procedure WritePrt(const sMsg: string);
+{ fRep.WriteLn(_CurDateTime+' '+sMsg);
+};
+
+procedure Make_TXO;
+{ SoprHoz.cHozOper := HozOper.nRec;
+  update current SoprHoz;
+
+  InitServTXO(0);
+//  if OkServTXO(SystDate.FilialNo,HozOper.cPlansSch,0)
+  if OkServTXO(1,0,0)
+     if (not MakeTXODoc(0,SoprHoz.NRec,SoprHoz.cHozOper,0,0,0)) {};
+  
+  DoneServTXO;
+}
+
+procedure DoTXORZ;
+{ var strND	: string;
+
+  StartNewVisual(vtNumericVisual, vfTimer,''#3'Формирование проводок'#13#3, 1);
+  for( Loop1 := getfirst SoprHoz where ((HozOper.TidK==SoprHoz.TipDoc and DateOperation == SoprHoz.DatOb)); 
+       Loop1  = tsOk; 
+       Loop1 := getnext  SoprHoz where ((HozOper.TidK==SoprHoz.TipDoc and DateOperation == SoprHoz.DatOb)))
+  { NextVisual;
+
+	strND	:= 'Док.: '+PAD(SoprHoz.NoDoc,12)+''#9;
+	
+
+    if SoprHoz.cHozOper <> 0
+    {  WritePrt(strND + '!!! Проводки УЖЕ сформированы !!!');
+	   continue;
+    };
+
+	Make_TXO;
+
+	WritePrt(strND + 'Ok!')
+
+  }
+  StopVisual('',0);
+};
+
+procedure DoTXO101;
+{ var strND	: string;
+
+  if getfirst GroupSch where (('101' ==	GroupSch.Kod)) <> tsOk exit;
+
+  StartNewVisual(vtNumericVisual, vfTimer,''#3'Формирование проводок'#13#3, 1);
+  for( Loop1 := getfirst SoprHoz where ((HozOper.TidK==SoprHoz.TipDoc and DateOperation == SoprHoz.DatOb)); 
+       Loop1  = tsOk; 
+       Loop1 := getnext  SoprHoz where ((HozOper.TidK==SoprHoz.TipDoc and DateOperation == SoprHoz.DatOb)))
+  { NextVisual;
+
+	if	getfirst StepDoc where ((SoprHoz.cStepDoc == Stepdoc.nRec)) = tsOk
+	{  	if	getfirst SpGrSch where ((GroupSch.nRec == SpGrSch.cGroupSch and word(0) == SpGrSch.wList and StepDoc.cBasedoc == SpGrSch.cBaseDoc)) = tsOk
+	   	{  	strND	:= 'Док.: '+PAD(SoprHoz.NoDoc,12)+''#9;
+
+	    	if	SoprHoz.cHozOper <> 0
+			{	WritePrt(strND + '!!! Проводки УЖЕ сформированы !!!');
+		 	 	continue;
+			};
+
+			Make_TXO;
+
+			WritePrt(strND + 'Ok!');
+		};
+	};
+  };
+  StopVisual('',0);
+};
+
+procedure DoTXO201;
+{ var strND	: string;
+
+  if getfirst GroupSch where (('201' ==	GroupSch.Kod)) <> tsOk exit;
+
+  StartNewVisual(vtNumericVisual, vfTimer,''#3'Формирование проводок'#13#3, 1);
+  for( Loop1 := getfirst SoprHoz where ((HozOper.TidK==SoprHoz.TipDoc and DateOperation == SoprHoz.DatOb)); 
+       Loop1  = tsOk; 
+       Loop1 := getnext  SoprHoz where ((HozOper.TidK==SoprHoz.TipDoc and DateOperation == SoprHoz.DatOb)))
+  { NextVisual;
+
+	if	getfirst StepDoc where ((SoprHoz.cStepDoc == Stepdoc.nRec)) = tsOk
+	{  	if	getfirst SpGrSch where ((GroupSch.nRec == SpGrSch.cGroupSch and word(0) == SpGrSch.wList and StepDoc.cBasedoc == SpGrSch.cBaseDoc)) = tsOk
+	   	{  	strND	:= 'Док.: '+PAD(SoprHoz.NoDoc,12)+''#9;
+
+	    	if	SoprHoz.cHozOper <> 0
+			{	WritePrt(strND + '!!! Проводки УЖЕ сформированы !!!');
+		 	 	continue;
+			};
+
+			Make_TXO;
+
+			WritePrt(strND + 'Ok!');
+		};
+	};
+  };
+  StopVisual('',0);
+};
+
+
+procedure DoTXO;
+{ var strTD	: string;
+
+  if getfirst HozOper where (('MAIN'==Name3(NOINDEX))) = tsOk {};
+  StartNewVisual(vtNumericVisual, vfTimer,''#3'Выбор TXO'#13#3, 1);
+  for( Loop := getfirst HozOper where (('MAIN'==Name3(NOINDEX))); 
+       Loop  = tsOk; 
+       Loop := getnext  HozOper where (('MAIN'==Name3(NOINDEX))))
+  { NextVisual;
+
+	WritePrt('');
+
+	strTD	:= 'Тип документа('+string(HozOper.Tidk)+'):'#9;
+
+    case HozOper.Tidk of
+     903:	WritePrt(strTD+'Розничная торговля: Акт дооценки');
+     907:	WritePrt(strTD+'Розничная торговля: Накладная на возврат от покупателя');
+     908:	WritePrt(strTD+'Розничная торговля: Накладная на внутреннее перемещение');
+     911:	WritePrt(strTD+'Розничная торговля: Накладная на возврат поставщику');
+     912:	WritePrt(strTD+'Розничная торговля: Накладная на возврат на оптовый склад');
+     913:	WritePrt(strTD+'Розничная торговля: Акт уценки');
+     919:	WritePrt(strTD+'Розничная торговля: Накладная на реализацию');
+     101:	WritePrt(strTD+'Снабжение: Счета, ДО на закупку');
+     201:	WritePrt(strTD+'Сбыт: Счета, ДО на продажу');
+     else	{   WritePrt(strTD);
+				WritePrt('Автоматическое формирование проводок для данного типа '+string(HozOper.Tidk)+' НЕ ВЫПОЛНЯЕТСЯ !!!');
+				continue;
+			};
+    end;
+
+	WritePrt('ТХО для привязки:'#9+HozOper.Name1);
+
+	case HozOper.Tidk of
+	 903,907,908,911,912,913,919:	DoTXORZ;
+	 101:							DoTXO101;
+	 201:							DoTXO201;
+	 else	WritePrt('!!! Проводки не сформированы!!!');
+	end;
+  }
+  StopVisual('',0);
+};
+
+//----------------------------------------------------------------------------
+HandleEvent
+cmInit:
+{  //-- Значения для:	Дата документов	
+  DateOperation := Sub_Day(Cur_Date,1);
+  if iMode = 3 DateOperation := Cur_Date;
+  if iMode = 1
+  {  RunDialog('C_Common::GetFormNa', DateOperation);
+	 Message('Дата обрабатываемых документов '+ DateToStr(DateOperation,'DD/MM/YYYY'),0)
+  }
+//-- Открыть файлы-отчеты  (На каждый день один файл. Независимо от кол-ва обработанных протоколов)
+  if (not fRep.OpenFile(fNameRep,stOpen)) fRep.OpenFile(fNameRep,stCreate);	fRep.Seek(fRep.GetSize);	
+
+  WritePrt('Данные из файла:'#9 + fNameRep);
+  WritePrt('--------------- '#9 + 'Interface Start!!!');
+  WritePrt('Режим запуска:'#9#9 + if(iMode = 1,'полуавтоматический','автоматический') );
+  WritePrt('Дата документов:'#9 + DateToStr(DateOperation,'DD/MM/YYYY'));
+
+  WritePrt('Формирование проводок. Процесс начат');
+  if getfirst HozOper where (('MAIN'==Name3(NOINDEX))) = tsOk
+  {  DoTXO;
+  }  else WritePrt('ТХО по умолчанию для автоматического формирования НЕ ОПРЕДЕЛЕНЫ (Критерий: HozOper.Name3=MAIN)!!!');
+  WritePrt('');
+  WritePrt('Формирование проводок. Процесс закончен');
+  WritePrt('--------------- '#9 + 'Interface End!!!');
+  WritePrt('');
+
+  fRep.Close;	//-- Закрыть файлы-отчеты
+
+//-- Открыть файл-отчет
+  if iMode = 1	//-- Показать файлы-отчеты
+     ProcessText(fNameRep,vfNewTitle,'Протокол - файл: ' + fNameRep);
+  
+  abort;
+  exit;
+}
+end
+end.

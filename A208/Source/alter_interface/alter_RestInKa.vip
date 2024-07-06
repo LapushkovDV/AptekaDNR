@@ -1,0 +1,75 @@
+#component "L_Kassa"
+
+alter interface RestInKa;
+create view
+var _cPodrFlt : comp;
+as select *
+from
+  Pick Pick_Del,
+  KatPodr KatPodr_FLT
+where((
+    _cPodrFlt  == KatPodr_FLT.nRec
+));
+
+ExtendFormats scListGood;
+screen scListGood;
+  Fields
+    KatPodr_FLT.Name ('Текущее подразделение. Выбирается по <F3>', , sci13Esc), Protect;
+  Buttons
+    cmATC_exch_log , , , 'Возврат товара из Торгового зала', , sci1Esc;
+<<
+
+
+ .@@@@@@@@@@@@@@@@@@@@@@                                                       <.     Журнал обмена данными      .>
+>>
+end; //screen
+
+
+HandleEvent
+cmInit:{
+  if (Inherited::HandleEvent(cmInit) = heOk)
+     {
+       ReadMyDsk(_cPodrFlt, 'RestInKa__cPodrFlt', true);
+       if mode = 0  SET P_Podr := _cPodrFlt;
+       if (P_Podr <> 0) AddBounds(tbByPodrBound);
+     }
+}
+cmATC_exch_log:{
+  RunInterfaceNoModal('L_Kassa::ATC_exch_log');
+}
+
+cmPlansNo:{
+  if GetFirst Pick_Del where ((555 == Pick_Del.wList)) <> tsOk
+     {
+       ClearBuffer(#Pick_Del);
+       Pick_Del.wList := word(555);
+       Pick_Del.cRec  := ListGood.nRec;
+
+       insert current Pick_Del;
+     }
+  RunInterface('L_Kassa::iATC_PrintBar', 2,'');
+  delete Pick_Del where ((word(555) == Pick_Del.wList));
+  RescanPanel(#ListGood);
+
+}
+
+cmPick:{
+  if (Inherited::HandleEvent(cmPick) = heOk)
+     {
+       if curField = #KatPodr_FLT.Name
+          {
+             if RunInterface('Z_KATPODR::GetAnyPodr', _cPodrFlt, 2) <> cmCancel
+                {
+                  SaveMyDsk(_cPodrFlt, 'RestInKa__cPodrFlt');
+                  SET P_Podr := _cPodrFlt;
+                  if (P_Podr <> 0)
+                     {
+                       if NOT BoundActive(tbByPodrBound) AddBounds(tbByPodrBound);
+                     } else SubBounds(tbByPodrBound);
+                  ReReadRecord(#ListGood);
+                }
+          }
+     }
+}
+end;
+end.

@@ -1,0 +1,1780 @@
+//********************************************************************************
+//                                                        (c) корпорация Галактика
+// Галактика 5.85 - Розничная торговля
+// Прием данных из кассового аппарата в Розничную Торговлю
+//********************************************************************************
+#component "L_Kassa"
+#include Actualit.vih // Объектный интерфейс Поддержки актуальности сальдо
+#include GetMol.vih   // для GetMOL
+
+#include kut4kass.vih
+#include IrzDocFunc.vih
+
+#doc
+Прием данных из кассового аппарата в Розничную Торговлю
+#end
+
+Interface _Make_Nakl_AUTO 'Розничная торговля: Прием данных из касс' EscClose, Cyan;
+  Show at (, , 110, 29);
+
+#include Actualit.var  // Переменная типа VipInterface SaldoActuality
+
+Create View
+var
+  RzDocNomer       : string;
+  _Param_dNakl     : string; //дата формирования накладных на реализацию (параметр)
+  _DateNakl        : date;   //дата формирования накладных
+
+  Markers          : TPtr;
+  IndexNo          : longint;
+  Loop             : word;
+  DateOperation    : date;
+  dCount
+, TotalForOneCheck
+, KolInAll
+, GetCursPriceDoc: double;
+  typesopr        : comp;
+  TimerSet        : word;
+  PrActivTimer    : boolean;
+  ForPodrOnly
+, ForMolOnly      : comp; // для списания только с этого разреза
+
+  ForPodrName
+, ForMolName
+, SearchString
+                  : string;
+  // тоже формальная переменная, используется в удалении оборотов,
+  // но мне она не нужна, только для формальной компиляции
+  NRecKlVal  : comp;
+  Online     : boolean;
+
+as select
+  if( IsValid(tnPick), 'V', '')
+    ( FieldName = picked )
+
+, if( ResTrade.Status <> 0, '+', '')
+    ( FieldName = used )
+
+, if( ResTrade.cGoods <> 0,
+   if (isvalid(tnListGood), ListGood.NameGoods, '(нет в продаже "' + KatMC_Was.Name+  '")'),
+    if ( ResTrade.Summa > 0,
+      if (ResTrade.Kol > 0, '(F3 - для выбора)', '(инкассация)'), '(аванс)'))
+    ( FieldName = Goods_Operation )
+
+, if (isvalid(tnListGood), KatPodr.Name, KatPodr_Was.Name)
+    ( FieldName = Podr_Operation )
+
+, if (isvalid(tnListGood), KatMol.Name, KatMol_Was.Name)
+    ( FieldName = Mol_Operation )
+
+, oValFunc.GetValSymbol(KatKassa.cPrice)
+    ( FieldName = ValPrih )
+, ResTrade.tSumma/ResTrade.tKol
+    ( FieldName = tov_price )
+
+, KatEdCheck.Name
+    ( FieldName = OtpEdCheck )
+
+, if (SpCheck.Kol <> 0.0, SpCheck.Kol, - SpCheck.KolStorn)
+    ( FieldName = KolCheck )
+, *
+
+from
+  KatPodr
+, KatMol
+, KatMc
+, KatOtpEd
+, Pick
+, KatKassa
+, CredCard
+, DeCodeRt
+, Oborot
+, rzKutPrih
+, rzKutPrih rzKutPrih2
+, rzKutRash
+, ResTrade(ResTrade03)
+, BuyKassa
+, ListCard
+, ResumeRt
+, ListGood
+, rzDoc
+, rzSpDoc
+, SoprHoz
+, Checks(Checks02)
+, SpCheck
+, KatMC     KatMC_Was
+, KatPodr   KatPodr_Was
+, KatMol    KatMol_Was
+, KatPodr   KatPodrSelect
+, KatMol    KatMolSelect
+, KatParty  KatParty2
+, KlVal
+, Build_Rt
+, KolMC
+, SaldoRz
+, KatPodr  KatPodrCheck
+, KatMC    KatMCCheck
+, KatOtpEd KatOtpEdCheck
+, KatEd    KatEdCheck
+, KatKassa KatKassaCheck
+
+, ATC_ResTrade_atr
+, ResTrade ResTrade_r
+, Pick Pick_R
+
+, KatKassa KatKassa_my
+where
+((
+      word(558)         == Pick.wList
+  AND ResTrade.NRec     == Pick.cRec
+  AND ResTrade.cGoods   == ListGood.NRec
+  AND ResTrade.cKassa   == KatKassa.NRec
+  AND KatKassa.cPrice   == KlVal.nRec
+  AND Checks.cKassa     == KatKassaCheck.nRec
+  AND Checks.cCart      == CredCard.nRec
+  AND Checks.nRec       == SpCheck.cCheck
+  AND SpCheck.cPodr     == KatPodrCheck.nRec
+  AND SpCheck.cMC       == KatMCCheck.nRec
+  AND KatMCCheck.cEd    == KatEdCheck.nRec
+  AND SpCheck.cOtpEd    == KatOtpEdCheck.nRec
+  AND ResTrade.cMC      == KatMC_Was.NRec
+  AND ResTrade.cPodr    == KatPodr_Was.NRec
+  AND ResTrade.cMol     == KatMol_Was.NRec
+
+  AND ListGood.cPodr      == KatPodr.NRec
+  AND ListGood.cMol       == KatMol.NRec
+  AND ListGood.cSpPropusk == KatOrg.NRec
+  AND ListGood.c1         == rzKutPrih2.nRec
+  AND rzKutPrih2.cParty   == KatParty2.nRec
+
+  AND rzKutRash.crzPrih == rzKutPrih.NRec
+  AND rzKutPrih.cOtpEd  == KatOtpEd.NRec
+  AND rzKutPrih.cParty  == KatParty.NRec
+
+
+
+  AND ResTrade.NRec     == DeCodeRt.cResTrade
+))
+
+bounds OnlyNew = word(0)     == ResTrade.Status
+;
+
+Parameters _Param_dNakl;
+form frmError('error.out', 'Mistake') with novisual;
+
+var oRzDocFunc: IrzDocFunc;
+
+#include rzTriggers.vpp
+#include RZRound.vpp
+#include hozkut.vpp   //  сопр док кут
+
+
+var search1: boolean;
+
+#doc
+Окно ввода значения для поиска
+#end
+Window wSearch 'Введите значение для поиска' doAccept, EscClose;
+Show at (20,5,72,11);
+Panel pnSearchStr
+Screen scrSearchStr; fields
+ SearchString ('Строка для поиска',,sci1EnEsc), noprotect;
+Buttons
+  cmValue1 ,default, , 'Поиск', , sci1Esc;
+  cmCancel , , , 'Завершить', , sci1Esc;
+<<
+
+   Найти .@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+           <.  Поиск  .>   <.Завершить.>
+
+>>
+end; // screen scrSearchStr
+
+HandleEvent
+end; // he panel pnSearchStr
+end; // panel pnSearchStr
+
+HandleEvent
+cmInit:
+{
+  search1:= false;
+  set SearchString:= SearchString;
+  SelectField(#SearchString);
+
+}
+
+cmValue1:
+{
+  search1:= true;
+  PutCommand(cmDefault);
+}
+
+end; // he window wSearch
+end; // window wSearch
+
+
+
+
+file NewFileCreateForGreatPurpose;
+
+procedure ImportGalaxy( AcKassa: comp );
+{
+  var KassaNRec: comp;
+  var KassaName: string;
+  var WasError  : boolean;
+  var lineCount: word;
+  var fNRec     : comp;
+  var fBarCode  : string;
+  var fKol      : double;
+  var fSumma    : double;
+
+  KassaNRec := AcKassa;
+
+  _try
+  {
+    PushPos(#KatKassa);
+    ResetBounds(#KatKassa);
+
+    PushPos(#ListGood);
+    ResetBounds(#ListGood);
+
+    if ( GetFirst KatKassa where((KassaNRec == KatKassa.NRec)) <> tsOk )
+      {
+        Message('Не могу определить кассу', Warning + OkButton);
+        _doFinally;
+      }
+
+    KassaName := KatKassa.NKassa;
+
+    if ( not InitFileFunction(String(if(KatKassa.LocationIn = '', '', KatKassa.LocationIn+'\*.*'))) )
+      _doFinally;
+
+    WasError := FALSE;
+    lineCount := 0;
+
+    StartNewVisual(vtRotateVisual, vfTimer, 'Обрабатываю...'#13, 0);
+
+    While( not ReadNextString )
+    {
+      lineCount := lineCount + 1;
+      iNextVisual('Анализирую строку ' + String(lineCount));
+
+      fNRec    := comp(Trim(SubStr(GetString, 1, 14)));
+      fBarCode := Trim(SubStr(GetString, 16, 20));
+      fKol     := Double(Trim(SubStr(GetString, 37, 14)));
+      fSumma   := Double(Trim(SubStr(GetString, 52, 14)));
+
+      _try
+      {
+        if( fNRec = 0 )
+          GetFirst ListGood where ((fBarCode == ListGood.BarCode))
+        else
+          GetFirst ListGood where ((fNRec == ListGood.NRec))
+      }
+      _except on ExDataBase:
+      {
+        frmError.write(  'строка ' + String(lineCount)
+                       + ' Не найдено соответствие для товара с '
+                       + if( fNRec = 0, 'баркодом ' + fBarCode, 'уникальной ссылкой  ' + String(fNRec))
+                       + ' Kol: ' + String(fKol) + ' Сумма: ' + String(fSumma));
+
+        WasError := TRUE;
+        continue;
+      }
+
+      ClearBuffer(#ResTrade);
+      ResTrade.NRec     := 0;
+      ResTrade.cGoods   := ListGood.NRec;
+      ResTrade.Kol      := fKol;
+      ResTrade.tKol     := fKol;
+      ResTrade.Summa    := FSRoundDoc(fSumma);
+      ResTrade.tSumma   := FSRoundDoc(fSumma);
+      ResTrade.Session  := word(KatKassa.LastReliefe);
+      ResTrade.cKassa   := KatKassa.NRec;
+
+      if Insert current ResTrade <> tsOk
+        Message('Ошибка при вставке в таблицу ResTrade', Warning);
+    }
+    StopVisual('', 0);
+
+    Message('Было обработано ' + String(lineCount) + ' строк', Information);
+
+    DoneFileFunction;
+    KatKassa.LastReliefe := KatKassa.LastReliefe + 1;
+
+    if UpDate current KatKassa <> tsOk
+      Message('Ошибка при обновлении записи в таблице KatKassa', Warning);
+
+    if ( (not frmError.Error) AND WasError )
+      frmError.showFile('');
+    else
+      frmError.abortForm;
+  }
+  _finally
+  {
+    SetBounds(#KatKassa);
+    PopPos(#KatKassa);
+    SetBounds(#ListGood);
+    PopPos(#ListGood);
+    RereadRecord;
+  }
+}
+
+!*******************************************************************************
+!*** Процедура загрузки данных о реализации подготовленные внешними ККМ
+!*******************************************************************************
+procedure CarryOutImport(PrOnLine, povtor : boolean);
+{
+  var KassaNRec: comp;
+
+  if GetFirst KatKassa where (( 0 << KatKassa.NRec)) = tsOk
+    if GetNext KatKassa where (( 0 << KatKassa.NRec)) = tsOk
+    {
+      if (RunInterface('L_KASSA::Get_Kass', word(1), '', comp(0)) = cmCancel)
+      {
+        DoneMarker(Markers, '');
+        Exit;
+      }
+      else
+        Markers := InitMarker('Get_Kass_Select', 8, 100, 10);
+    }
+    else
+      if GetFirst KatKassa where (( 0 << KatKassa.NRec)) = tsOk // одна касса в системе
+      {
+        Markers := InitMarker('Get_Kass_Select', 8, 100, 10);
+        ClearMarker(Markers);
+        InsertMarker(Markers, KatKassa.NRec);
+      }
+
+  PushPos(#KatKassa);
+  ResetBounds(#KatKassa);
+
+  For(Loop := 0; Loop < GetMarkerCount(Markers); Loop := Loop + 1)
+  {
+    if not GetMarker(Markers, Loop, KassaNRec)
+      Continue;
+
+    if GetFirst KatKassa where((KassaNRec == KatKassa.NRec)) <> tsOk
+      Continue;
+
+    if PrOnLine //режим online
+    {
+      // нет зарезервированного имени файла - пропускаем
+      if Length(KatKassa.s1) = 0
+        Continue;
+
+      // нет еще чека - пропускаем
+      if FFFile(  if(KatKassa.LocationIn  = '', '', KatKassa.LocationIn +'\') + KatKassa.s1) <> KatKassa.s1
+        Continue;
+    }
+    case (KatKassa.KassaType AND 255) of
+      extGALAXY   : ImportGalaxy(KassaNRec);
+      extECell    : RunInterface('Part4Tr', KassaNRec, PrOnLine, false);
+      extOMRON    : RunInterface('Part4Tr', KassaNRec, PrOnLine, false);
+      extIPSPOS   : RunInterface('Part4Tr', KassaNRec, PrOnLine, false);
+      extPWP      : MakeResTrade4Retail(KassaNRec);
+      extTusson   : RunInterface('Part4Tr', KassaNRec, PrOnLine, false);
+      extRDA      : RunInterface('Part4Tr', KassaNRec, PrOnLine, false);
+      extShtrih_M : RunInterface('Part4Tr', KassaNRec, PrOnLine, false);
+      extOMRON28  : RunInterface('Part4Tr', KassaNRec, PrOnLine, false);
+      extBerlio   : RunInterface('Part4Tr', KassaNRec, PrOnLine, false);
+      extTusson2  : RunInterface('Part4Tr', KassaNRec, PrOnLine, povtor);
+      extBerlio1  : RunInterface('Part4Tr', KassaNRec, PrOnLine, false);
+    end;
+  }
+
+  SetBounds(#KatKassa);
+  PopPos(#KatKassa);
+
+  DoneMarker(Markers, '');
+}
+
+#doc
+Окно просмотра информации в режиме onLine: Чеки розничной продажи
+#end
+Window wChecks 'Режим onLine: Чеки розничной продажи' Cyan, EscClose;
+Show at (, , , 31);
+
+Panel pChecks Show at (, , , 18); Table Checks;
+Browse bChecks;
+ Fields
+  Checks.nCheck        'N чека'          ('Номер чека.', , sci1Esc): [10], protect;
+  Checks.dCheck        'Дата'            ('Дата чека.', , sci1Esc): [10], protect;
+  Checks.tCheck        'Время'           ('Время чека', , sci1Esc): [6], protect;
+  KatKassaCheck.nKassa 'Касса'           ('Номер кассового аппарата', , sci1Esc): [6], protect;
+  Checks.Skidka        'Скидка'          ('Скидка в %', , sci1Esc): [5.2], protect;
+  Checks.Summa         'Сумма'           ('Сумма к оплате', , sci1Esc): [14.2, '\2p[|-]3666`666`666`666.88'], protect;
+  Checks.Kredit        'Сумма в кредит'  ('Сумма в кредит', , sci1Esc): [14.2, '\2p[|-]3666`666`666`666.88'], protect;
+  CredCard.Name        'Кредитная карта' ('Кредитная карта (Visa, StB ...)', , sci1Esc): [15], protect;
+ end;  //bChecks
+
+!HandleEvent
+!end;  //HandleEvent
+end;  //panel pChecks
+
+
+Panel pSpCheck Show at (, 19, , 27); Table SpCheck;
+Browse bSpCheck;
+ Fields
+  KatPodrCheck.Name 'Подразделение': [16], protect;
+  KatMCCheck.Name   'Матценность'   : [14], protect;
+  OtpEdCheck        'ЕдИзм'         : [6],  protect;
+  KolCheck          'Количество'   : skip;
+  SpCheck.Price     'Цена'         : [12.2, '\2p[|-]36`666`666`666.88'], protect;
+  SpCheck.Summa     'Сумма'        : [14.2, '\2p[|-]3666`666`666`666.88'], protect;
+ end;  //bSpCheck
+
+!HandleEvent
+!end;  //HandleEvent
+end;  //panel pSpCheck
+
+
+Panel pTimerSet;
+  Show at (, 28, , );
+Screen sTimerSet;
+Fields
+  TimerSet  ('Интервал опроса кассового аппарата в секундах', , sci13Esc): noProtect,
+            SpinButton [10, 0, 3600];
+Buttons
+  cmValue5, , , 'Настройка (выбор касс)', , sci1Esc;
+  cmValue3, , , 'Запуск режима onLine', , sci1Esc;
+  cmValue4, , , 'Остановка', , sci1Esc;
+  cmCancel, , , 'Выход из режима onLine', , sci1Esc;
+<<
+ <. Касса .> Интервал опроса кассы.@@@@@секунд  <. Старт .><. Стоп .><.Выход.>
+>>
+end;  //screen sTimerSet
+!'■' ''
+!HandleEvent
+!end;  //HandleEvent
+end;  //panel pTimerSet
+
+
+HandleEvent  //window wChecks
+
+cmInit:
+{
+  if not ReadMyDsk(TimerSet , 'TimerSet' , FALSE)
+   set TimerSet := 0; // через секунду
+
+  SelectableButton(sTimerSet, cmValue3, TRUE);
+  SelectableButton(sTimerSet, cmValue4, FALSE);
+
+  SelectButton(sTimerSet, cmValue3);
+
+  PrActivTimer := FALSE;
+
+  if GetLast Checks = tsOk
+   { }
+}
+
+cmDone:
+{
+  SaveMyDsk(TimerSet , 'TimerSet');
+
+  if PrActivTimer
+   StopTimer(cmValue2);
+
+  PrActivTimer := FALSE;
+}
+
+cmValue3:
+  if TimerSet > 0
+    {
+      PrActivTimer := TRUE;
+      StartTimer(cmValue2, TimerSet, FALSE);
+
+      SelectableButton(sTimerSet, cmValue4, TRUE);
+      SelectableButton(sTimerSet, cmValue3, FALSE);
+
+      SelectPanel(#Checks);
+      SelectField(#Checks.nCheck);
+    }
+  else
+    {
+      Message('Сначала задайте интервал опроса кассового аппарата', Information);
+      SelectField(#TimerSet);
+    }
+
+cmValue4:  //останов
+{
+  PrActivTimer := FALSE;
+  StopTimer(cmValue2);
+
+  SelectableButton(sTimerSet, cmValue3, TRUE);
+  SelectableButton(sTimerSet, cmValue4, FALSE);
+
+  SelectButton(sTimerSet, cmValue3);
+}
+
+cmValue5:  //настройка
+{
+  if PrActivTimer
+    StopTimer(cmValue2);
+
+  if RunInterface('L_KASSA::Get_Kass', word(2), '', comp(0)) = cmCancel
+   { }
+
+  if PrActivTimer
+    StartTimer(cmValue2, TimerSet, FALSE);
+  else
+    SelectButton(sTimerSet, cmValue3);
+}
+
+cmCheckField:
+  if (CurField = #TimerSet) AND PrActivTimer
+    {
+      StopTimer(cmValue2);
+
+      if TimerSet > 0
+        StartTimer(cmValue2, TimerSet, FALSE);
+      else
+        {
+          Message(''#3'Не верно задан интервал опроса кассового аппарата.', Information);
+          Abort;
+        }
+    }
+
+end; // HandleEvent window wChecks
+end; // window wChecks
+
+
+
+procedure MakeRash(var KolOut: TSumma; OtpEd: comp;
+                   var SummaOut: TSumma; CardOut: comp; nCard: string[20]);
+{
+  var oldkolout: double;
+  var oldsumout: double;
+
+   oldkolout := KolOut;
+   oldsumout := SummaOut;
+
+  do
+  {
+    if (ForPodrOnly = 0) AND (ForMolOnly = 0)
+      {
+        if GetFirst rzKutRash where((ResTrade.cGoods == rzKutRash.cGoods)) = tsOk
+          {
+            KolInAll := rzKutRash.Kol;
+
+            if GetFirst rzKutPrih where ((rzKutRash.crzPrih == rzKutPrih.nRec)) <> tsOk
+              {
+                KolOut := KolOut - KolInAll;
+                Continue;
+              }
+          }
+        else
+          {
+            KolOut := KolOut;
+            SummaOut := oldsumout;
+            Abort;
+            Exit;
+          }
+      }
+    else
+      if (ForPodrOnly <> 0) AND (ForMolOnly = 0)
+        {
+          if GetFirst rzKutRash where((    ResTrade.cGoods == rzKutRash.cGoods
+                                       AND ForPodrOnly     == rzKutRash.cPodr )) = tsOk
+            {
+              KolInAll := rzKutRash.Kol;
+
+              if GetFirst rzKutPrih where ((rzKutRash.crzPrih == rzKutPrih.nRec)) <> tsOk
+                {
+                  KolOut := KolOut - KolInAll;
+                  Continue;
+                }
+            }
+          else
+            {
+              KolOut := KolOut;
+              SummaOut := oldsumout;
+              Abort;
+              Exit;
+            }
+        }
+      else
+        if (ForPodrOnly = 0) AND (ForMolOnly <> 0)
+          {
+            if GetFirst rzKutRash where((    ResTrade.cGoods == rzKutRash.cGoods
+                                         AND ForMolOnly      == rzKutRash.cMol(NoIndex))) = tsOk
+              {
+                KolInAll := rzKutRash.Kol;
+
+               if GetFirst rzKutPrih where ((rzKutRash.crzPrih == rzKutPrih.nRec)) <> tsOk
+                 {
+                   KolOut := KolOut - KolInAll;
+                   Continue;
+                 }
+              }
+            else
+              {
+                KolOut := KolOut;
+                SummaOut := oldsumout;
+                Abort;
+                Exit;
+              }
+          }
+        else
+          if (ForPodrOnly <> 0) AND (ForMolOnly <> 0)
+            {
+              if GetFirst rzKutRash where((    ResTrade.cGoods == rzKutRash.cGoods
+                                           AND ForPodrOnly     == rzKutRash.cPodr
+                                           AND ForMolOnly      == rzKutRash.cMol )) = tsOk
+                {
+                  KolInAll := rzKutRash.Kol;
+
+                  if GetFirst rzKutPrih where ((rzKutRash.crzPrih == rzKutPrih.nRec)) <> tsOk
+                    {
+                      KolOut := KolOut - KolInAll;
+                      Continue;
+                    }
+                }
+              else
+                {
+                  KolOut := KolOut;
+                  SummaOut := oldsumout;
+                  Abort;
+                  Exit;
+                }
+            }
+
+
+    PushPos(#rzKUTRASH);
+    MakeValid(#rzKUTRASH);
+
+    rzKUTRASH.NRec     := GetNextNRec(#rzKutRash, 0);
+    // заполняется перед инсертом
+    rzKUTRASH.dDoc       := DateOperation;
+    rzKUTRASH.cOrg       := 0;
+    rzKUTRASH.cMc        := rzKutPrih.cMc;
+    rzKUTRASH.TypeRash   := TO_NAROD;
+    rzKUTRASH.TypePlat   := if( CardOut = 0, 1, 2);
+    rzKUTRASH.cTypeCard  := CardOut;
+    // будем пересчитывать возможное количестов с разными
+    // отпускными единицами
+    var GoodsOtpEd, PrihOtpEd: double;
+    PrihOtpEd := 1;
+    GoodsOtpEd := 1;
+
+    if OtpEd <> rzKutPrih.cOtpEd
+      {
+        if IsValid(#KatOtpEd)
+          PrihOtpEd := KatOtpEd.Koef;
+
+        PushPos(#KatOtpEd);
+        ResetBounds(#KatOtpEd);
+
+        if GetFirst KatOtpEd where((OtpEd == KatOtpEd.NRec)) = tsOk
+          GoodsOtpEd := KatOtpEd.Koef;
+
+        SetBounds(#KatOtpEd);
+        PopPos(#KatOtpEd);
+      }
+
+    rzKUTRASH.Kol        := if (KolOut > KolInAll, KolInAll, KolOut);
+//@@@###
+    rzKUTRASH.cOtpEd     := ListGood.cOtpEd; //rzKutPrih.cOtpEd;
+    rzKUTRASH.Price      := ResTrade.SUMMA/ResTrade.Kol;//rzKutPrih.pPrice;
+    rzKUTRASH.VPrice     := ResTrade.SUMMA/ResTrade.Kol;//rzKUTRASH.Price * rzKutPrih.VPrice/rzKutPrih.Price;
+    rzKUTRASH.cVal       := rzKutPrih.cVal;
+    rzKUTRASH.crzPrih    := rzKutPrih.NRec;
+    rzKUTRASH.cGoods     := 0;
+
+    ClearBuffer(#BuyKassa);
+    BuyKassa.NRec     := 0;
+    BuyKassa.cKassa   := ResTrade.cKassa;
+    BuyKassa.Session  := ResTrade.Session;
+    BuyKassa.dDoc     := DateOperation;
+    BuyKassa.cRash    := rzKUTRASH.NRec;
+    BuyKassa.Kol      := if (KolOut > KolInAll, KolInAll, KolOut);
+    BuyKassa.Summa    := FSRoundDoc(SummaOut / oldKolOut * BuyKassa.Kol);
+    oldsumout := oldsumout - BuyKassa.Summa;
+
+    if CardOut <> 0
+      {
+        ClearBuffer(#ListCard);
+        ListCard.NRec     := 0;
+        ListCard.cCard    := CardOut;
+        ListCard.Number   := nCard;
+
+        if Insert current ListCard <> tsOk
+          Message('Ошибка при вставке в таблицу ListCard', Warning);
+
+        BuyKassa.cCard    := ListCard.NRec;
+      }
+    else
+      BuyKassa.cCard    := 0;
+
+    // теперь поищим таблицу для ResumeRt
+    if GetFirst Build_Rt where ((    BuyKassa.Session == Build_Rt.Session
+                                 AND BuyKassa.cKassa  == Build_Rt.cKassa
+                                 AND rzKutPrih.cPodr  == Build_Rt.cPodr
+                                 AND rzKutPrih.cMol   == Build_Rt.cMol
+                                 AND CardOut          == Build_Rt.cCard)) <> tsOk
+      {
+        ClearBuffer(#Build_Rt);
+        Build_Rt.Session  := BuyKassa.Session;
+        Build_Rt.cKassa   := BuyKassa.cKassa;
+        Build_Rt.cPodr    := rzKutPrih.cPodr;
+        Build_Rt.cMol     := rzKutPrih.cMol;
+        Build_Rt.cCard    := CardOut;
+
+        Build_Rt.Summa     := FSRoundSpDoc(if(KolOut > KolInAll, KolInAll, KolOut) * rzKutRash.Price);
+        Build_Rt.cResumeRt := GetNextNRec(#ResumeRt, 0);
+        Build_Rt.cDocRt    := GetNextNRec(#rzDoc, 0);
+        Build_Rt.NoDocRt   := RzDocNomer; //GetLastNumD(TO_NAROD);
+
+        if Insert current Build_Rt <> tsOk
+          Message('Ошибка при вставке в таблицу Build_Rt', Warning);
+      }
+    else
+      {
+        Build_Rt.Summa   := Build_Rt.Summa + FSRoundSpDoc(if(KolOut > KolInAll, KolInAll, KolOut) * rzKutRash.Price);
+
+        if UpDate current Build_Rt <> tsOk
+          Message('Ошибка при обновлении записи в таблице Build_Rt', Warning);
+      }
+
+    BuyKassa.cResumeRt := Build_Rt.cResumeRt;
+
+    if Insert current BuyKassa <> tsOk
+      Message('Ошибка при вставке в таблицу BuyKassa', Warning);
+
+    rzKutRash.cResumeRt := Build_Rt.cResumeRt;
+    rzKUTRASH.Nomer     := RzDocNomer;//Build_Rt.NoDocRt;
+    rzKutRash.cSpDoc    := GetNextNRec(#rzSpDoc, 0);
+    rzKutRash.cSopr     := Build_Rt.cDocRt;
+    if insert_Rash <> tsOk
+      Message('Ошибка при вставке в таблицу rzKutRash', Warning);
+
+
+    // Модифицируем количество в остатках по Торговому зал
+    if GetFirst KolMC where (( ResTrade.cGoods == KolMC.cGoods )) <> tsOk //по старому
+      {
+        ListGood.Kol := ListGood.Kol - rzKUTRash.kol;
+        if ListGood.Kol >= GetPresision_forKol
+          {
+            if UpDate current ListGood <> tsOk
+              Message('Ошибка при обновлении записи в таблице ListGood', Warning);
+          }
+        else
+          {
+            if Delete current ListGood <> tsOk
+              Message('Ошибка при удалении из таблицы ListGood', Warning);
+          }
+      }
+     else
+      {
+        KolMC.kolSub:= KolMC.kolSub + rzKUTRash.kol; // продано
+        update current KolMC;
+        //if (ListGood.Kol - KolMC.kolSub) < GetPresision_forKol // продано всё
+        //  {
+            //delete current KolMC;
+            //delete current ListGood;
+        //  }//!!!
+
+      }
+
+
+
+    // теперь займемся формированием спецификации
+    // накладной на реализацию
+    ClearBuffer(#rzSPDOC);
+    rzSPDOC.NRec     := rzKutRash.cSpDoc;
+    // смысл происходящего дальше понять невозможно
+    // зачем в таблице rzSpDoc дублировать все поля из rzKutPrih?
+    rzSPDOC.cKutPrih := rzKutPrih.NRec;
+    rzSPDOC.cKutRash := rzKutRash.NRec;
+    rzSPDOC.cMC      := rzKutRash.cMc;
+    rzSPDOC.Nomer    := Build_Rt.NoDocRt;
+    rzSPDOC.dDoc     := DateOperation;
+    rzSPDOC.TypePrih := TO_NAROD;
+    rzSPDOC.cSopr    := Build_Rt.cDocRt;
+
+    rzSPDOC.cPodrFrom  := rzKutPrih.cPodrFrom;
+    rzSPDOC.cMOLFrom   := rzKutPrih.cMOLFrom;
+    rzSPDOC.cPartyFrom := rzKutPrih.cPartyFrom;
+    rzSPDOC.cPodr     := rzKutPrih.cPodr;
+    rzSPDOC.cMOL      := rzKutPrih.cMOL;
+    rzSPDOC.cParty    := rzKutPrih.cParty;
+    rzSPDOC.cGroupMC  := rzKutPrih.cGroupMC;
+    rzSPDOC.zkPrice  := rzKutPrih.zkPrice;
+    rzSPDOC.fPrice   := rzKutPrih.fPrice;
+    rzSPDOC.cValut   := rzKutPrih.cValut;
+    rzSPDOC.VCurse   := rzKutPrih.VCurse;
+    rzSPDOC.Price    := rzKutPrih.Price; //ResTrade.SUMMA/ResTrade.Kol;
+    rzSPDOC.VPrice   := rzKutPrih.VPrice;
+    rzSPDOC.cVal     := rzKutPrih.cVal;
+    rzSPDOC.rPrice   := rzKutPrih.rPrice;
+    rzSPDOC.sNacen   := rzKutPrih.sNacen;
+    rzSPDOC.pNacen   := rzKutPrih.pNacen;
+    rzSPDOC.sNalog   := rzKutPrih.sNalog;
+    rzSPDOC.pPrice   := ResTrade.SUMMA/ResTrade.Kol; //ListGood.Price;// rzKutRash.Price;
+    rzSPDOC.Kol      := if (KolOut > KolInAll, KolInAll, KolOut);
+//@@@###
+    rzSPDOC.cOtpEd   := ListGood.cOtpEd; //rzKutPrih.cOtpEd;
+    rzSPDOC.Ostatok  := KolInAll;
+
+    rzSPDOC.cResumeRt := Build_Rt.cResumeRt;
+
+//================================================================
+//================================================================
+//================================================================
+/*
+     PrihOtpEd  := 1;
+     GoodsOtpEd := 1;
+     if OtpEd <> rzKutPrih.cOtpEd
+     {  if isValid(#KatOtpEd)
+                   PrihOtpEd := KatOtpEd.Koef;
+        PushPos(#KatOtpEd);
+        ResetBounds(#KatOtpEd);
+
+        if getfirst KatOtpEd where((OtpEd == KatOtpEd.NRec)) = tsOk
+           GoodsOtpEd := KatOtpEd.Koef;
+        SetBounds(#KatOtpEd);
+        PopPos(#KatOtpEd);
+     }
+
+     rzSPDOC.zkPrice     := rzKutPrih.zkPrice * GoodsOtpEd / PrihOtpEd;
+     rzSPDOC.fPrice      := rzKutPrih.fPrice  * GoodsOtpEd / PrihOtpEd;
+     rzSPDOC.Price       := rzKutPrih.Price   * GoodsOtpEd / PrihOtpEd;
+     rzSPDOC.VPrice      := rzKutPrih.VPrice  * GoodsOtpEd / PrihOtpEd;
+     rzSPDOC.rPrice      := rzKutPrih.rPrice  * GoodsOtpEd / PrihOtpEd;
+     rzSPDOC.sNalog      := rzKutPrih.sNalog  * GoodsOtpEd / PrihOtpEd;
+     rzSPDOC.sNacen      := rzKutPrih.sNacen  * GoodsOtpEd / PrihOtpEd;
+     rzSPDOC.cValut      := rzKutPrih.cValut    ;
+     rzSPDOC.VCurse      := rzKutPrih.VCurse    ;
+     rzSPDOC.cVal        := rzKutPrih.cVal      ;
+     rzSPDOC.pNacen      := rzKutPrih.pNacen    ;
+     rzSPDOC.pPrice      := rzKutRash.Price;
+     rzSPDOC.Kol         := rzKutRash.Kol       ;
+     rzSPDOC.cOtpEd      := rzKutRash.cOtpEd    ;
+     message(rzKutRash.Price);
+*/
+//================================================================
+//================================================================
+//================================================================
+
+    if Insert current rzSpDoc <> tsOk
+      Message('Ошибка при вставке в таблицу rzSpDoc', Warning);
+
+    PopPos(#rzKUTRASH);
+
+    if KolInAll <= KolOut
+      {
+        if Delete_Rash <> tsOk
+          Message('Ошибка при удалении из таблицы rzKutRash', Warning);
+      }
+    else
+      {
+        rzKutRash.Kol := rzKutRash.Kol - KolOut;
+
+        if Update_Rash <> tsOk
+          Message('Ошибка при обновлении записи в таблице rzKutRash', Warning);
+      }
+
+    KolOut := KolOut - KolInAll;
+
+  } While (KolOut > 0);
+}
+
+
+
+function _DoOperation_A208(iTypePlat:word) : boolean;
+{
+  var _cardNrec :comp = if(iTypePlat = 2, 2605, 0);
+//  message('тип  ' + iTypePlat + '   ###   ' + _cardNrec);
+
+
+  if Delete Build_Rt <> tsOk
+    Message('Ошибка удаления таблицы Build_Rt', Warning);
+
+  ResetBounds(#ResTrade);
+  ResetBounds(#Pick);
+
+  StartNewVisual(vtRotateVisual, vfTimer + vfBreak + vfConfirm, 'Обрабатываю товар', 0);
+
+  For(Loop := GetFirst Pick where((word(558) == Pick.wList));
+      Loop = tsOk; Loop := GetNext Pick where((word(558) == Pick.wList)) )
+    {
+      if GetFirst ResTrade where((Pick.cRec == ResTrade.NRec)) <> tsOk
+        Continue;
+
+      if ResTrade.Status <> 0
+        Continue;
+
+      if ResTrade.kol < 0
+        {
+          Continue;
+        }
+
+      NRecKlVal  := 0;
+      if GetFirst KatKassa where ((ResTrade.cKassa == KatKassa.nRec)) = tsOk
+        if GetFirst KlVal where ((KatKassa.cPrice == KlVal.nRec)) = tsOk
+          NRecKlVal  := KlVal.nRec;
+
+      if not NextVisual
+        Break;
+
+      if GetFirst ATC_ResTrade_atr where ((ResTrade.nRec == ATC_ResTrade_atr.cResTrade )) = tsOk  {}
+
+      if ResTrade.cGoods = 0
+        {
+          // обработка операций аванса-инкассации
+          ClearBuffer(#BuyKassa);
+          BuyKassa.NRec     := 0;
+          BuyKassa.cKassa   := ResTrade.cKassa;
+          BuyKassa.Session  := ResTrade.Session;
+          BuyKassa.dDoc     := DateOperation;
+          BuyKassa.cRash    := 0;
+          BuyKassa.Kol      := 0;
+          BuyKassa.Summa    := FSRoundDoc(ResTrade.Summa);
+          BuyKassa.cCard    := 0;
+
+          ClearBuffer(#ResumeRt);
+          ResumeRt.NRec     := GetNextNRec(#ResumeRt, 0);
+          ResumeRt.cVal     := NRecKlVal;
+          ResumeRt.dDoc     := BuyKassa.dDoc;
+          if BuyKassa.Summa >= 0
+            {
+              ResumeRt.Summa    := FSRoundDoc(BuyKassa.Summa);
+              ResumeRt.Direct   := 0;
+            }
+          else
+            {
+              ResumeRt.Summa    := FSRoundDoc(-1 * BuyKassa.Summa);
+              ResumeRt.Direct   := 1;
+            }
+
+          ResumeRt.cKassa   := BuyKassa.cKassa;
+          ResumeRt.Session  := BuyKassa.Session;
+
+          BuyKassa.cResumeRt := ResumeRt.NRec;
+
+          if Insert current ResumeRt <> tsOk
+            Message('Ошибка при вставке в таблицу ResumeRt', Warning);
+
+          if Insert current BuyKassa <> tsOk
+            Message('Ошибка при вставке в таблицу BuyKassa', Warning);
+
+          ResTrade.Status    := 1;
+
+          if UpDate current ResTrade <> tsOk
+            Message('Ошибка при обновлении записи в таблице ResTrade', Warning);
+
+          Continue;
+        }
+      else
+        if GetFirst rzKutRash where((ResTrade.cGoods == rzKutRash.cGoods)) <> tsOk
+          {
+            Message('Не могу найти расход на передачу в Кассовый аппарат', Warning + OkButton);
+            Continue;
+          }
+
+      if abs(ResTrade.Kol) >= GetPresision_forKol
+        {
+          var oldvaluekol, oldvaluesum: TSumma;
+          var oldvalueses: word;
+          var oldvaluearr: array [6] of comp;
+
+          oldvaluekol    := ResTrade.Kol;
+          oldvaluesum    := FSRoundDoc(ResTrade.Summa);
+          oldvalueses    := ResTrade.Session;
+          oldvaluearr[1] := ResTrade.c1;
+          oldvaluearr[2] := ResTrade.cKassa;
+          oldvaluearr[3] := ResTrade.cMC;
+          oldvaluearr[4] := ResTrade.cPodr;
+          oldvaluearr[5] := ResTrade.cMol;
+          oldvaluearr[6] := ResTrade.cGoods;
+
+
+          if oldvaluekol >= GetPresision_forKol
+//            MakeRash(oldvaluekol, ResTrade.c1, oldvaluesum, comp(0), '');
+            MakeRash(oldvaluekol, ResTrade.c1, oldvaluesum, _cardNrec, '');
+
+
+          if (KatKassa.MinusKol <> 0) AND (oldvaluekol >= GetPresision_forKol)
+            {
+              ResTrade.Kol      := ResTrade.Kol - oldvaluekol;
+              ResTrade.tKol     := ResTrade.Kol;
+              ResTrade.Summa    := FSRoundDoc(ResTrade.Summa - oldvaluesum);
+              ResTrade.tSumma   := ResTrade.Summa;
+              PushPos(#ResTrade);
+
+              ClearBuffer(#ResTrade);
+              ResTrade.NRec     := 0;
+              ResTrade.cKassa   := oldvaluearr[2];
+              ResTrade.Session  := oldvalueses;
+              ResTrade.Status   := 0;
+              ResTrade.cGoods   := oldvaluearr[6];
+              ResTrade.Kol      := oldvaluekol;
+              ResTrade.tKol     := ResTrade.Kol;
+              ResTrade.Summa    := FSRoundDoc(oldvaluesum);
+              ResTrade.tSumma   := ResTrade.Summa;
+              ResTrade.c1       := oldvaluearr[1];
+
+              ResTrade.cMC      := oldvaluearr[3];
+              ResTrade.cPodr    := oldvaluearr[4];
+              ResTrade.cMol     := oldvaluearr[5];
+
+              if Insert current ResTrade <> tsOk
+                Message('Ошибка при вставке в таблицу ResTrade', Warning);
+
+              PopPos(#ResTrade);
+            }
+        }
+
+      dCount := ResTrade.Kol;
+      For(Loop := GetFirst DeCodeRt; Loop = tsOk; Loop := GetNext DeCodeRt )
+        {
+          if ResTrade.Kol >= GetPresision_forKol
+            MakeRash(DeCodeRt.Kol, ResTrade.c1, DeCodeRt.Summa,
+                     DeCodeRt.cCard, DeCodeRt.nCard);
+          dCount := dCount + DeCodeRt.Kol;
+        }
+
+        // Укажем количество подгрузок
+        ResTrade.Status := ResTrade.Status + 1;
+
+       if UpDate current ResTrade <> tsOk
+         Message('Ошибка при обновлении записи в таблице ResTrade', Warning);
+
+    }
+
+  StopVisual('', 0);
+
+  SetBounds(#Pick);
+  SetBounds(#ResTrade);
+
+  if Delete Pick where ((word(558) == Pick.wList)) <> tsOk
+    Message('Ошибка при удалении из таблицы Pick', Warning);
+
+  StartNewVisual(vtIndicatorVisual, vfTimer + vfBreak + vfConfirm,'Формирование документов'#13, RecordsInTable(#Build_Rt));
+  _LOOP Build_Rt
+    {
+      NextVisual;
+      // формируем ленту
+      ClearBuffer(#ResumeRt);
+      ResumeRt.NRec     := Build_Rt.cResumeRt;
+      ResumeRt.cVal     := NRecKlVal;
+      ResumeRt.cKassa   := Build_Rt.cKassa;
+      ResumeRt.Session  := Build_Rt.Session;
+      ResumeRt.cCard    := Build_Rt.cCard;
+      ResumeRt.cPodr    := Build_Rt.cPodr;
+      ResumeRt.cMol     := Build_Rt.cMol;
+      ResumeRt.Summa    := FSRoundDoc(Build_Rt.Summa);
+      ResumeRt.dDoc     := DateOperation;
+
+      if Insert current ResumeRt <> tsOk
+        Message('Ошибка при вставке в таблицу ResumeRt', Warning);
+
+      // формируем документ на перемещение
+      ClearBuffer(#rzDoc);
+      rzDoc.NRec     := Build_Rt.cDocRt;
+      ResumeRt.cVal  := NRecKlVal;
+      rzDOC.cVal     := NRecKlVal;
+      rzDoc.NDOC     := Build_Rt.NoDocRt;
+      rzDoc.dDoc     := DateOperation;
+      rzDoc.dOpr     := DateOperation;
+      rzDoc.TypeMove := TO_NAROD;
+      rzDoc.cCredCard := Build_Rt.cCard;
+      rzDoc.cPodrFrom := Build_Rt.cPodr;
+      rzDoc.cMOLFrom := Build_Rt.cMol;
+      rzDoc.cPodrTo  := Build_Rt.cPodr;
+      rzDoc.cMOLTo   := Build_Rt.cMol;
+      rzDoc.Price    := FSRoundDoc(Build_Rt.Summa);
+      rzDoc.TypePlat := iTypePlat;
+      rzDoc.cOrgBase := if(iTypePlat = 3, 2605, 0);     //-- KatOrg.nRec  >     2605=ПОКУПАТЕЛЬ
+
+      if Insert current rzDoc <> tsOk
+        Message('Ошибка при вставке в таблицу rzDoc', Warning);
+
+      UpDateSoprHoz;
+
+    }//_L
+  StopVisual('', 0);
+}
+
+Panel InSpring;
+  Table ResTrade;
+Browse brResTrade (, hcRoznM2DataIN, sci18EnIns);
+  Show at (, , , 24);
+Fields         //123
+ {Font = {Color = if (used = '+', ColorSysGray, if (picked <> '', ColorMark, 0)) }};
+  Picked             '': [1], skip;
+  KatKassa.NKassa    '№','кассы'  ('№ кассы.  <Ctrl><Enter> показать новые записи/показать все записи')  : [4], protect;
+  ResTrade.Session   '№','приема' ('№ приема/смена. <Ctrl><Enter> показать новые записи/показать все записи'): [5], protect;
+  Goods_Operation    'Наименование','товара' ('Наименование товара. <Ctrl><Enter> показать новые записи/показать все записи', , sci138Esc) : [25], protect;
+  ListGood.barCode   'Штрих-код','товара'    ('Штрих-код товара. <Ctrl><Enter> показать новые записи/показать все записи', , sci18EscIns)     : [13], protect;
+  KatOrg.name        'Поставщик'  ('Поставщик товара', , sci18EscIns): [15], protect;
+  KatParty2.name     'Партия'     ('Партия товара', , sci18EscIns): [10], protect;
+  ResTrade.tKol      'Количество','продано'    ('Количество проданного товара. <Ctrl><Enter> показать новые записи/показать все записи') :  [8.3], protect,
+    {Font = {Color = if (used = '+', ColorSysGray, if (picked <> '', ColorMark, if(ResTrade.tKol < 0, ColorSysRed, 0))) }};
+  ListGood.NameEd    'ЕдИзм'      ('Единица измерения. <Ctrl><Enter> показать новые записи/показать все записи') :  [5], protect;
+  tov_price          'Цена'       ('Цена товара. <Ctrl><Enter> показать новые записи/показать все записи') :  [8.2], protect;
+  //ListGood.Price
+  ResTrade.tSumma    'Сумма'      ('Сумма проданного товара. <Ctrl><Enter> показать новые записи/показать все записи') :  [8.2], protect;
+  Podr_Operation     'Подразделение' ('Разрез прихода - Подразделение.', , sci18EscIns): [10], protect;
+  Mol_Operation      'МОЛ'        ('Разрез прихода - МОЛ', , sci18EscIns): [10], protect;
+End;
+
+
+screen BeforeSummer (, hcRoznM2DataIN, sci13Esc);
+  Show at (, 25, , );
+fields
+  ResTrade.Kol    : [11.3, '\2p[|-]366`666`666.888'], skip, left;
+  ResTrade.Summa  : [14.2, '\2p[|-]3666`666`666`666.88'], skip, left;
+  ForPodrName     ('Подразделение, где производить списание', , sci13Esc) , PickButton, protect;
+  ForMolName      ('МОЛ, у кого производить списание', , sci13Esc) , PickButton, protect;
+  ValPrih         : Skip, left;
+Buttons
+  cmValue20 , , , 'Принять данные от касс', , sci1Esc;
+  cmValue21 , , , 'Повторить прием данных от касс за дату', , sci1Esc;
+  cmOk      , , , 'Сформировать документы по принятым из касс данным', , sci1Esc;
+<<
+ Количество нал.@@@@@@@@@@@@@@@@@@@ Сумма нал.@@@@@@@@@@@@@@@@@@@@@@             <.Принять данные от касс.>
+ Подразделение .@@@@@@@@@@@@@@@@@@@@@@@@@ МОЛ.@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ Валюта прихода.@@@@@@@@@                   <.Принять данные от касс за дату.>   <.Сформировать документы.>
+>>
+//                                                    <.Прием в режиме OnLine.>
+end;
+
+
+HandleEvent   // от первого броусера
+
+//cmOk:
+//  PutCommand(cmDefault);
+
+cmValue6: RunWindow(wChecks);
+
+cmDelete:
+{
+
+  if not isValid(#ResTrade) OR (used = '+')
+    {
+      abort;
+      exit;
+    }
+
+  if message('Удалить данные о продажах?', Confirmation + YesNo) <> cmYes
+    {
+      abort;
+      exit;
+    }
+
+  if GetFirst Pick where (( 558 == Pick.wList )) <> tsOk
+    delete current ResTrade
+  else
+    _LOOP Pick where (( 558 == Pick.wList ))
+    {
+      if GetFirst ResTrade where (( Pick.cRec == ResTrade.nRec)) =tsOk
+        delete current ResTrade;
+    }
+  if GetNext ResTrade <> tsOk
+    {}
+  RescanPanel(#ResTrade);
+}
+
+cmDelOnProtect:
+{
+  if (ResTrade.Status <> 0)
+    {
+      Abort;
+    }
+  else
+    {
+      case CurField of
+        #Goods_Operation  : set ResTrade.cGoods := comp(0);
+        #Podr_Operation   : set ResTrade.cGoods := comp(0);
+        #Mol_Operation    : set ResTrade.cGoods := comp(0);
+        #ForPodrName:
+          {
+            ForPodrOnly := 0;
+            ForPodrName := '';
+          }
+        #ForMolName  :
+          {
+            ForMolOnly := 0;
+            ForMolName := '';
+          }
+      else Abort;
+      end; // case
+
+      if UpDate current ResTrade <> tsOk
+        Message('Ошибка при обновлении записи в таблице ResTrade', Warning);
+    }
+}
+
+cmPick:
+{
+  case CurField of
+    #Goods_Operation,
+    #Podr_Operation,
+    #Mol_Operation:
+      {
+        if (ResTrade.Status <> 0)
+          {
+            Abort;
+            Exit;
+          }
+
+        //if (not IsValid(#ListGood))
+
+        var was_kol, was_sum, is_kol, is_sum: double;
+        var cMC_, cPodr_, cMOL_, cGoods_: comp;
+
+        was_kol := ResTrade.tKol;
+        was_sum := FSRoundDoc(ResTrade.tSumma);
+        is_kol  := ResTrade.tKol;
+        is_sum  := FSRoundDoc(ResTrade.tSumma);
+
+        cMC_   := ResTrade.cMC;
+        cPodr_ := ResTrade.cPodr;
+        cMOL_  := ResTrade.cMol;
+        cGoods_:= ResTrade.cGoods;
+
+        if (RunInterface('L_KASSA::RestInKa', is_Kol, is_Sum,
+                          cMC_, cPodr_, cMol_, cGoods_) <> cmOk)
+          {
+            Abort;
+            Exit;
+          }
+        // посчитаем сколько будет списано возвращенной МЦ
+        ResTrade.cMC   := cMC_   ;
+        ResTrade.cPodr := cPodr_ ;
+        ResTrade.cMol  := cMOL_  ;
+        ResTrade.cGoods:= cGoods_;
+
+        var cur_mc: comp;
+
+        var need_kol: double;
+        need_kol := ResTrade.tKol;
+
+        cur_mc := ResTrade.cGoods;
+        if GetFirst ListGood where (( ResTrade.cGoods == ListGood.nRec )) = tsOk
+          ResTrade.cMC:= ListGood.cMC;
+
+        /*
+        PushPos(#ResTrade);
+        _LOOP ResTrade where ((    word(0) == ResTrade.Status
+                               AND cur_mc  == ResTrade.cGoods))
+        {
+          need_kol := need_kol + ResTrade.tKol;
+        }
+        PopPos(#ResTrade);
+        */
+
+        if (is_Kol - need_kol) <= -GetPresision_forKol
+          {
+            Message('Недостаточно товара для замены.'#13
+                    + 'В наличии: ' + string(is_Kol)+', необходимо: '
+                    + string(need_kol), CancelButton);
+            //ResTrade.cGoods   := 0;
+            RescanPanel(#ResTrade);
+            RedrawPanel(#ResTrade);
+            Abort;
+            Exit;
+          }
+        // обработка чека
+        /*if (was_kol <= is_Kol - need_kol) AND (was_Sum/was_Kol = is_sum/is_Kol)
+          {
+            // товар по той же цене - подходит для замены по количеству и стоимости
+            // оставляем без изменения
+            if UpDate current ResTrade <> tsOk
+              Message('Ошибка при обновлении записи в таблице ResTrade', Warning);
+          }*/
+        else
+          {
+            // заменяем товар и корректируем количество и стоимость
+            ResTrade.Kol      := need_kol;//if ((is_kol - need_kol) >= was_kol, was_kol, is_kol - need_kol);
+            ResTrade.Summa    := FSRoundDoc(is_sum / is_kol * ResTrade.Kol);
+            ResTrade.tKol     := ResTrade.Kol;
+            ResTrade.tSumma   := ResTrade.Summa;
+            //if UpDate current ResTrade <> tsOk
+            //  Message('Ошибка при обновлении записи в таблице ResTrade', Warning);
+            // на остатки создаем новый результат продажи на основе старого
+            // с записью суммы расхождения
+            //ResTrade.cResTrade := ResTrade.nRec;
+            //ResTrade.nRec     := 0;
+            //ResTrade.cGoods   := 0;
+            // если товара больше чем надо, то он спишется и так - корректируем только сумму
+            //ResTrade.Kol      := 0;
+            //ResTrade.Summa    := FSRoundDoc(was_sum - is_sum / is_kol * (is_kol - need_kol) -
+            //                                was_sum/was_kol * (was_kol-(is_kol-need_kol)));
+            //ResTrade.tKol     := ResTrade.Kol;
+            //ResTrade.tSumma   := ResTrade.Summa;
+            if update current ResTrade <> tsOk
+              Message('Ошибка при вставке в таблицу ResTrade', Warning);
+
+            /*
+            if GetFirst KolMC where (( ResTrade.cGoods == KolMC.cGoods )) = tsOk
+              {
+                KolMC.kolSub:= KolMC.kolSub + ResTrade.Kol;
+                update current KolMC;
+              }
+            else
+              {
+                ClearBuffer(#KolMC);
+                KolMC.cGoods := ListGood.nRec;
+                KolMC.kolSub := ResTrade.Kol;
+                insert current KolMC;
+              }
+            */
+          }
+      }
+    #ForPodrName:
+      {
+        if (RunInterface('Z_KATPODR::GetAnyPodr', ForPodrOnly, 2) <> cmCancel)
+          {
+            if (GetFirst KatPodrSelect where ((ForPodrOnly == KatPodrSelect.nRec)) = tsOk)
+              {
+                ForPodrName := KatPodrSelect.Name;
+              }
+          }
+        else
+          {
+            ForPodrOnly := 0;
+            ForPodrName := '';
+          }
+      }
+    #ForMolName  :
+      {
+        if (RunInterface('L_MOL::GetMOL', ForMolOnly, ForPodrOnly) <> cmCancel)
+          {
+            if (GetFirst KatMolSelect where ((ForMolOnly == KatMolSelect.nRec)) = tsOk)
+              {
+                ForMolName := KatMolSelect.Name;
+              }
+          }
+        else
+          {
+            ForMolOnly := 0;
+            ForMolName := '';
+          }
+      }
+    else Abort;
+  end;
+  RereadRecord(#ResTrade);
+}
+End; //HandleEvent  от первого броусера
+End; //Panel а это от него панель
+
+
+
+HandleEvent // от интерфейса
+cmInit:
+{
+  PushBounds(tbOnlyNew);
+  if ( GetLast ResTrade <> tsOk )
+    {
+      PopBounds(tbOnlyNew);
+      if ( GetLast ResTrade = tsOk )
+        {
+//          if ( Message(''#3'Оформленных документов нет'#13#3'Показать все?', Confirmation + YesNo) <> cmYes )
+//            {
+              RereadRecord(#ResTrade);
+              Abort;
+              Exit;
+//            }
+//          else
+//            SetTitle('Прием данных из касс (все)');
+        }
+      else
+        {
+          SetTitle('Прием данных из касс (все)');
+        }
+    }
+  else
+    SetTitle('Прием данных от касс (новые)');
+
+
+  if _Param_dNakl = ''  {CloseInterface(cmCancel);}
+  _DateNakl := StrToDate(_Param_dNakl,'DD.MM.YYYY')
+//  message(_Param_dNakl +' # ' +_DateNakl);
+  if _DateNakl = date(0,0,0) {CloseInterface(cmCancel);}
+  _DateNakl := Sub_Day(Cur_Date,1);
+//  PutCommand(cmSelectAll);
+
+  delete all Pick_R;
+  _loop KatKassa_my
+  {
+    var _t:word = 0;
+    for(_t:=1;_t<=9;inc(_t))
+    {
+      var _op:word = 0;
+      for(_op:=1;_op<=3;inc(_op))
+      {
+        var _npp:word =0;
+        _loop ResTrade_r where (( 0 == ResTrade_r.Status and  KatKassa_my.nRec == ResTrade_r.CKASSA (NoIndex) ))
+        {
+          if (GetFirst ATC_ResTrade_atr where ((ResTrade_r.nRec == ATC_ResTrade_atr.cRestrade)) and ATC_ResTrade_atr.H_Type = _op and ATC_ResTrade_atr.T_ID = _t ) = tsOk
+             {
+               ClearBuffer(#Pick_R)
+               Pick_R.wList := 558;
+               Pick_R.cRec := ResTrade_r.NRec;
+               Pick_R.NRec := 0;
+               insert current Pick_R;
+               _npp++;
+             }
+        }
+        ResetBounds(#Pick);
+//        message(_op+'  before  '+_npp);
+
+        if _npp <> 0
+           {
+             SET DateOperation := _DateNakl;
+             SET RzDocNomer    := GetLastNumD(TO_NAROD)+'/'+Trim(KatKassa_my.nKassa)+'/Т'+ _t + '/' + if(_op=1,'НАЛ',if(_op=2,'КАРТ','КРЕД'));
+
+             _DoOperation_A208(_op);
+           }
+        delete all Pick_R;
+        RereadRecord(#ResTrade);
+      } // виды оплаты
+    } // терминалы
+  }  //_loop KatKassa
+
+  RunInterface('L_KASSA::_HOZOAUTO',0);
+  ABORT; EXIT;
+}
+
+cmDone: ProcessCommand(cmUnSelectAll);
+
+cmMarkUnMark:
+{
+  if IsValid(#Pick)
+    {
+      if Delete current Pick <> tsOk
+        Message('Ошибка при удалении из таблицы Pick', Warning);
+    }
+  else
+    {
+      if ( ResTrade.Status = 0 )
+        {
+          Pick.wList   := 558;
+          Pick.PickNum := 100; // Для того чтобы включить плюсик
+          Pick.cRec    := ResTrade.NRec;
+          Pick.NRec    := 0;
+
+          if Insert current Pick <> tsOk
+            Message('Ошибка при вставке в таблицу Pick', Warning);
+        }
+    }
+
+  RedrawCurrentAndGo(GetCurrentFormat, TRUE);
+}
+
+cmSelectAll:
+{
+  PushPos(#ResTrade);
+  ResetBounds(#Pick);
+
+  if Delete Pick where ((word(558) == Pick.wList)) <> tsOk
+    Message('Ошибка при удалении из таблицы Pick', Warning);
+
+  SetBounds(#Pick);
+  StartNewVisual(vtRotateVisual, vfTimer, 'Пометка всех записей...', 1);
+  For( Loop := GetFirst ResTrade; Loop = tsOk; Loop := GetNext ResTrade )
+    if ( not NextVisual )
+      modifier GetLast ResTrade
+    else
+      if ( ResTrade.Status = 0 )
+        {
+          Pick.wList := 558;
+          Pick.cRec := ResTrade.NRec;
+          Pick.NRec := 0;
+
+          if Insert current Pick <> tsOk
+            Message('Ошибка при вставке в таблицу Pick', Warning);
+        }
+  PopPos(#ResTrade);
+  RereadRecord(#ResTrade);
+  StopVisual('', 0);
+}
+
+cmUnSelectAll:
+{
+  ResetBounds(#Pick);
+
+  if Delete Pick where ((word(558) == Pick.wList)) <> tsOk
+    Message('Ошибка при удалении из таблицы Pick', Warning);
+
+  SetBounds(#Pick);
+  RescanPanel(#ResTrade);
+  ReReadRecord;
+}
+
+cmOk://Default:
+{
+  if (not IsValid(#ResTrade))
+    {
+//      Message('Нет данных от касс', CancelButton);
+//      Abort;
+//      Exit;
+      closeInterface(cmDefault);
+    }
+
+  ResetBounds(#Pick);
+
+// штатное
+//  if ((GetFirst Pick where ((word(558) == Pick.wList)) <> tsOk) AND (ResTrade.Status = 0))
+//    {
+//      ClearBuffer(#Pick);
+//      Pick.wList := 558;
+//      set Pick.cRec := ResTrade.NRec;
+
+//      if Insert current Pick <> tsOk
+//        Message('Ошибка при вставке в таблицу Pick', Warning);
+//    }
+//  SetBounds(#Pick);
+//  DateOperation := Cur_Date;
+
+//  if (GetFirst KatKassa where ((True == KatKassa.DefaultKas)) <> tsOk)
+//    {
+//      Message('В каталоге кассовых аппаратов не определена касса по умолчанию', CancelButton);
+//      Abort;
+//      Exit;
+//    }
+//  if (Message('Сформировать документы по данным продаж '+/*KatKassa.NKassa+*/'?', Confirmation + YesNo) = cmYes)
+//    if (RunDialog('GetFormNa', DateOperation) <> cmCancel)
+//        DoOperation;
+
+
+  SET DateOperation := _DateNakl;
+//  DoOperation;
+
+  ResetBounds(#Pick);
+  if Delete Pick where ((word(558) == Pick.wList)) <> tsOk {}
+//    Message('Ошибка при удалении из таблицы Pick', Warning);
+  SetBounds(#Pick);
+
+//  if (not IsValid(#ResTrade)) CloseInterface(cmCancel);
+  RereadRecord(#ResTrade);
+  Stop;
+}
+
+cmHotKeys: PutHotCommand(RunMenu('mnKUT4Kassa'));
+
+cmValue20:
+{
+  CarryOutImport(False, false); //не onLine, текущие данные
+  RereadRecord(#ResTrade);
+}
+
+
+cmValue21:
+{
+  CarryOutImport(False, true); //не onLine, потвор за дату
+  RereadRecord(#ResTrade);
+}
+
+cmDocBas:
+{
+  if GetFirst KatKassa where (( 0 << KatKassa.NRec)) = tsOk
+    if GetNext KatKassa where (( 0 << KatKassa.NRec)) = tsOk
+      {
+        if (RunInterface('L_KASSA::Get_Kass', word(1), '', comp(0)) = cmCancel)
+          {
+            DoneMarker(Markers, '');
+            Exit;
+          }
+        else
+          Markers := InitMarker('Get_Kass_Select', 8, 100, 10);
+      }
+    else
+      if GetFirst KatKassa where (( 0 << KatKassa.NRec)) = tsOk
+        {
+          InsertMarker(Markers, KatKassa.NRec);
+        }
+
+
+  PushPos(#KatKassa);
+  ResetBounds(#KatKassa);
+
+  StartNewVisual(vtIndicatorVisual, vfTimer + vfBreak + vfConfirm,'Пометка товаров', GetMarkerCount(Markers));
+
+  For ( Loop := 0; Loop < GetMarkerCount(Markers); Loop := Loop + 1 )
+    {
+      var fNRec: comp;
+
+      if (not GetMarker(Markers, Loop, fNRec))
+        continue;
+      if (GetFirst KatKassa where((fNRec == KatKassa.NRec)) <> tsOk)
+        Continue;
+
+      case (KatKassa.KassaType AND 255) of
+        extOMRON:
+          {
+            if (KatKassa.LocationIn = '')
+              Continue;
+            if (NewFileCreateForGreatPurpose.OpenFile(KatKassa.LocationOut + '\Spool.adr', stCreate))
+              NewFileCreateForGreatPurpose.Close;
+          }
+      end;
+  }
+  StopVisual('', 0);
+
+  SetBounds(#KatKassa);
+  PopPos(#KatKassa);
+
+  DoneMarker(Markers, '');
+}
+
+cmAttrib:
+{
+  if (BoundActive(tbOnlyNew))
+    {
+      // снимаем ограничения, подключаем все
+      PushPos(#ResTrade);
+      PopBounds(tbOnlyNew);
+      PopPos(#ResTrade);
+      SetTitle('Розничная торговля: Прием данных от касс (все)');
+    }
+  else
+    {
+      // включаем ограничения, подключаем только новые
+      var CurFieldState: word;
+      CurFieldState := ResTrade.Status;
+      PushPos(#ResTrade);
+      PushBounds(tbOnlyNew);
+      if (GetFirst ResTrade <> tsOk)
+        {
+          PopBounds(tbOnlyNew);
+          PopPos(#ResTrade);
+          Message(''#3'Все операции проведены', Warning + OkButton);
+        }
+      else
+        {
+          if (CurFieldState = 0)
+            PopPos(#ResTrade);
+          else
+            DropPos(#ResTrade);
+          SetTitle('Розничная торговля: Прием данных от касс (новые)');
+        }
+    }
+  RescanPanel(#ResTrade);
+}
+
+
+#IfDef AZS_NO
+cmValue1:
+  if RunInterface('L_KASSA::Get_Kass', word(2), '', comp(0)) = cmCancel
+   { }
+
+cmValue20:
+{
+  CarryOutImport(True, false);
+
+  if GetLast Checks = tsOk
+   { }
+
+  RescanPanel(#Checks);
+  RereadRecord(#Checks);
+}
+#End // AZS
+
+
+! -Key------------- <Alt+S> -------------------------
+cmAccording:
+{
+  abort;
+  var price_: double;
+
+  if RunWindowModal(wSearch)=cmCancel
+    Exit;
+
+  var cRec_ : comp;
+  cRec_:= ResTrade.nRec;
+
+  StartNewVisual(vtRotateVisual, vfTimer,'Поиск', 1);
+  _LOOP ResTrade //123
+   {
+     NextVisual;
+
+     case curField of
+      #Goods_Operation:
+        {
+          if Goods_Operation <> searchString
+            continue;
+        }
+      #ListGood.barCode:
+        {
+          if GetFirst ListGood <> tsOk
+            continue;
+          if ListGood.barCode <> searchString
+            continue;
+        }
+      #KatOrg.name:
+        {
+          if GetFirst KatOrg <> tsOk
+            continue;
+          if KatOrg.name <> searchString
+            continue;
+        }
+      #KatParty2.name:
+        {
+          if GetFirst KatParty2 <> tsOk
+            continue;
+          if KatParty2.name <> searchString
+            continue;
+        }
+      #ResTrade.tKol:
+        {
+          if abs(ResTrade.tKol - double(searchString)) >= 0.01
+            continue;
+        }
+      #tov_price:
+        {
+          if ResTrade.tKol = 0
+            continue;
+          if abs((ResTrade.tSumma/ResTrade.tKol) - double(searchString)) >= 0.01
+            continue;
+        }
+      #ResTrade.tSumma:
+        {
+          if abs(ResTrade.tSumma - double(searchString)) >= 0.01
+            continue;
+        }
+     end;//c
+
+     RescanPanel(#ResTrade);
+     RedrawPanel(#ResTrade);
+
+     cRec_:= ResTrade.nRec;
+
+     StopVisual('',0);
+     if RunWindowModal(wSearch)=cmCancel
+       {
+         Exit;
+       }
+     StartNewVisual(vtRotateVisual, vfTimer,'Поиск...', 1);
+     NextVisual;
+
+   }//_L
+
+ StopVisual('',0);
+
+ if GetFirst ResTrade where ((cRec_ == ResTrade.nRec)) <> tsOk
+   {};
+
+ message('Поиск закончен');
+
+}
+
+end // HandleEvent
+end.  // Interface
+
+
+//---------------------------------------------------------------------------------------------
+#doc
+Локальное меню главного окна интерфейса <link Interface L_Kassa::KUT4Kassa>L_Kassa::KUT4Kassa - Прием данных из кассового аппарата в Розничную Торговлю</link>
+#end
+mnKUT4Kassa Menu
+{
+-'Показывать записи все/новые', cmAttrib, 'Установить фильтр на просмотр всех записей/новых', hcRoznLocMPriemKassa, 'Ctrl+Enter', kbCtrlEnter, sci1Esc;
+----------;
+-'Поиск значения в колонке', cmAccording, 'Поиск значения в колонке', hcRoznLocMPriemKassa, 'Alt+S', kbAltS, sci1Esc;
+//- 'Выбрать кассу и принять данные', cmShowAll, 'Выбор кассы и прием данных', , 'Ctrl+''+''', kbCtrlGrayPlus, sci1Esc;
+//- 'Установить файл семафор', cmDocBas, 'Установить файл семафор о готовности данных', , 'Alt+D', kbAltD, sci1Esc;
+}

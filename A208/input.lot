@@ -1,0 +1,48 @@
+//select createDateTime, string(nrec), name from katparty;// where nrec = 4612072906579717711;//  4612072906579717711           15/08/2023    4612180262538621745           11/10/2023
+select name from katorg where nrec =2605;
+//select * from CREDCARD;
+//import CREDCARD from dbf d:\credcar.dbf n f s r;
+//delete from GrNal where nRec > 0 ;
+//select * from GrNal;
+//import GrNal from dbf d:\GrNal.dbf n f s r;
+//import katorg from dbf d:\katorg.dbf n f s r;
+
+//Select * from ResTrade;
+//select TYPEPRIH from rzKutPrih where nrec = 4612094915926670591;
+//select TYPEPRIH from rzKutPrih where nrec = 281474976710665;
+/*
+sql
+select
+katparty.*,
+rzKUTprih.dDoc AS my_DT
+from katparty
+left join rzKUTprih on rzKUTprih.cParty = KatParty.nRec
+to dbf d:\katparty.dbf;
+*/
+/*
+select KatParty.*,
+my_dt
+from KatParty,
+( SELECT min(pr.dDOC) (fieldname=my_dt) from rzKUTprih pr
+  where ((word(901) == pr.TYPEPRIH
+  and date(0,0,0)   << pr.dDoc
+  and KatParty.nRec == pr.cParty(NoIndex)
+  ))
+) x
+to dbf d:\KatParty.dbf
+;
+*/
+
+//select  CREATEDATETIME, string(nrec) from katparty// where CREATEDATETIME <> date(0,0,0)
+//order by CREATEDATETIME, nRec;
+//UPDATE KATKASSA SET LASTRELIEFE = 0;
+/*
+SELECT LASTRELIEFE, NKASSA FROM KATKASSA;
+SELECT
+RESTRADE.SESSION, KATMC.NAME, H_NO, _dateTimeToStr(H_DATE,'DD.MM.YYYY HH:NN:SS'), H_RET, T_ID, Z_ID,  U_ID,  C_ID,  H_ITEMS, H_TYPE, RESTRADE_ATR.CPODR
+FROM RESTRADE_ATR, RESTRADE, LISTGOOD, KATMC
+WHERE ((RESTRADE_ATR.CRESTRADE == RESTRADE.NREC
+AND RESTRADE.CGOODS == LISTGOOD.NREC
+AND LISTGOOD.CMC    == KATMC.NREC
+));
+*/

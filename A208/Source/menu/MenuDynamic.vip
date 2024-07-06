@@ -1,0 +1,169 @@
+#component ""
+interface iATC_MenuDynamicA208 'Регистрация дополнительных пунктов меню' Gray;
+show(20,8,80,15);
+
+var IsClearResources:boolean;
+create view
+from
+  X$RESOURCES
+where((
+  3==X$RESOURCES.XR$TYPE
+));
+
+screen ScRepParam(,,sci1Esc);
+fields
+  'Программа добавляет новые пункты в меню',skip,{Font={bold=true}};
+  IsClearResources ('Принудительно удаляет записи с меню из X$RESOURCES',,):NoProtect;
+buttons
+  cmAddMenu,default,,'Добавить',,;
+  cmDelMenu,,,'Удалить',,;
+  cmCancel,,,'Выход',,;
+<<
+
+  .@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+    [.] Удалить все меню из системной таблицы`
+
+ <. Добавить .>     <. Удалить .>             <. ~О~тмена  .>
+>>
+end;
+
+exception ExStoreMenuHowDynamics;
+
+procedure ClearResources;
+{
+  if (delete X$RESOURCES <> tsok)
+    message('Ошибка удаления записи в таблице X$RESOURCES!',error);
+}
+
+HandleEvent
+cmInit:{
+  if (not pr_CurUserAdmin) {
+    message('Программа доступна только пользователям с правами администратора.',error);
+    abort;
+    exit;
+  }
+}
+
+cmAddMenu:{
+  StartNewVisual(vtRotateVisual, vfTimer+vfBreak+vfConfirm,'Добавление новых пунктов в меню...', 0);
+  if (IsClearResources) ClearResources;
+  var MenuID:longint=0;
+  _try {
+    //Меню модуля "Настройка"
+    MenuID:=LoadMenuEx('C_COMMON::AllMC',false,true);
+    //=====================================
+    AddMenuItem(MenuID,'separator',1);
+    AddSubMenuDynamic(MenuID,'DopFunc_AllMC_208','Доп.функционал','','');
+    //=====================================
+    //=====================================
+    if (not StoreMenuHowDynamics(MenuID,'C_COMMON::AllMC'))
+      _raise ExStoreMenuHowDynamics;
+
+    ReinitHeaderMenu;
+
+    Message('Дополнительные пункты меню добавлены');
+  }
+  _except
+    on ExStoreMenuHowDynamics:
+      message('Ошибка выполнения StoreMenuHowDynamics',error);
+    on ExVip:
+      message(ExploreException,error);
+  _finally {
+    if (MenuID<>0) DisposeLoadMenu(MenuID);
+  }
+  StopVisual;
+}
+
+/*
+cmAddMenu:{
+  StartNewVisual(vtRotateVisual, vfTimer+vfBreak+vfConfirm,'Добавление новых пунктов в меню...', 0);
+  if (IsClearResources) ClearResources;
+  var MenuID:longint=0;
+  _try {
+    //Меню модуля "Настройка"
+    MenuID:=LoadMenuEx('C_COMMON::Nastr_Admin',false,true);
+    //=====================================
+    AddMenuItem(MenuID,'separator',1);
+    AddSubMenuDynamic(MenuID,'iEIK::iEIK_Menu','Экспорт/Импорт (касса)','','');
+    //=====================================
+    //=====================================
+    if (not StoreMenuHowDynamics(MenuID,'C_COMMON::Nastr_Admin'))
+      _raise ExStoreMenuHowDynamics;
+
+    ReinitHeaderMenu;
+
+    Message('Дополнительные пункты меню добавлены');
+  }
+  _except
+    on ExStoreMenuHowDynamics:
+      message('Ошибка выполнения StoreMenuHowDynamics',error);
+    on ExVip:
+      message(ExploreException,error);
+  _finally {
+    if (MenuID<>0) DisposeLoadMenu(MenuID);
+  }
+
+  _try {
+    //Меню модуля "Экспорт в хранилище данных"
+    MenuID:=LoadMenuEx('C_OLAP::DEMain',false,true);
+    //=====================================
+    AddSubMenuDynamic(MenuID,'iEIK::Olap_Menu','OLAP-Отчеты','','');
+    //=====================================
+    //=====================================
+    if (not StoreMenuHowDynamics(MenuID,'C_OLAP::DEMain'))
+      _raise ExStoreMenuHowDynamics;
+
+    ReinitHeaderMenu;
+
+    Message('Дополнительные пункты меню добавлены');
+  }
+  _except
+    on ExStoreMenuHowDynamics:
+      message('Ошибка выполнения StoreMenuHowDynamics',error);
+    on ExVip:
+      message(ExploreException,error);
+  _finally {
+    if (MenuID<>0) DisposeLoadMenu(MenuID);
+  }
+
+  StopVisual;
+}
+*/
+cmDelMenu:{
+  StartNewVisual(vtRotateVisual, vfTimer+vfBreak+vfConfirm,'Удаление новых пунктов в меню...', 0);
+
+  if (IsClearResources) ClearResources;
+
+  _try {
+    //Меню модуля "Настройка"
+    DeleteMenuHowDynamics('C_Common::AllMC');
+    ReinitHeaderMenu;
+
+    Message('Дополнительные пункты меню удалены')
+  }
+  _except
+    on ExVip:
+      message(ExploreException,error);
+
+  StopVisual;
+}
+end;
+
+end.
+
+DopFunc_AllMC_208 Menu
+{
+   - 'Государственный реестр предельных отпускных цен', cmRunInterface('ATC_GRPOC::iATC_GRPOC'), 'Государственный реестр предельных отпускных цен',,,, scMenuCtx,,,;
+   - 'Шкала наценок', cmRunInterface('ATC_A208::iATC_ScaleNac'), 'Шкала наценок',,,, scMenuCtx,,,;
+
+}
+
+/*
+Olap_Menu Menu
+{
+   - 'Отчеты по реализации в розничной торговле', cmRunInterface('iEIK::ROZN_OLAP'), 'OLAP-отчеты по реализации в розничной торговле',,,, scMenuCtx,,,;
+   - 'Отчеты по оборотам предприятия', cmRunInterface('iEIK::FK_MainBook'), 'OLAP-отчеты по оборотам предприятия',,,, scMenuCtx,,,;
+   - 'Оборотно-сальдовая ведомость', cmRunInterface('iEIK::FK_Oborotka'), 'OLAP-отчет оборотно-сальдовая ведомость',,,, scMenuCtx,,,;
+}
+*/

@@ -1,0 +1,1223 @@
+#component "L_Kassa"
+#include FRRecordDefinition.vih
+alter interface RETURN4K;
+
+// временная таблица для выгрузки в JSON
+table struct local _tmpJSON
+(
+  LOC        :string,
+  GALLOCAL   :string(30),
+  BARKOD     :string,
+  Price      :double,
+  COUNT      :double,
+  NAM        :string,
+  VES        :word,
+  ED         :string(5),
+  EDMSG      :string(50),
+  DEP        :string(4),
+  KOEF       :double,
+  SALE       :word,
+  FPRICE     :double,
+  GROUP      :string,
+  MIN        :double,
+  MAX        :double,
+  REMMC      :string(50),
+  NREC       :string(30),
+  ZAKUP      :double,
+  PLANVOL    :double,
+  TNVED      :string(20),
+  OKDP       :string(20),
+  nKassa     :string
+)
+with index
+(
+  by_nKassa = nKassa+NAM
+);
+
+
+// Временная таблица для хранения хэндлов DBF для каждого ТЗ (при обмене через файлы)
+// и
+// кроме того, в таблицу записывается состояние linked сервера
+// с которым выполняется обмен. Как только в первый раз сервер вернул ошибку
+// весь сеанс обмена данными с этим сервером считается проваленным
+// так сделано для того, чтобы не ожидать ответа от сервера по каждой МЦ
+table struct local _tmpDBF
+(
+  nKassa      :string(20),
+  PodrName    :string(255),
+  hh_dbf      :longint,
+  Path        :string(255),
+  SRV_Status  :boolean,
+  SP_Err      :word,
+  SRV_addr    :string(255),
+  mode        :word,
+  PathJSON    :string(255)
+)
+with index
+(
+  by_nKassa    = nKassa
+);
+
+// Временная таблица для хранения протокола ошибок при передаче в ТЗ
+table struct local _tmpErr
+(
+  nKassa      :string(255),
+  PodrName    :string(255),
+  Err         :string(255),
+  BARCODE     :string(20),
+  NameMC      :string(255),
+  Party       :string(255),
+  EdIzm       :string(20),
+  Kol         :double,
+  Price       :double
+)
+with index
+(
+  by_nKassa    = nKassa+PodrName+NameMC
+);
+
+//Временная таблица для хранения товаров (для отчета EKKA)
+table struct _tmpReport
+(
+  rArticul   	  : string(20),
+  rNameMC      	: string[80],
+  rNameGR    	  : string[80],
+  rUedPrice    	: double,
+  rUedKol      	: double,
+  rNamePodr     : String[255],
+  rUedName     	: string[20],
+  rOedName     	: string[20]
+)
+with index
+(
+  ARep01    = rNamePodr+rNameMC
+);
+
+//Временная таблица для хранения реквизитов документов (для EKKA)
+table struct _tmpReportPodr
+(
+  rNamePodr    	: string[40]
+)
+with index
+(
+  ARep01    = rNamePodr
+);
+
+
+create view
+var
+  _modeOb       :word;
+  m_service     :TPtr;
+  _cPodrFlt     :comp;
+  TotalSel      :double;   //-- Выбрано на сумму
+  TotalKol      :LongInt;  //-- Выбрано строк
+  _FormatExch   :word;
+as select
+//  if(isValid(tnKatOtpEd), KatOtpEd.koef, 1) (fieldName OEKoefDel),
+  if(isValid(tnKatOtpEdMin), KatOtpEdMin.koef, 1)    (fieldName OEKoefDel),
+  if( isValid(tnKatOtpEdPrih), KatOtpEdPrih.Koef, 1) (fieldName PrihKoef),
+  if( isValid(tnKatOtpEdRash), KatOtpEdRash.Koef, 1) (fieldName RashKoef),
+  round(AttrValP.vDouble * if(isValid(tnKatOtpEd),  KatOtpEd.koef, 1) / if(isValid(tnKatOtpEdMin),KatOtpEdMin.koef,1))          (fieldName OEdKol_2),      // OEdKol_2
+
+* from
+  _tmpDBF
+ ,_tmpErr
+ ,_tmpReport
+ ,_tmpReportPodr
+
+ ,_tmpDBF         _tmpDBF_Del
+ ,_tmpErr         _tmpErr_Del
+ ,_tmpReport      _tmpReport_Del
+ ,_tmpReportPodr  _tmpReportPodr_Del
+
+ ,KatOtpEd KatOtpEdPrih
+ ,KatOtpEd KatOtpEdRash
+
+ ,KatOtpEd KatOtpEdMin(KATOTPED08)
+ ,GroupMC grMC
+ ,KatPodr KatPodrKassa
+
+ ,Pick Pick_Del
+ ,ATC_exch_log
+ ,KatPodr KatPodr_FLT
+
+ ,(select Sum(_rz.Price*_ap.VDOUBLE) (fieldname= _TotalSel),
+          count(*)       (fieldname= _TotalKol)
+   from Pick _p, rzKUTRash _rz, AttrNam _an, AttrVal _ap
+   where ((
+               word(556)   == _p.wList
+           and _p.cRec     == _rz.nRec
+           and coRzKutRash               == _an.wTable
+           and 'Количество для возврата' == _an.Name
+           and coRzKutRash               == _ap.wTable
+           and _rz.nRec                  == _ap.cRec
+           and _an.nRec                  == _ap.cAttrNam
+         ))
+  )
+
+where ((
+    1                         == KatOtpEdMin.PRMC
+and KatMC.nRec                == KatOtpEdMin.CMCUSL
+
+and _tmpReportPodr.rNamePodr  == _tmpReport.rNamePodr
+and KatMC.cGroupMC            == grMC.nRec
+and KatMc.cGrNal              == GrNal.nRec
+
+and KatKassa.cPodr            == KatPodrKassa.nRec
+
+and rzKutRash.cOtpEd          == KatOtpEdRash.nRec
+and rzKutPrih.cOtpEd          == KatOtpEdPrih.nRec
+
+and _cPodrFlt                 == KatPodr_FLT.nRec
+
+));
+
+
+Procedure _ReDraw;
+{
+  if GetFirst Pick_Del where ((word(556) ==  Pick_Del.wList)) = tsOk
+     {
+       verify (_TotalSel);
+       verify (_TotalKol);
+
+       SET TotalSel := _TotalSel;
+       SET TotalKol := _TotalKol;
+     } else
+     {
+       SET TotalSel := 0;
+       SET TotalKol := 0;
+     }
+  RescanPanel(#Pick);
+}
+
+sql query sql_Exec_SendTovar_To_TorgZal =
+SENDTOVAR_TO_TORGZAL (:ARTCODE,:MNAME,:PACK,:PNAME,:PUNU,:PTAX,:PNREC,:MIN_K,:MAX_K,:REMMC,:PRICE,:QTY,:QTYU,:KOEF,:OKDP,:TNVED,:SRV_NAME,:DB_NAME,:MODE)
+;
+
+// окно параметров обмена данными
+// вызывается при обмене и по умолчанию настроено на обмен через SQL
+// для обмена через DBF нужно ручками, целенаправленно, выбрать DBF
+// сделано для уменьшения вероятности ошибки выбора типа обмена
+Window winParamOb 'Параметры обмена данными' cyan, doAccept;
+Show at (,,36,6);
+Screen Scr_Prior 'Параметры обмена данными' ('Параметры обмена данными',  , sci1Esc);
+Fields
+  _modeOb  :noProtect;
+Buttons
+  cmOk,,,         'Выполнить',   , scGalDial;
+  cmCancel,,,     'Отмена',   , scGalDial;
+<<
+
+  `Выполнить обмен данными: `
+    (.) SQL (онлайн режим)`
+    (.) обмен файлами`
+
+      <.  Выполнить  .><.  Отмена  .>
+>>
+end;
+
+HandleEvent
+cmInit:{
+  SET _modeOb := 0;
+}
+cmOk:{
+  CloseInterface(cmDefault);
+}
+end;
+end; // window
+
+
+function ExportJSON :boolean;
+{
+  _loop _tmpDBF
+  {
+    result := false;
+    m_service := HttpConnect_CreateEx('http://ya.ru', '', '', true);
+// OleGenerateGUID
+
+    var JSONObj_Descriptions : TPtr = HttpConnect_JsonObjectCreate(m_service);
+    var JSONObj_Array : TPtr = 0;
+    JSONObj_Array := HttpConnect_JsonArrayCreate(m_service);
+
+    _loop _tmpJSON where ((_tmpDBF.nKassa == _tmpJSON.nKassa))
+       {
+         nextVisual;
+         var JSONObj_VALUES: TPtr = HttpConnect_JsonObjectCreate(m_service);
+
+         HttpConnect_JsonObjectAddString (m_service, JSONObj_VALUES, 'LOC'      ,_tmpJSON.LOC     );
+         HttpConnect_JsonObjectAddString (m_service, JSONObj_VALUES, 'GALLOCAL' ,_tmpJSON.GALLOCAL);
+         HttpConnect_JsonObjectAddString (m_service, JSONObj_VALUES, 'BARKOD'   ,_tmpJSON.BARKOD  );
+         HttpConnect_JsonObjectAddString (m_service, JSONObj_VALUES, 'PRICE'    ,_tmpJSON.Price   );
+         HttpConnect_JsonObjectAddString (m_service, JSONObj_VALUES, 'COUNT'    ,_tmpJSON.COUNT   );
+         HttpConnect_JsonObjectAddString (m_service, JSONObj_VALUES, 'NAM'      ,_tmpJSON.NAM     );
+         HttpConnect_JsonObjectAddString (m_service, JSONObj_VALUES, 'VES'      ,_tmpJSON.VES     );
+         HttpConnect_JsonObjectAddString (m_service, JSONObj_VALUES, 'ED'       ,_tmpJSON.ED      );
+         HttpConnect_JsonObjectAddString (m_service, JSONObj_VALUES, 'EDMSG'    ,_tmpJSON.EDMSG   );
+         HttpConnect_JsonObjectAddString (m_service, JSONObj_VALUES, 'DEP'      ,_tmpJSON.DEP     );
+//         HttpConnect_JsonObjectAddString (m_service, JSONObj_VALUES, 'KOEF'     ,_tmpJSON.KOEF    );
+         HttpConnect_JsonObjectAddString (m_service, JSONObj_VALUES, 'KOEF'     ,DoubleToStr(_tmpJSON.KOEF,'[|-]3666.88888888'));
+         HttpConnect_JsonObjectAddString (m_service, JSONObj_VALUES, 'SALE'     ,_tmpJSON.SALE    );
+         HttpConnect_JsonObjectAddString (m_service, JSONObj_VALUES, 'FPRICE'   ,_tmpJSON.FPRICE  );
+         HttpConnect_JsonObjectAddString (m_service, JSONObj_VALUES, 'GROUP'    ,_tmpJSON.GROUP   );
+         HttpConnect_JsonObjectAddString (m_service, JSONObj_VALUES, 'MIN'      ,_tmpJSON.MIN     );
+         HttpConnect_JsonObjectAddString (m_service, JSONObj_VALUES, 'MAX'      ,_tmpJSON.MAX     );
+         HttpConnect_JsonObjectAddString (m_service, JSONObj_VALUES, 'REMMC'    ,_tmpJSON.REMMC   );
+         HttpConnect_JsonObjectAddString (m_service, JSONObj_VALUES, 'NREC'     ,_tmpJSON.NREC    );
+         HttpConnect_JsonObjectAddString (m_service, JSONObj_VALUES, 'ZAKUP'    ,_tmpJSON.ZAKUP   );
+         HttpConnect_JsonObjectAddString (m_service, JSONObj_VALUES, 'PLANVOL'  ,_tmpJSON.PLANVOL );
+         HttpConnect_JsonObjectAddString (m_service, JSONObj_VALUES, 'TNVED'    ,_tmpJSON.TNVED   );
+         HttpConnect_JsonObjectAddString (m_service, JSONObj_VALUES, 'OKDP'     ,_tmpJSON.OKDP    );
+
+         HttpConnect_JsonArrayAddObject(m_service, JSONObj_Array, JSONObj_VALUES);
+       }
+    HttpConnect_JsonObjectAddObject(m_service, JSONObj_Descriptions, _tmpDBF.nKassa, JSONObj_Array);
+    var JSONSJSON     :TPtr = HttpConnect_JSONObjectToJSON(m_service,JSONObj_Descriptions);
+    if HttpConnect_SaveToFileEx(m_service, JSONSJSON, _tmpDBF.PathJSON, 1251, false) //cpUTF8
+       {
+         result := true;
+       };
+
+    HttpConnect_JSONObjectDestroy(m_service,JSONObj_Descriptions);
+    HttpConnect_JSONObjectDestroy(m_service,JSONObj_Array);
+    HttpConnect_Free(m_service);
+
+/*
+    var _path_sql:string = Replace(_tmpDBF.PathJSON,'json','sql');
+    var _st      :string = 'USE [new]';
+    LogStrToFile(_path_sql, _st);
+    SET _st := 'GO';
+    LogStrToFile(_path_sql, _st);
+    SET _st := 'EXEC	[dbo].[LOAD_FROM_JSON]';
+    LogStrToFile(_path_sql, _st);
+    SET _st := '		@PODR_NAME = N'''+_tmpDBF.nKassa+''',';
+    LogStrToFile(_path_sql, _st);
+    SET _st := '		@JSON_PATH = N'''+_tmpDBF.PathJSON+''' ';
+    LogStrToFile(_path_sql, _st);
+    SET _st := 'GO';
+    LogStrToFile(_path_sql, _st);
+*/
+  }
+}
+
+// заполнение временных таблиц (шапка и спецификация) для отчета "Отчет о возврате из ЕККА"
+procedure Insert_for_Report_EKKA(_BarCode     :string[20];
+                                 _KatPodrName :string[255];
+                                 _curPrice    :double;
+                                 _curKol      :double;
+                                 _cMC         :comp);
+{
+  if GetFirst KatMC where ((_cMC == KatMC.nRec)) = tsOk {};
+  if GetFirst fastfirstrow KatOtpEdMin = tsOk {};
+  if GetFirst _tmpReportPodr where ((_KatPodrName == _tmpReportPodr.rNamePodr)) <> tsOk
+     {
+       ClearBuffer(#_tmpReportPodr);
+       _tmpReportPodr.rNamePodr := _KatPodrName;
+       insert current _tmpReportPodr;
+     }
+  ClearBuffer(#_tmpReport);
+  _tmpReport.rArticul   := _BarCode;
+  _tmpReport.rNamePodr  := _KatPodrName;
+  _tmpReport.rNameMC    := KatMC.Name;
+  _tmpReport.rNameGR    := grMC.Name;
+  _tmpReport.rUedPrice  := _curPrice;
+  _tmpReport.rUedKol    := _curKol;
+  _tmpReport.rUedName   := KatEd.Name;
+  _tmpReport.rOedName   := KatOtpEdMin.Name;
+  insert current _tmpReport;
+}
+
+
+function _DoOperation_A208(_mode:word) : boolean; forward;
+
+//Стрим для FR-отчета "Отчет возврате товара из ЕККА"
+//и Протокол ошибок (при возврате из ТЗ)
+datastream StreamReport
+(
+  [CFH] CommonFormHeader;
+  Table _tmpErr(
+        [nKassa]    _tmpErr.nKassa;
+        [PodrName]  _tmpErr.PodrName;
+        [Err]       _tmpErr.Err;
+        [BARCODE]   _tmpErr.BARCODE;
+        [NameMC]    _tmpErr.NameMC;
+        [Party]     _tmpErr.Party;
+        [EdIzm]     _tmpErr.EdIzm;
+        [Kol]       _tmpErr.Kol;
+        [Price]     _tmpErr.Price;
+  );
+  Table _tmpDBF(
+        [nKassa]    _tmpDBF.nKassa;
+        [Path]      _tmpDBF.Path+''+_tmpDBF.SRV_addr;
+        [PodrName]  _tmpDBF.PodrName;
+        [myHeader]  if(_tmpDBF.mode = 111 ,('Файл для '+_tmpDBF.nKassa + ' ('+_tmpDBF.PodrName+') сохранен в папке') ,'Выполнялся обмен данными с ' );
+  );
+
+  Table _tmpReportPodr(
+
+        [NamePodr]  _tmpReportPodr.rNamePodr;
+
+        Table _tmpReport(
+        [BarCode]   _tmpReport.rArticul;
+        [NameMC]    _tmpReport.rNameMC;
+        [NameGR]    _tmpReport.rNameGR;
+        [Price]     _tmpReport.rUedPrice;
+        [Kol]       _tmpReport.rUedKol;
+        [Summ]      _tmpReport.rUedPrice * _tmpReport.rUedKol;
+        [EdIzm]     _tmpReport.rUedName+if(_tmpReport.rOedName<>'',' / '+_tmpReport.rOedName,'');
+        );
+  );
+)
+end;
+
+
+
+//---------------- Получить описание отпускных ед.
+function GetOtpEdStr: string;
+{ GetOtpEdStr := trim(KatEd.Name)+'='+
+                 DoubleToStr(1/OEKoefDel,'7777.8888')+'*'+
+                 trim(KatOtpEdMin.Name)
+}
+
+//формирование протокола ошибок
+function _MakeErrProtocol(_nKassa:string; _Err:string) : boolean;
+{
+  result := false;
+  ClearBuffer(#_tmpErr);
+  _tmpErr.nKassa   := _nKassa;
+  _tmpErr.PodrName := KatPodr.Name;
+  _tmpErr.Err      := _Err;
+  _tmpErr.BARCODE  := rzKutPrih.Barcode;
+  _tmpErr.NameMC   := KatMC.Name;
+  _tmpErr.Party    := KatParty.Name;
+  _tmpErr.EdIzm    := WordNameEd;
+  _tmpErr.Kol      := rzKutPrih.Kol
+  _tmpErr.Price    := rzKutPrih.pPrice;
+  if insert current _tmpErr = tsOk then result := true;
+}
+
+function _MakeErrProtocol2(_Barcode     :string[255];
+                           _KatPodrName :string[255];
+                           _PrihParty       :string[255];
+                           _curPrice    :double;
+                           _curKol      :double;
+                           _Ed          :string[20];
+                           _cMC         :comp;
+                           _Err         :string) : boolean;
+{
+  if GetFirst KatMC where ((_cMC == KatMC.nRec)) = tsOk {};
+  result := false;
+  ClearBuffer(#_tmpErr);
+  _tmpErr.nKassa   := '';
+  _tmpErr.PodrName := _KatPodrName;
+  _tmpErr.Err      := _Err;
+  _tmpErr.BARCODE  := _Barcode;
+  _tmpErr.NameMC   := KatMC.Name;
+  _tmpErr.Party    := _PrihParty;
+  _tmpErr.EdIzm    := _Ed;
+  _tmpErr.Kol      := _curKol;
+  _tmpErr.Price    := _curPrice;
+  if insert current _tmpErr = tsOk then result := true;
+}
+
+function _SetSrvStatus(_SRV_Status:boolean; _sql_result:integer) : boolean;
+{
+  result := false;
+  if GetFirst _tmpDBF where ((KatKassa.nKassa == _tmpDBF.nKassa)) <> tsOk
+     {
+       if GetFirst KatPodrKassa = tsOk {};
+       ClearBuffer(#_tmpDBF);
+       _tmpDBF.nKassa     := KatKassa.nKassa;
+       _tmpDBF.PodrName   := KatPodrKassa.Name;
+       _tmpDBF.SRV_Status := _SRV_Status;
+       _tmpDBF.SP_Err     := _sql_result;
+       _tmpDBF.SRV_addr   := KatKassa.AddInfo;
+       _tmpDBF.mode       := 222;
+       if insert current _tmpDBF = tsOk result := true;
+     } else
+     {
+       _tmpDBF.SRV_Status := _SRV_Status;
+       if update current _tmpDBF = tsOk result := true;
+     }
+}
+
+//генерация DBF, его структуры и хэндла для каждого ТЗ, в которые передается информация при офлайн обмене
+function _GetDBF_hh(_nKassa:string) : longint;
+{
+  result := 0;
+  if GetFirst _tmpDBF where ((_nKassa == _tmpDBF.nKassa)) <> tsOk
+     {
+       var _Path:string = '';
+       var _PathJSON:string = '';
+
+       if KATKASSA.LOCATIONOUT <> '' and ExistFile(KATKASSA.LOCATIONOUT)
+          {
+            _Path:= KATKASSA.LOCATIONOUT;
+            _PathJSON:= KATKASSA.LOCATIONOUT;
+          } else
+          {
+            _Path:= GetStringParameter('Files','OutputFilesDirectory',0);
+            _PathJSON:= GetStringParameter('Files','OutputFilesDirectory',0);
+          }
+
+       _Path:= _Path + '\return_' + KATKASSA.NKASSA + '_' + DateToStr(cur_date,'YYYYMMDD')+'_'+timetostr(cur_time,'HHMMSS')+'.dbf';
+       _Path := replace(_Path,'\\','\');
+
+       _PathJSON := _PathJSON + '\return_' + KATKASSA.NKASSA + '_' + DateToStr(cur_date,'YYYYMMDD')+'_'+timetostr(cur_time,'HHMMSS')+'.json';
+       _PathJSON := replace(_PathJSON,'\\','\');
+
+       ClearBuffer(#_tmpDBF);
+       _tmpDBF.nKassa     := KatKassa.nKassa;
+       if _FormatExch = 0 //DBF
+          {
+            _tmpDBF.hh_dbf     := DBFOpen(_Path, stCreate);
+          }
+       _tmpDBF.Path       := _Path;
+       _tmpDBF.PathJSON   := _PathJSON;
+       _tmpDBF.PodrName   := KatPodrKassa.Name;
+       _tmpDBF.SRV_Status := true;
+       _tmpDBF.mode       := 111;
+       insert current _tmpDBF;
+
+       if _FormatExch = 0 //DBF
+          {
+            DBFAddField(_tmpDBF.hh_dbf,'LOC', dbChar, 20 ,0);
+            DBFAddField(_tmpDBF.hh_dbf,'GALLOCAL', dbNum, 19 ,0);
+            DBFAddField(_tmpDBF.hh_dbf,'BARKOD', DbChar, 14 ,0);
+            DBFAddField(_tmpDBF.hh_dbf,'COUNT', dbNum, 9, 3);
+            DBFAddField(_tmpDBF.hh_dbf,'NAM', dbChar, 255 ,0);
+            DBFAddField(_tmpDBF.hh_dbf,'VES', dbNum, 4 ,0);
+            DBFAddField(_tmpDBF.hh_dbf,'ED', dbChar, 5 ,0);
+            DBFAddField(_tmpDBF.hh_dbf,'EDMSG', dbChar, 50 ,0);
+            DBFAddField(_tmpDBF.hh_dbf,'DEP', DbNum,  4, 0);
+            DBFAddField(_tmpDBF.hh_dbf,'KOEF', DbNum,  4, 3);
+            DBFAddField(_tmpDBF.hh_dbf,'SALE', DbNum,  9, 3);
+            DBFAddField(_tmpDBF.hh_dbf,'FPRICE', DbNum,  16, 8);
+            DBFAddField(_tmpDBF.hh_dbf,'GROUP', dbChar, 255 ,0);
+            DBFAddField(_tmpDBF.hh_dbf,'MIN', DbNum, 9, 3);
+            DBFAddField(_tmpDBF.hh_dbf,'MAX', DbNum, 9, 3);
+            DBFAddField(_tmpDBF.hh_dbf,'REMMC', dbChar, 50, 0);
+            DBFAddField(_tmpDBF.hh_dbf,'NREC', dbNum, 19 ,0);
+            DBFAddField(_tmpDBF.hh_dbf,'ZAKUP', DbNum, 9, 3);
+            DBFAddField(_tmpDBF.hh_dbf,'PLANVOL', DbNum, 9, 3);
+            DBFAddField(_tmpDBF.hh_dbf,'TNVED', DbChar, 20 ,0);
+            DBFAddField(_tmpDBF.hh_dbf,'OKDP', DbChar, 20 ,0);
+          }
+       result := _tmpDBF.hh_dbf;
+     } else
+     {
+       result := _tmpDBF.hh_dbf;
+     }
+}
+
+//Аналог штатного cmDefault, но как функция с параметрами
+// _mode 111 - офлайн обмен с выгрузкой в dbf
+// _mode 222 - онлайн обмен с выгрузкой через процедуру SQL
+function _cmDefault_A208(_mode:word) : boolean;
+{
+  resetbounds(#Pick);
+  if( GetFirst Pick where ((word(556) == Pick.wList)) <> tsOk )
+  {
+    if not IsValid(#rzKutRash)
+      {
+        SetBounds(#Pick);
+        Exit;
+      }
+
+    if GetKolInProd >= GetPresision_forKol
+      {
+        ClearBuffer(#Pick);
+        Pick.wList := 556;
+        Pick.cRec := rzKutRash.NRec;
+        if Insert current Pick <> tsOK
+         Message('Ошибка при вставке в таблицу Pick', Warning);
+
+        SetKol_4Return(GetKolInProd);
+
+        if not isValid(#PickMC)
+          {
+            PickMC.wList  := 41543;
+            PickMC.cRec   := KatMC.NRec;
+            PickMC.NRec   := 0;
+            insert current PickMC;
+          }
+      }
+  }
+  setbounds(#Pick);
+  ReScanPanel(#rzKutRash);
+
+  if GetFirst Pick2 where (( 556 == Pick2.wList)) = tsOk
+    if( Message('Вернуть товар?', Confirmation + YesNo) = cmYes )
+      if _DoOperation_A208(_mode)
+        ProcessCommand(cmUnSelectAll);
+
+  RescanPanel(#TmpPickMC);
+}
+
+function _DoOperation_A208(_mode:word) : boolean;
+var kolInRealProd_: double;
+{
+  Result:= false;
+
+  var _DT_START : _DateTime = _CurDateTime;
+  var _ProcName : string = '';
+
+  delete all _tmpDBF_Del;
+  delete all _tmpErr_Del;
+  delete all _tmpReport_Del;
+  delete all _tmpReportPodr_Del;
+
+  var SRV_NAME :string(255) = '';
+  var DB_NAME  :string(255) = '';
+
+
+  var wasOp        :boolean = false;
+
+  var _cMC         :comp = 0;
+  var _BarCode     :string[20] ='';
+  var _KatPodrName :string[255] ='';
+  var _curPrice    :double = 0;
+  var _curKol      :double = 0;
+  var _Diskret     :word = 0;
+  var _Ed          :string[20] = '';
+  var _PrihParty   :string[255] = '';
+
+  StartNewVisual(vtRotateVisual, vfTimer,'Возврат товара из торгового зала', 1);
+
+  ResetBounds(#Pick);
+  _LOOP Pick where ((556 == Pick.wList))
+  {
+    _try
+    {
+    var TransResult :integer;
+    TransResult := BeginConcurrentTransaction(trNoLock);
+
+    if( not NextVisual ) break;
+
+    // проверка на корректные данные
+    if (GetFirst rzKutRash where ((Pick.cRec == rzKutRash.nRec)) <> tsOk)
+      continue
+    else
+      if (GetFirst rzKutPrih where ((rzKutRash.cRzPrih == rzKutPrih.nRec)) <> tsOk)
+        continue;
+
+    // кол-во возврата
+    AttrValP.vDouble:= doGetAttr(coRzKutRash, RzKutRash.nRec,'Количество для возврата');
+
+    if AttrValP.vDouble < GetPresision_forKol
+      Continue; //AttrValP.vDouble := rzKutRash.kol; // если не указано - вернуть все
+
+
+//=== Проверка на ошибки и формирование протокола ошибок =====================================================
+// позиционируем курсор на нужную кассу, для определения настроек обмена данными с этой кассой
+// если настройки нет - генерируем запись, для этого товара, в таблице протокола ошибок и переходим к следующей записи
+    if GetFirst KatKassa where ((rzKutRash.cPodr == KatKassa.cPodr (noIndex) )) <> tsOk
+        {
+          var _Err:string = 'Отсутствует настройка обмена для заданного подразделения розничной торговли';
+          if NOT _MakeErrProtocol('',_Err) message('Ошибка формирования протокола ошибок');
+          continue;
+        } else
+        {
+// во временную таблицу регистрации обмена данными записывается состояние linked сервера
+// с которым выполняется обмен. Как только в первый раз сервер вернул ошибку
+// весь дальнейший сеанс обмена данными с этим сервером считается проваленным
+// так сделано для того, чтобы при потери связи не ожидать ответа от удаленного сервера по каждой МЦ
+          if GetFirst _tmpDBF where ((KatKassa.nKassa == _tmpDBF.nKassa and 222 == _tmpDBF.mode (noIndex)  )) = tsOk
+             {
+               if _tmpDBF.SRV_Status = false
+                  {
+                    AbortTransaction;
+                    var _Err:string = 'Хранимая процедура вернула ошибку: ' + _tmpDBF.SP_Err;
+                    if NOT _MakeErrProtocol('',_Err) message('Ошибка формирования протокола ошибок');
+                    continue;
+                  }
+             }
+          SRV_NAME := '';
+          DB_NAME  := '';
+// проверяем, если это передача через SQL, то смотрим, чтобы была заполнен сервер и база данных в
+// в "Настройках обмена данными с кассами" поле KATKASSA.ADDINFO (Дополнительная информация)
+// при этом формат такой: ИмяСервера<ИмяБД> или ИмяСервера\Инстанс<ИмяБД>
+          if _mode = 222
+             {
+// проверим что поле не пустое
+// иначе генерируем ошибку и пропускаем позицию
+               if KATKASSA.ADDINFO = ''
+                  {
+                    var _Err:string = 'В настройке обмена не задан Сервер и БД торгового зала (поле Дополнительная информация, формат ИмяСервера<ИмяБД> или ИмяСервера\Инстанс<ИмяБД> )';
+                    if NOT _MakeErrProtocol('',_Err) message('Ошибка формирования протокола ошибок');
+                    continue;
+                  } else
+                  {
+                    if inStr('<', KATKASSA.ADDINFO) = 0 or inStr('>', KATKASSA.ADDINFO) = 0
+                       {
+                         var _Err:string = 'Не удалось определить имя Базы Данных (заполняется в поле Дополнительная информация по шаблону ИмяСервера<ИмяБД> или ИмяСервера\Инстанс<ИмяБД>)';
+                         if NOT _MakeErrProtocol('',_Err) message('Ошибка формирования протокола ошибок');
+                         continue;
+                       } else
+                       {
+                         SET SRV_NAME := SubStr(KATKASSA.ADDINFO,1,inStr('<',KATKASSA.ADDINFO)-1);
+                         SET DB_NAME  := Replace(Replace(Replace(KATKASSA.ADDINFO,SRV_NAME,''),'<',''),'>','');
+//                         message('SRV_NAME: '+ SRV_NAME + ' ### '+ 'DB_NAME: '+ DB_NAME);
+                         if (SRV_NAME = '') or (DB_NAME = '')
+                            {
+                              var _Err:string = 'Не удалось определить Сервер или имя Базы Данных (заполняется в поле Дополнительная информация по шаблону ИмяСервера<ИмяБД> или ИмяСервера\Инстанс<ИмяБД>)';
+                              if NOT _MakeErrProtocol('',_Err) message('Ошибка формирования протокола ошибок');
+                              continue;
+                            }
+                       }
+                  }
+             }
+        }
+//============================================================================================================
+
+    if AttrValP.vDouble > GetKolInProd
+      AttrValP.vDouble:= GetKolInProd;
+
+    kolInRealProd_:= GetKolInRealProd;
+
+    // поправим содержимое таблицы ListGood
+    if( Getfirst ListGood where((rzKutRash.cGoods  == ListGood.NRec)) = tsOk )
+    {
+!=============================================================================================================
+// перед операциями удаления и модификации запомним текущие данные (для отчета)
+      SET _cMC         := ListGood.cMC;
+      SET _BarCode     := ListGood.barCode;
+      SET _curPrice    := ListGood.Price;
+      SET _KatPodrName := KatPodrPrih.Name;
+      SET _Diskret     := ListGood.Diskret;
+      SET _Ed          := WordNameEd;
+      SET _PrihParty   := KatParty.Name;
+!=============================================================================================================
+
+      // отпускная единица от Rash
+      var KutOtpEdKoef, ListGoodKoef : double;
+      if( getfirst KatOtpEd where((rzKutPrih.cOtpEd == KatOtpEd.NRec)) = tsOk )
+        KutOtpEdKoef := KatOtpEd.Koef;
+      else KutOtpEdKoef := 1;
+
+      // отпускная единица от ListGood
+      if( getfirst KatOtpEd where((ListGood.cOtpEd == KatOtpEd.NRec)) = tsOk )
+        ListGoodKoef := KatOtpEd.Koef;
+      else ListGoodKoef := 1;
+
+
+      // теперь изменим кол-во МЦ в торговом зале
+//      ListGood.Kol :=  ListGood.Kol - (AttrValP.vDouble * KutOtpEdKoef / ListGoodKoef);
+
+//@@@### КВ
+      ListGood.Kol :=  ListGood.Kol - AttrValP.vDouble;  //OEdKol_2;  //(AttrValP.vDouble * KutOtpEdKoef / ListGoodKoef);
+// перед операциями удаления и модификации запомним кол-во (для отчета)
+//      _curKol := (AttrValP.vDouble * KutOtpEdKoef / ListGoodKoef);
+      _curKol := AttrValP.vDouble;
+//      message(ListGood.Kol+'       #     '+_curKol);
+
+      // для кол-ва передачи в кассы - здесь !
+      if GetFirst KolMC = tsOk
+        {
+//          KolMC.kolStart:= KolMC.kolStart - (AttrValP.vDouble * KutOtpEdKoef / ListGoodKoef);
+//          if KolMC.kolStart < GetPresision_forKol
+            KolMC.kolStart := 0;
+          update current KolMC;
+        }
+
+      // после KolMC
+      if ListGood.Kol >= GetPresision_forKol
+        {
+          if UpDate current ListGood <> tsOK
+             message('Ошибка при обновлении записи в таблице ListGood', Warning);
+        } else
+        {
+          if Delete current ListGood <> tsOK
+             message('Ошибка при удалении из таблицы ListGood', Warning);
+        }
+    }
+
+    //увеличим остаток в приходе
+    rzKutPrih.Ostatok := rzKutPrih.Ostatok + AttrValP.vDouble;
+    if rzKutPrih.Ostatok > rzKutPrih.kol
+      rzKutPrih.Ostatok := rzKutPrih.kol;
+    if update_Prih <> tsOK
+     Message('Ошибка при обновлении записи в таблице rzKutPrih', Warning);
+
+    doSetAttr(coRzKutRash, RzKutRash.nRec,'Количество для возврата', 0); // обнуляем кол-во возврата - здесь
+
+    //модифицируем или удалим расход
+    rzKutRash.kol := rzKutRash.kol - AttrValP.vDouble;
+    if rzKutRash.kol >= GetPresision_forKol
+        Update_Rash
+    else
+      {
+        if Delete_Rash <> tsOK
+          Message('Ошибка при удалении из таблицы rzKutRash', Warning);
+      }
+// заполнение временной таблицы для отчета "Отчет о передаче в ЕККА"
+    Insert_for_Report_EKKA(
+                            _BarCode,
+                            _KatPodrName,
+                            _curPrice,
+                            _curKol,
+                            _cMC
+                          );
+
+// проверка группы налогов
+//@@@###
+    var bNalog:word = 0;
+    if GetFirst GrNal = tsOk
+       {
+         bNalog := if(GrNal.Kod = '20',1,0);  // 1-товар с НДС/ 0-товар без НДС
+       }
+
+// формирование dbf-файла для передачи данных в кассу при офлайн обмене
+    if _mode = 111
+       {
+         var hh : longint =_GetDBF_hh(KatKassa.nKassa);
+         if hh <> 0
+            {
+              if _FormatExch = 0 {
+              DBFPutFieldValue(hh,'LOC'      , _BarCode);
+              DBFPutFieldValue(hh,'GALLOCAL' , KATMC.nRec);
+              DBFPutFieldValue(hh,'BARKOD'   , KATMC.BARKOD);
+              DBFPutFieldValue(hh,'COUNT'    , 0-_curKol);
+              DBFPutFieldValue(hh,'NAM'      , KatMC.Name);
+              DBFPutFieldValue(hh,'VES'      , ListGood.Diskret);
+              DBFPutFieldValue(hh,'ED'       , _Ed);
+              DBFPutFieldValue(hh,'EDMSG'    , GetOtpEdStr);
+              DBFPutFieldValue(hh,'DEP'      , bNalog);
+              DBFPutFieldValue(hh,'KOEF'     , OEKoefDel);
+              DBFPutFieldValue(hh,'SALE'     , KatMC.Sale);
+              DBFPutFieldValue(hh,'FPRICE'   , _curPrice);
+              DBFPutFieldValue(hh,'GROUP'    , grMC.Name);
+              DBFPutFieldValue(hh,'MIN'      , KatMC.ZapasMin);
+              DBFPutFieldValue(hh,'MAX'      , KatMC.ZapasMax);
+              DBFPutFieldValue(hh,'REMMC'    , KatMC.REMMC);
+              DBFPutFieldValue(hh,'NREC'     , KatMC.nRec);
+              DBFPutFieldValue(hh,'ZAKUP'    , KatMC.PRICEPU);  // было KatMC.Volume - Замена поля в новой Галактике
+              DBFPutFieldValue(hh,'PLANVOL'  , KatMC.maxorn);
+              DBFPutFieldValue(hh,'TNVED'    , KatMC.TnVed);
+              DBFPutFieldValue(hh,'OKDP'     , KatMC.OkDP);
+
+              DBFInsertRecord(hh);
+              }
+            }
+//============================================================================================================
+// заполняем временную таблицу для обмена JSON
+         ClearBuffer(#_tmpJSON);
+         _tmpJSON.LOC        := _BarCode;
+         _tmpJSON.GALLOCAL   := KATMC.nRec;
+         _tmpJSON.BARKOD     := KATMC.BARKOD;
+         _tmpJSON.PRICE      := _curPrice;
+         _tmpJSON.COUNT      := 0-_curKol;
+         _tmpJSON.NAM        := KatMC.Name;
+         _tmpJSON.VES        := ListGood.Diskret;
+         _tmpJSON.ED         := _Ed;
+         _tmpJSON.EDMSG      := GetOtpEdStr;
+         _tmpJSON.DEP        := bNalog;
+         _tmpJSON.KOEF       := OEKoefDel;
+         _tmpJSON.SALE       := KatMC.Sale;
+         _tmpJSON.FPRICE     := KatMC.CenaMC;
+         _tmpJSON.GROUP      := grMC.Name;
+         _tmpJSON.MIN        := KatMC.ZapasMin;
+         _tmpJSON.MAX        := KatMC.ZapasMax;
+         _tmpJSON.REMMC      := KatMC.REMMC;
+         _tmpJSON.NREC       := KatMC.nRec;
+         _tmpJSON.ZAKUP      := KatMC.PRICEPU;
+         _tmpJSON.PLANVOL    := KatMC.maxorn;
+         _tmpJSON.TNVED      := KatMC.TnVed;
+         _tmpJSON.OKDP       := KatMC.OkDP;
+         _tmpJSON.nKassa     := KatKassa.nKassa;
+         insert current _tmpJSON;
+//============================================================================================================
+
+         wasOp:= true;
+       }
+
+    if _mode = 222
+       {
+         var qq: IQuery;
+         qq := queryManager.createQuery(sql_Exec_SendTovar_To_TorgZal);
+
+         qq.setParam('ARTCODE' ,  _BarCode);                     //@ARTCODE  VARCHAR(30),    --1 RZKUTPRIH.BARCODE
+         qq.setParam('MNAME'   ,  grMC.Name);                    //@MNAME  VARCHAR(255),     --2
+         qq.setParam('PACK'    ,  OEKoefDel);                    //@PACK  FLOAT,             --3
+         qq.setParam('PNAME'   ,  KatMC.Name);                   //@PNAME  VARCHAR(255),     --4
+         qq.setParam('PUNU'    ,  KatOtpEdMin.abbr);             //@PUNU  VARCHAR(8),        --5
+//============================================================================================================
+// ###@@@ тут пока непонятно что передавать!!!!
+         qq.setParam('PTAX'    ,  string(bNalog));               //@PTAX  VARCHAR(2),        --6
+         qq.setParam('PNREC'   ,  string(KatMC.nRec));           //@PNREC  VARCHAR(30),      --7
+// ###@@@ обратить внимание, что в галактике мы передаем дробное число, а в их хранимке целое число
+         qq.setParam('MIN_K'   ,  KatMC.ZapasMin);               //@MIN_K  FLOAT,            --8
+         qq.setParam('MAX_K'   ,  KatMC.ZapasMax);               //@MAX_K  FLOAT,            --9
+//============================================================================================================
+         qq.setParam('REMMC'   ,   KatMC.RemMC);                 //@REMMC  VARCHAR(255),     --10
+         qq.setParam('PRICE'   ,   _curPrice);                   //@PRICE  FLOAT,            --11
+         qq.setParam('QTY'     ,   0);                           //@QTY  INTEGER,            --12
+         qq.setParam('QTYU'    ,   (0-_curKol));                 //@QTYU  FLOAT,             --13
+         qq.setParam('KOEF'    ,   1);                           //@KOEF  FLOAT,             --14
+         qq.setParam('OKDP'    ,   KatMC.OKDP);                  //@OKDP  VARCHAR(50),       --15
+         qq.setParam('TNVED'   ,   KatMC.TNVED);                 //@TNVED  VARCHAR(50),      --16
+         qq.setParam('SRV_NAME',   SRV_NAME);                    //@SRV_NAME  VARCHAR(255),  --17
+         qq.setParam('DB_NAME' ,   DB_NAME);                     //@DB_NAME  VARCHAR(255)    --18
+// тип операции - 1 Передача в ТЗ, 2- возврат из ТЗ
+         qq.setParam('MODE'    ,   2 );                          //@MODE  TINYINT            --19
+
+         var _errorCode:integer = qq.errorCode;
+         var iRes : IResultSet = qq.getResultSet;
+
+
+         if _errorCode <> 0
+            {
+              AbortTransaction;
+              var _Err:string = 'Хранимая процедура вернула ошибку: ' + _errorCode;
+                        if NOT _MakeErrProtocol2(_Barcode,
+                                                _KatPodrName,
+                                                _PrihParty,
+                                                _curPrice,
+                                                _curKol,
+                                                _Ed,
+                                                _cMC,
+                                                _Err
+                                               ) message('Ошибка формирования протокола ошибок');
+
+// Помечаем сервер как не отвечающий
+              _SetSrvStatus(false, _errorCode);
+              continue;
+            } else
+            {
+              if iRes.getFirst = tsOk and iRes.row.val('ReturnValue') = 0
+                 {
+                   wasOp:= true;
+                 } else
+                 {
+                   AbortTransaction;
+                   var _Err:string = 'Хранимая процедура вернула ошибку: ' + iRes.row.val('EXECRESULT') +' LinkedTRN: '+ (iRes.row.val('ReturnValue'));
+                   if NOT _MakeErrProtocol2(_Barcode,
+                                            _KatPodrName,
+                                            _PrihParty,
+                                            _curPrice,
+                                            _curKol,
+                                            _Ed,
+                                            _cMC,
+                                            _Err
+                                           ) message('Ошибка формирования протокола ошибок');
+                   continue;
+                 }
+            }
+       } // if _mode = 222
+    EndTransaction;
+    } // end _try
+    _except on ExDataBase:  AbortTransaction;
+
+  }// _L Pick
+
+  StopVisual('',0);
+
+  var _status :word;
+  if wasOp
+   {
+     _loop _tmpDBF
+     {
+       if _FormatExch = 0 DBFClose(_tmpDBF.hh_dbf);
+     }
+     if _FormatExch = 1
+          {
+            if ExportJSON {};
+          }
+     if GetFirst _tmpErr <> tsOk
+        {
+//        все ок
+          _status := 0;
+        } else
+        {
+//          частично
+          _status := 65000;
+        }
+   } else
+   {
+//     ничего не возвращено
+     _status := 65111;
+   }
+
+// формирование отчета
+  var _rep_Path : string = GetStringParameter('Files', 'OutputFilesDirectory', 0);
+  _rep_Path := _rep_Path  +'\1_Отчет о возврате товара из ЕККА (с Протоколом)'+ '_' + DateToStr(cur_date,'YYYYMMDD')+'_'+timetostr(cur_time,'HHMMSS') + '.xlsx';
+  _rep_Path := replace(_rep_Path,'\\','\');
+  var _fr :boolean = false;
+  var FReport: TPtr =  FrCreate(StreamReport);
+  if FReport <> 0
+     {
+       if FROpenReport(FReport,'1_Отчет о возврате товара из ЕККА (с Протоколом)')
+          {
+            if FRSetParameters(FReport, frExportXLSX, 'OpenAfterExport=false')
+               {
+                 if FRExportReport(FReport, frExportXLSX, _rep_Path)
+                    {
+                      _fr := true;
+                    }
+               }
+          }
+     } else
+     {
+       _fr := false;
+       message('Отчеты FastReport не найдены');
+     }
+// Заполнение лога
+  if _mode = 111 _ProcName := 'Возврат товара из ТЗ (обмен файлами)'
+  if _mode = 222 _ProcName := 'Возврат товара из ТЗ (SQL SendTovar_To_TorgZal)'
+
+  ClearBuffer(#ATC_exch_log);
+  ATC_exch_log.log_type  := 2; //выгрузка (экспорт)
+  ATC_exch_log.Dt_Start  := _DT_START;
+  ATC_exch_log.Dt_End    := _CurDateTime;
+  ATC_exch_log.UserName  := UserName();
+  ATC_exch_log.ProcName  := _ProcName;
+  ATC_exch_log.status    := _status;
+  if _fr
+     {
+       ImportFileToMemoAZM(ATC_exch_log.SMEMO,_rep_Path,false);
+     }
+  insert current ATC_exch_log;
+
+  delete all Pick_Del;
+
+  Result := true;
+
+  if DeleteFile(_rep_Path) {};
+
+  if _status = 0      message('Возврат товара из торгового зала выполнен успешно', information);
+  if _status = 65000  message('Возврат товара из торгового зала выполнен частично, по некоторым товарам возврат НЕ ПРОИЗВЕДЕН. Сформирован ПРОТОКОЛ!', information);
+  if _status = 65111  message('Возврат товара из торгового зала НЕ ПРОИЗВЕДЕН. Сформирован ПРОТОКОЛ!');
+
+  RunFReport(StreamReport, '', true);
+
+}
+
+panel paReturn4Kassa;
+  table rzKutRash;
+overloadFormats brReturn4Kassa;
+browse brReturn4Kassa (, hcRoznM2DataBack, sci1EnIns);
+  show at (,16,,27);
+fields
+    {Font = {Color = if(picked<>'',ColorMark, if(GetKolInProd < GetPresision_forKol, colorSysGray,0)) }};
+  Picked            ''             ('',,)                 : [1], skip;
+  rzKutPrih.BarCode 'Штрих-код' ('Штрих-код товара. Серым цветом выделен проданный товар',,)  : [13], protect;
+  KatOrg.Name       'Поставщик'   ('Поставщик товара. Серым цветом выделен проданный товар')    : [16],  protect;
+  KatParty.Name     'Партия'  ('Партия товара из КУТ',,)      : [10], protect;
+  rzKutRash.dDoc    'Дата','передачи'  ('Дата передачи товара в торговый зал. Серым цветом выделен проданный товар',,) : [10,'DD/MM/YYYY'],protect;
+  rzKutRash.Price   'Цена'    ('Цена товара. Серым цветом выделен проданный товар',,)          : [12.2,'\2p[|-]36`666`666`666.88'], protect;
+//  WordNameEd
+  KatOtpEdRash.abbr 'ЕдИзм'       ('Отпускная единица',,) : [4], skip; //protect;
+  rzKutRash.Kol     'Передано','в торговый зал'   ('Количество переданного товара в торговый зал',,) : [8.4], skip;
+  KolMC.kol         'Резерв','по н/р' ('Резерв для продажи по наличному расчету в торговом зале',,) : [8.4], skip;
+  GetKolInProd      'Остаток','в торговом зале'('Свободный остаток в торговом зале',,) : [9.3], skip,//protect,
+    {Font = {Color = if(GetKolInProd  < GetPresision_forKol, colorSysGray,0) }};
+  AttrValP.vDouble  'Вернуть','из торгового зала'   ('Количество товара для возврата из торгового зала') : [8.4], noProtect;
+  KatPodr.Name      'Склад'     ('Разрез прихода - Склад') : [6], protect;
+  KatMol.Name       'МОЛ'    ('Разрез прихода - МОЛ')   : [6], protect;
+end; //browse
+
+ExtendFormats scReturn4K;
+screen scReturn4K;
+show at (,28,,);
+table Pick;
+  Fields
+    KatPodr_FLT.Name ('Текущее подразделение. Выбирается по <F3>', , sci13Esc), Protect;
+    TotalSel : [10,'\2P[|-]3666`666`666`666.88']         , protect;
+    TotalKol : [10,'\2P[|-]3666`666`666`666']            , skip,{font={bold=true}};
+  Buttons
+    cmOk2 , , , 'Возврат товара из Торгового зала', , sci1Esc;
+<<
+ .@@@@@@@@@@@@@@@@@@@@@@                <. Возврат товара из Торгового зала .>
+ `Сумма`.@@@@@@@@@@@@@@ `строк`.@@@@@@
+>>
+end; //screen
+end; //panel
+
+
+HandleEvent
+cmInit:{
+  if (Inherited::HandleEvent(cmInit) = heOk)
+     {
+       _FormatExch := wGetTune('GALCOMMON.PARTNER2.a208PosTermExch.PosTermOffline');
+
+///////Спрячем стандартную кнопку "Вернуть_товар_из_Торгового_зала"
+       cfsSetProp('b_SCRETURN4K_Вернуть_товар_из_Торгового_зала', cfpVisible, false);
+       var _cPodrFlt2 :comp;
+       ReadMyDsk(_cPodrFlt2, 'RETURN4K__cPodrFlt', true);
+       if ByPodr = 0 and _cPodrFlt2 = 0
+          {
+            ReadMyDsk(_cPodrFlt, 'RestInKa__cPodrFlt', true);
+            SET ByPodr := _cPodrFlt;
+            if (ByPodr <> 0)
+               {
+                  AddBounds(tbByPodrBound);
+                  AddBounds(tbByPodrLstGood);
+               }
+          }
+       if ByPodr = 0 and _cPodrFlt2 <> 0
+          {
+            SET ByPodr := _cPodrFlt2;
+            if (ByPodr <> 0)
+               {
+                  AddBounds(tbByPodrBound);
+                  AddBounds(tbByPodrLstGood);
+               }
+            SaveMyDsk(0, 'RETURN4K__cPodrFlt');
+          }
+       if ByPodr <> 0
+          {
+            SET _cPodrFlt := ByPodr;
+          }
+
+       RescanPanel(#rzKutPrih);
+     }
+}
+
+cmPick:{
+  PutCommand(cmUnSelectAll);
+  if (Inherited::HandleEvent(cmPick) = heOk)
+     {
+       if curField = #KatPodr_FLT.Name
+          {
+             if RunInterface('Z_KATPODR::GetAnyPodr', _cPodrFlt, 2) <> cmCancel
+                {
+                  SaveMyDsk(_cPodrFlt, 'RETURN4K__cPodrFlt');
+                  SET ByPodr := _cPodrFlt;
+                  if (BoundActive(tbByPodrBound))
+                     {
+                       ClearColumnsSorting(brReturn4Kassa);
+                       SubBounds(tbByPodrBound);
+                       SubBounds(tbByPodrLstGood);
+                     }
+                  if GetFirst rzKutPrih where ((ByPodr == rzKutPrih.cPodr)) = tsOk
+                     {
+                       if cKutPrih = 0 SET cKutPrih := rzKutPrih.nRec;
+                     }
+
+                  PutCommand(cmInit);
+/*
+                  if (ByPodr <> 0)
+                     {
+                       if NOT BoundActive(tbByPodrBound)
+                          {
+                            AddBounds(tbByPodrBound);
+                            AddBounds(tbByPodrLstGood);
+                           }
+                     }
+*/
+                  ReReadRecord(#rzKutPrih);
+                }
+          }
+     }
+
+}
+
+cmOk2:{
+  if (RunWindowModal(winParamOb)<>cmDefault)
+     {
+       abort; Exit;
+     }
+  var _mode :word = if(_modeOb = 0,word(222),word(111));
+  _cmDefault_A208(_mode);
+}
+
+
+cmDefault:{
+//Поскольку у нас свои кнопки, перекрываем событие по cmDefault
+  Stop;
+  PutCommand(cmOk2);
+}
+
+// На случай если конфигуратором вернут видимость штатной кнопке
+// переносим реакцию на событие из cmDefault в cmOk
+// на всякий случай, чтобы было )
+cmOk:{
+  resetbounds(#Pick);
+  if( GetFirst Pick where ((word(556) == Pick.wList)) <> tsOk )
+  {
+    if not IsValid(#rzKutRash)
+      {
+        SetBounds(#Pick);
+        Exit;
+      }
+
+    if GetKolInProd >= GetPresision_forKol
+      {
+        ClearBuffer(#Pick);
+        Pick.wList := 556;
+        Pick.cRec := rzKutRash.NRec;
+        if Insert current Pick <> tsOK
+         Message('Ошибка при вставке в таблицу Pick', Warning);
+
+        SetKol_4Return(GetKolInProd);
+
+        if not isValid(#PickMC)
+          {
+            PickMC.wList  := 41543;
+            PickMC.cRec   := KatMC.NRec;
+            PickMC.NRec   := 0;
+            insert current PickMC;
+          }
+      }
+  }
+  setbounds(#Pick);
+  ReScanPanel(#rzKutRash);
+
+  if GetFirst Pick2 where (( 556 == Pick2.wList)) = tsOk
+    if( Message('Вернуть товар?', Confirmation + YesNo) = cmYes )
+      if DoOperation
+        ProcessCommand(cmUnSelectAll);
+
+  RescanPanel(#TmpPickMC);
+}
+
+cmMarkUnMark:{
+  if (Inherited::HandleEvent(cmMarkUnMark) = heOk)
+     {
+       _ReDraw;
+     }
+}
+
+cmSelectAll:{
+  if (Inherited::HandleEvent(cmSelectAll) = heOk)
+     {
+       _ReDraw;
+     }
+}
+
+cmUnSelectAll:{
+  if (Inherited::HandleEvent(cmUnSelectAll) = heOk)
+     {
+       _ReDraw;
+     }
+}
+
+cmCheckField:{
+  if (Inherited::HandleEvent(cmCheckField) = heOk)
+     {
+       _ReDraw;
+     }
+}
+
+/*
+cmCheckField:{
+  case CurField of
+    #AttrValP.vDouble:
+      {
+        if AttrValP.vDouble > GetKolInProd
+          {
+            message('Можно вернуть только не проданный товар');
+            set AttrValP.vDouble:= GetKolInProd;
+          }
+
+        doSetAttr(coRzKutRash, RzKutRash.nRec,'Количество для возврата', AttrValP.vDouble);
+
+        RereadRecord(#AttrNamP);
+        RereadRecord(#AttrValP);
+
+        _ReDraw
+      }
+    end;
+}
+*/
+end;
+end.

@@ -1,0 +1,177 @@
+Create Table ATC_GRPOC "Гос.реестр предельных отпускных цен"
+With Table_Code = 31603
+With Replace
+With TableOptions branched
+(
+   NREC             : comp                        "Номер записи"
+ , UserLoaded       : string                      "Пользователь загрзивший реестр"
+ , DateLoaded       : _DateTime                   "Дата загрузки реестра" 
+ , ReestrDate       : date                        "Дата реестра"
+ , isActive         : boolean                     "Активность (активный тольо один)"
+ , SMEMO            : LVar                        "Элетронный документ (реестр)"
+)
+With Index
+(
+  ATC_GRPOC_00  = NREC(Unique, Surrogate, Journal),
+  ATC_GRPOC_01  = ReestrDate,
+  ATC_GRPOC_02  = isActive+ReestrDate
+);
+
+Create Table ATC_GRPOCSP "Специф-ия реестра предельных цен"
+With Table_Code = 31604
+With Replace
+With TableOptions branched
+(
+   NREC             : comp                        "Номер записи"
+ , cGRPOC           : comp                        "Ссылка на реестр"
+ , MNN              : string                      "Междунар. непатент. наименование"
+ , Name             : string                      "Торговое наименование "
+ , PharmForme       : string                      "Лекарственная форма"
+ , info             : string                      "Владелец РУ/произв/упаковщик/Выпускающий"
+ , ATX_code         : string                      "Код АТХ"
+ , KolInPack        : double                      "Кол-во в потреб. упаковке"
+ , maxPrice         : double                      "Предельная цена руб. без НДС"
+ , firstPrice       : double                      "Цена указана для первич. упаковки"
+ , RU_number        : string                      "Номер РУ"
+ , DDoc_NoDoc       : string                      "Дата регистр.цены и номер решения"
+ , article          : string                      "Штрих-код (EAN13)"
+ , DateBeg          : date                        "Дата вступления в силу"
+ , ReestrDate       : date                        "Дата реестра (шапки)"
+ , cMC              : comp                        "Ссылка на KatMC"
+ , npp              : longint                     "порядковый номер"
+)
+With Index
+(
+  ATC_GRPOCSP_00  = NREC(Unique, Surrogate, Journal),
+  ATC_GRPOCSP_01  = article+DateBeg+maxPrice,
+  ATC_GRPOCSP_02  = cGRPOC+DateBeg+article,
+  ATC_GRPOCSP_03  = cGRPOC+article+DateBeg,
+  ATC_GRPOCSP_04  = cGRPOC+cMC,
+  ATC_GRPOCSP_05  = cGRPOC+npp
+);
+
+
+Create Table ATC_SpStep_Atr "ATC атрибуты специф. ДО"
+With Table_Code = 31605
+With Replace
+With TableOptions branched
+(
+   NREC             : comp                        "Номер записи"
+ , cSpStep          : comp                        "Ссылка на SpStep"
+ , cBaseDoc         : comp                        "Ссылка на ДО"
+ , cMC              : comp                        "Ссылка на KatMC"
+ , ID_ORIG          : string                      "ИД товара у поставщика"
+ , TOV_ORIG         : string                      "Наименование поставщика"
+ , TOVAR            : string                      "Наим-е из справочника СКЛИТ"
+ , KOL_VO           : double                      "Количество"
+ , PR_W_NDS         : double                      "Цена поставщика с НДС"
+ , SUMMA            : double                      "Сумма по позиции с НДС"
+ , BL_ROSN_NC       : double                      "Розничный процент"
+ , BL_ROSN_PR       : double                      "Розничная цена"
+ , SUM_ROSN_A       : double                      "Сумма розничная по позиции"
+ , MAK_ORIG         : string                      "Производитель"
+ , MAKER            : string                      "Производитель из справочника СКЛИТ"
+ , NAC_OPT          : double                      "Процент наценки поставщика"
+ , PROC_NDS         : double                      "НДС поставщика %"
+ , SUM_NDS          : double                      "Сумма НДС по позиции"
+ , ROSN_NDS_A       : double                      "Сумма НДС розничная по позиции"
+ , PR_REE           : double                      "Цена по гос. реестру"
+ , PR_MAK           : double                      "Цена завода без НДС"
+ , PR_MAK_NDS       : double                      "Цена завода с НДС"
+ , DATE_GOD         : date                        "Срок годности препарата"
+ , SERIA            : string                      "Серия"
+ , ED_IZM           : string                      "Единица измерения"
+ , GTD              : string                      "ГТД"
+ , PROTOKOL         : string                      "Местный сертификат"
+ , ZV               : boolean                     "Признак ЖВЛП"
+ , SERT             : string                      "Сертификат"
+ , NAKL_NUM         : string                      "Номер накладной"
+ , NAKL_DATE        : date                        "Дата накладной"
+ , DATE_OPL         : date                        "Дата оплаты накладной" 
+ , SUM_W_NDS        : double                      "Сумма по всей накладной с НДС"
+ , SUMMA_NDS        : double                      "Сумма НДС по всей накладной"
+ , NAKL_PRIH        : date                        "Дата расценки"
+ , SUM_ROSN_B       : double                      "Сумма розничная"
+ , ROSN_NDS_B       : double                      "Сумма НДС розничная"
+ , POST             : string                      "Наименование поставщика" 
+ , NAME             : string                      "Клиент"
+ , SCAN_CODE        : string                      "Штрих-код"
+ , PR_WO_NDS        : double                      "Цена поставщика без НДС"
+ , SUM_B_NDS        : double                      "Сумма по позиции без НДС"
+ , ID_TOV           : longint                     "Код товара из справочника СКЛИТ" 
+ , ID_MAK           : longint                     "Код произв-ля из справочника СКЛИТ"
+ , SF_NUM           : string                      "Номер счета фактуры"
+ , SF_DATE          : date                        "Дата счета фактуры" 
+ , COUNTRY          : string                      "Страна происхождения товара"
+ , PRODUCER         : string                      "Производитель/Импортер"
+ , ID_GR            : longint                     "ИД группы товара"
+ , NAME_GR          : string                      "Наименование группы товара"
+ , ID_MNN           : longint                     "ИД МНН"
+ , BRN_IDOPT        : string                      "ИД поставщика в честном знаке"
+ , IS_MARK          : boolean                     "Является маркируемым"
+ , BACKACCEPT       : boolean                     "признак обратной маркировки"
+ , GTIN             : string                      "GTIN"
+ , NAME_MNN         : string                      "МНН"
+ , D_manuf          : date                        "Дата изготовления"
+ , D_Sale           : date                        "Дата реализации производителем" 
+ , D_PariceZV       : date                        "Дата цены ЖВЛП"
+
+)
+With Index
+(
+  ATC_SpStep_Atr_00  = NREC(Unique, Surrogate, Journal),
+  ATC_SpStep_Atr_01  = cSpStep,
+  ATC_SpStep_Atr_02  = cBaseDoc
+);
+
+
+Create Table ATC_ExImpOrg "ATC Настр. импорта из Excel для контр-та"
+With Table_Code = 31606
+With Replace
+With TableOptions branched
+(
+   NREC             : comp                        "Номер записи"
+ , cOrg             : comp                        "Ссылка на KatOrg"
+ , TypeNastr        : word                        "Тип настройки"
+ , npp              : word                        "Номер по порядку"
+ , F_Name           : string                      "Наименование поля из ATC_SpStep_Atr"
+ , Name_Col         : string                      "Наим. колонки (кол-во,цена,сумма...)"
+ , Num_Col          : word                        "Номер колонки в Excel"
+)
+With Index
+(
+  ATC_ExImpOrg_00  = NREC(Unique, Surrogate, Journal),
+  ATC_ExImpOrg_01  = cOrg + TypeNastr + npp
+);
+
+Create Table ATC_KatParty_Atr "ATC доп.атрибуты партий"
+With Table_Code = 31607
+With Replace
+With TableOptions branched
+(
+   NREC             : comp                        "Номер записи"
+ , cParty           : comp                        "Ссылка на партию"
+ , MNN              : string                      "МНН"
+ , TorgName         : string                      "Торговое наименование"
+ , Seria            : string                      "Серия"
+ , Proizvoditel     : string                      "Производитель"
+ , PriceGRPOC       : double                      "предельная цена ЖВЛП"  
+ , OtpPrice         : double                      "отпуск. цена без НДС"  
+ , OtpPrice_w_NDS   : double                      "отпуск. цена с НДС"  
+ , dRealiz          : date                        "Дата реализации произв."
+ , USN_ENVED        : double                      "Отпускная цена (УСН/ЕНВД)"
+ , Price            : double                      "Отпускная цена (без НДС)"
+ , Price_W_NDS      : double                      "Отпускная цена (c НДС)"
+ , lnk_RON_Proc     : array[1..10] of double      "Размер оптовой надбавки в %"
+ , lnk_RON_Rub      : array[1..10] of double      "Размер оптовой надбавки в рублях"
+ , lnk_USN_ENVED    : array[1..10] of double      "Отпускная цена (УСН/ЕНВД)"
+ , lnk_Price        : array[1..10] of double      "Отпускная цена (без НДС)"
+ , lnk_Price_W_NDS  : array[1..10] of double      "Отпускная цена (c НДС)"
+
+)
+With Index
+(
+  ATC_KatParty_Atr_00  = NREC(Unique, Surrogate, Journal),
+  ATC_KatParty_Atr_01  = cParty,
+  ATC_KatParty_Atr_02  = TorgName
+);

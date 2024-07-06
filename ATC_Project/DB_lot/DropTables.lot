@@ -1,0 +1,6 @@
+//drop table ATC_GRPOC;
+//drop table ATC_GRPOCSP;
+//drop table ATC_SpStep_Atr;
+//drop table ATC_ExImpOrg;
+drop table ATC_KatParty_Atr;
+

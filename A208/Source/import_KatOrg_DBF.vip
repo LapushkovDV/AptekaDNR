@@ -1,0 +1,96 @@
+interface import_KatOrg_DBF,  cyan;
+Show at (,,120,4);
+create view
+var  _DBF_File: string;
+as select *
+from KatParty;
+
+Screen sc_ImportDateParty (, , sci1Esc);
+Fields
+  _DBF_File        (, , sci13Esc)                 : Protect,PickButton;
+Buttons
+  cmLoad,,,            'Загрузить данные из файла', , sci1Esc;
+
+<<
+ `Путь на KatOrg.dbf`
+  .@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+                                                                           <.   Загрузить данные   .>
+
+>>
+end; // screen
+
+
+Function _LoadFromDBF:boolean;
+{
+  StartNewVisual (vtRotateVisual, vfTimer, 'Чтение данных из файла', 1 );
+
+  var hh: longint = 0;
+  _try{
+        hh := DBFOpen(_DBF_File ,stOpenRead);
+      }
+  _except {};
+
+  var _npp:longint = 0;
+  if hh <> 0
+     {
+       if DBFGetFirst(hh) = tsOk do
+          {
+            SetVisualHeader('Всего обработано позиций: '+_npp ) ;
+            NextVisual;
+            _npp++;
+
+            var _nRec:comp =  DBFGetFieldValue(hh,'NREC');
+
+            if GetFirst KatOrg where ((_nRec == KatOrg.nRec)) <> tsOk
+               {
+                 ClearBuffer(#KatOrg);
+                 KatOrg.nRec       := _nRec;
+                 KatOrg.NAME       := DBFGetFieldValue(hh,'NAME');
+                 KatOrg.CODE       := DBFGetFieldValue(hh,'CODE');
+                 KatOrg.TIPORG     := DBFGetFieldValue(hh,'TIPORG');
+                 KatOrg.ADDR       := DBFGetFieldValue(hh,'ADDR');
+                 KatOrg.OKPO       := DBFGetFieldValue(hh,'OKPO');
+                 KatOrg.OKDP       := DBFGetFieldValue(hh,'OKDP');
+                 KatOrg.OKONH      := DBFGetFieldValue(hh,'OKONH');
+                 KatOrg.TEL        := DBFGetFieldValue(hh,'TEL');
+                 KatOrg.CSTATE     := DBFGetFieldValue(hh,'CSTATE');
+                 KatOrg.CCITY      := DBFGetFieldValue(hh,'CCITY');
+                 KatOrg.TIPKNT     := DBFGetFieldValue(hh,'TIPKNT');
+                 KatOrg.CORPOIN    := DBFGetFieldValue(hh,'CORPOIN');
+                 KatOrg.UNN        := DBFGetFieldValue(hh,'UNN');
+                 KatOrg.NEEDCUSTOM := DBFGetFieldValue(hh,'NEEDCUSTOM');
+                 KatOrg.MAXDOLGRUB := DBFGetFieldValue(hh,'MAXDOLGRUB');
+                 KatOrg.MAXDOLGVAL := DBFGetFieldValue(hh,'MAXDOLGVAL');
+                 KatOrg.SKID       := DBFGetFieldValue(hh,'SKID');
+                 KatOrg.INDEXK     := DBFGetFieldValue(hh,'INDEXK');
+                 KatOrg.KODPLATNDS := DBFGetFieldValue(hh,'KODPLATNDS');
+                 insert current KatOrg;
+               }
+          } while DBFGetNext(hh) = tsOk;
+
+       DBFClose(hh);
+     }
+
+  DBFClose(hh);
+  StopVisual('',0);
+}
+
+HandleEvent
+cmPick:{
+  if curField = #_DBF_File
+     {
+       var s:string
+       s:=GetFileName ('*.dbf','Выберите файл');
+       if s<>''
+          {
+            SET _DBF_File:=s
+          }
+     }
+}
+
+cmLoad:{
+  _LoadFromDBF;
+}
+end; //HandleEvent
+end. //interface

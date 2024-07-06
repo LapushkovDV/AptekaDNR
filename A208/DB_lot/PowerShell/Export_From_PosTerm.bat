@@ -1,0 +1,1 @@
+start powershell.exe -executionpolicy Bypass -file "Exp_From_tz.ps1"

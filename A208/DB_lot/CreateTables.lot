@@ -1,0 +1,74 @@
+Create Table ATC_ResTrade_atr "Доп.атрибуты ResTrade"
+With Table_Code = 31601
+With Replace
+With TableOptions branched
+(
+   NREC             : comp                        "Номер записи"
+ , cResTrade        : comp                        "Ссылка на ResTrade"
+ , H_ID             : longint                     "ID чека"
+ , H_NO             : longint                     "Номер чека на продажу"
+ , H_DATE           : datetime                    "Дата чека"
+ , H_RET            : longint                     "Номер возвратного чека"
+ , T_ID             : longint                     "Номер терминала"
+ , Z_ID             : longint                     "Номер Z-отчета"
+ , U_ID             : longint                     "код первостольника (продавца)"
+ , C_ID             : longint                     "код покупателя"
+ , H_Items          : word                        "Кол-во позиций в чеке"
+ , H_TYPE           : word                        "Тип Нал-1,Б/Нал-2,Бонус-3,Возврат-99"
+ , cPodr            : comp                        "Ссылка на подразделение (ТЗ)"
+)
+With Index
+(
+  ATC_ResTrade_atr_00  = NREC(Unique, Surrogate, Journal),
+  ATC_ResTrade_atr_01  = cResTrade,
+  ATC_ResTrade_atr_02  = H_NO+H_DATE+T_ID+cPodr,
+  ATC_ResTrade_atr_03  = H_RET,
+  ATC_ResTrade_atr_04  = Z_ID
+);
+
+
+Create Table ATC_exch_log "Журнал обмена(обмен данными с ТЗ)"
+With Table_Code = 31602
+With Replace
+With TableOptions branched
+(
+   NREC             : comp                        "Номер записи"
+ , log_type         : word                        "Тип 1 - импор, 2 - экспорт"
+ , DT_Start         : datetime                    "Дата и время начала обмена данными"
+ , DT_End           : datetime                    "Дата и время окончания обмена данными"
+ , UserName         : string                      "Имя пользователя"
+ , ProcName         : string                      "Имя процедуры обмена"
+ , STATUS           : word                        "Статус 0-ок"
+ , SMEMO            : LVar                        "Сопутствующий обмену отчет"
+)
+With Index
+(
+  ATC_exch_log_00  = NREC(Unique, Surrogate, Journal),
+  ATC_exch_log_01  = DT_Start + ProcName + UserName,
+  ATC_exch_log_02  = UserName + ProcName + DT_Start,
+  ATC_exch_log_03  = ProcName + UserName + DT_Start
+);
+
+
+Create Table ATC_ScaleNac "ATC Шкала наценок"
+With Table_Code = 31608
+With Replace
+With TableOptions branched
+(
+   NREC             : comp                        "Номер записи"
+  ,Code             : word                        "Код наценки"
+  ,dBeg             : date                        "Дата начала действия наценки"
+  ,dEnd             : date                        "Дата окончания действия наценки"
+  ,CenaFrom         : double                      "Ценовой диапазон от"
+  ,CenaTo           : double                      "Ценовой диапазон до"
+  ,cGrNal1          : comp                        "Ссылка на налои 1" 
+  ,ProcNac1         : double                      "Процент наценки 1"
+  ,cGrNal2          : comp                        "Ссылка на налои 2" 
+  ,ProcNac2         : double                      "Процент наценки 2"
+  ,ProcOpt          : double                      "Процент наценки ОПТ"
+)
+With Index
+(
+  ATC_ScaleNac_00  = NREC(Unique, Surrogate, Journal),
+  ATC_ScaleNac_01  = Code+dBeg+dEnd
+);

@@ -1,0 +1,64 @@
+USE [A208]
+GO
+
+DECLARE @RC int
+DECLARE @ARTCODE varchar(30)
+DECLARE @MNAME varchar(255)
+DECLARE @PACK float
+DECLARE @PNAME varchar(255)
+DECLARE @PUNU varchar(8)
+DECLARE @PTAX varchar(2)
+DECLARE @PNREC varchar(30)
+DECLARE @MIN_K int
+DECLARE @MAX_K int
+DECLARE @REMMC varchar(255)
+DECLARE @PRICE float
+DECLARE @QTY int
+DECLARE @QTYU float
+DECLARE @KOEF float
+DECLARE @OKDP varchar(50)
+DECLARE @TNVED varchar(50)
+DECLARE @SRV_NAME varchar(255)
+DECLARE @DB_NAME varchar(255)
+DECLARE @MODE TINYINT
+
+SET @ARTCODE = '2749767106652'
+SET @MNAME   = 'йнпнкеб тюпл (пняяхъ)'
+SET @PACK    = 1.00
+SET @PNAME   = 'гюивнмнй яхпно сяонй д/дер 100лк | мдя20'
+SET @PUNU    = 'СО.'
+SET @PTAX    = '##'
+SET @PNREC   = '4612030281940760034'
+SET @MIN_K   = 0
+SET @MAX_K   = 1
+SET @REMMC   = '20203-70607'
+SET @PRICE   = 226.33
+SET @QTY     = 0
+SET @QTYU    = -21
+SET @KOEF    = 0.10
+SET @OKDP    = 'г258'
+SET @TNVED   = 'c-3'
+SET @SRV_NAME= 'SQLBOOCK'
+SET @DB_NAME = 'new_gal'
+SET @MODE    = 2
+EXECUTE @RC = [dbo].[S$SENDTOVAR_TO_TORGZAL] 
+   @ARTCODE
+  ,@MNAME
+  ,@PACK
+  ,@PNAME
+  ,@PUNU
+  ,@PTAX
+  ,@PNREC
+  ,@MIN_K
+  ,@MAX_K
+  ,@REMMC
+  ,@PRICE
+  ,@QTY
+  ,@QTYU
+  ,@KOEF
+  ,@OKDP
+  ,@TNVED
+  ,@SRV_NAME
+  ,@DB_NAME
+  ,@MODE
+

@@ -1,0 +1,335 @@
+#component "L_Kassa"
+alter interface KUT4Kassa;
+  Show at (, , 110, 29);
+
+table struct _tElementsName
+(
+  name : string
+)
+with index
+(
+ind0 = name
+);
+table struct _telementsValue
+(
+   Name  : string
+ , value : string
+ , npp   : longint
+)
+with index
+(
+ ind0 = npp+name
+);
+
+
+table struct local _tmpCASH_PROT
+(
+  OPER      :word,
+  ARTICUL   :string(30),
+  COUNT     :double,
+  PRICE     :double,
+  H_NO      :longint,
+  H_DATE    :_DateTime,
+  H_RET     :longint,
+  T_ID      :longint,
+  Z_ID      :longint,
+  U_ID      :longint,
+  C_ID      :longint,
+  H_Items   :longint,
+  H_TYPE    :word,
+  H_ID      :longint,
+  TZ_NAME   :string
+)
+with index
+(
+  by_nRec = TZ_NAME+T_ID
+);
+
+create view
+var
+  _JSON_File   : string;
+  m_service    : TPtr;
+  i            : longint;
+as select *
+from
+  _tElementsName
+ , _tElementsName _tElementsName_del
+ ,_telementsValue
+ ,_telementsValue _telVal_one
+ ,TmpGrn (Normal)
+
+where ((
+    i                    ==  _telVal_one.Npp
+and _tElementsName.Name  ==  _telVal_one.Name
+
+));
+
+procedure init_tElementsName;
+{
+ delete all _tElementsName_del;
+ insert _tElementsName set name := 'OPER';
+ insert _tElementsName set name := 'ARTICUL';
+ insert _tElementsName set name := 'COUNT';
+ insert _tElementsName set name := 'PRICE';
+ insert _tElementsName set name := 'H_NO';
+ insert _tElementsName set name := 'H_DATE';
+ insert _tElementsName set name := 'H_RET';
+ insert _tElementsName set name := 'T_ID';
+ insert _tElementsName set name := 'Z_ID';
+ insert _tElementsName set name := 'U_ID';
+ insert _tElementsName set name := 'C_ID';
+ insert _tElementsName set name := 'H_Items';
+ insert _tElementsName set name := 'H_TYPE';
+ insert _tElementsName set name := 'H_ID';
+ insert _tElementsName set name := 'TZ_NAME';
+}
+
+procedure GetData_From_JSON_FILE(_FilePath: string; _ActionName:string);
+{
+  m_service := HttpConnect_CreateEx('http://ya.ru', '', '', true);
+  var _longValue :TPtr = HttpConnect_LoadFromFile (m_service, _FilePath, 866) ; //1251
+  if (_longValue = 0)
+     {
+       exit;
+     }
+  if (HttpConnect_GetLongStringLength(m_service, _longValue) <= 0)
+     {
+       Exit;
+     }
+  var JSON_Object : longint = HttpConnect_JSONObjectByLongString(m_service, _longValue);
+  if JSON_Object = 0
+     {
+       Exit;
+     }
+
+   var lJsonArray : TPtr = HttpConnect_JSONArrayByName(m_service,JSON_Object, _ActionName); // по сути наш объект и есть массив
+   var lCount : longint = HttpConnect_JsonCount(m_service, lJsonArray);
+   if lCount =  0
+      {
+        exit;
+      }
+
+  var i_JSONARRAY  : longint = 0;
+
+  delete all _tElementsValue;
+  StartNewVisual(vtRotateVisual,vftimer,'проход по массиву',0) ;
+  for (i_JSONARRAY := 0; i_JSONARRAY <= lCount - 1; i_JSONARRAY++)
+   {
+     setvisualheader(_ActionName + ': проход по массиву данных'+''#13'' + i_JSONARRAY ) ;
+     var _JSON_Element : TPtr = HttpConnect_JSONObjectByIndexOfArray(m_service, lJsonArray, i_JSONARRAY);
+     _loop _tElementsName
+      {
+        var _value : string = HttpConnect_JsonObjectValueByName( m_service, _JSON_Element, _tElementsName.name);
+         insert _tElementsValue set
+            _tElementsValue.Name  := _tElementsName.name
+          , _tElementsValue.value := _value
+          , _tElementsValue.npp   :=  i_JSONARRAY+1
+         ;
+      }
+   }
+  HttpConnect_JSONObjectDestroy(m_service, JSON_Object);
+  HttpConnect_JSONObjectDestroy(m_service, lJsonArray);
+  HttpConnect_Free(m_service);
+  StopVisual;
+}
+
+Procedure _GetValues_CASH_PROT(_elementName:string);
+{
+  case _elementName of
+  'OPER'     : _tmpCASH_PROT.OPER     := _telVal_one.value;
+  'ARTICUL'  : _tmpCASH_PROT.ARTICUL  := _telVal_one.value;
+  'COUNT'    : _tmpCASH_PROT.COUNT    := Replace(_telVal_one.value,',','.');
+  'PRICE'    : { _tmpCASH_PROT.PRICE  := Replace(_telVal_one.value,',','.');
+               }
+  'H_NO'     : _tmpCASH_PROT.H_NO     := _telVal_one.value;
+//                                                                        "2024-01-26T12:04:53"
+  'H_DATE'   : _tmpCASH_PROT.H_DATE   := _StrToDateTime(_telVal_one.value,'YYYY-MM-DDTHH:NN:SS');
+
+  'H_RET'    : _tmpCASH_PROT.T_ID     := _telVal_one.value;
+  'T_ID'     : _tmpCASH_PROT.T_ID     := _telVal_one.value;
+  'Z_ID'     : _tmpCASH_PROT.Z_ID     := _telVal_one.value;
+  'U_ID'     : _tmpCASH_PROT.U_ID     := _telVal_one.value;
+  'C_ID'     : _tmpCASH_PROT.C_ID     := _telVal_one.value;
+  'H_Items'  : _tmpCASH_PROT.H_Items  := _telVal_one.value;
+  'H_TYPE'   : _tmpCASH_PROT.H_TYPE   := _telVal_one.value;
+  'H_ID'     : _tmpCASH_PROT.H_ID     := _telVal_one.value;
+  'TZ_NAME'  : _tmpCASH_PROT.TZ_NAME  := _telVal_one.value;
+  end;
+}
+
+
+Panel InSpring;
+  Table ResTrade;
+ExtendFormats brResTrade;
+Browse brResTrade (, hcRoznM2DataIN, sci18EnIns);
+  Show at (, , , 24);
+end;
+
+ExtendFormats BeforeSummer;
+screen BeforeSummer (, hcRoznM2DataIN, sci13Esc);
+  Show at (, 25, , );
+Buttons
+  cmLoadJSON , , , 'Принять данные от касс (JSON-файл)', , sci1Esc;
+<<
+
+                                                                              <.Принять данные о продажах (JSON).>
+>>
+end;
+
+HandleEvent
+cmLoadJSON:{
+  delete all _tmpCASH_PROT;
+  var s:string
+  s:=GetFileName ('*.json','Выберите файл');
+  if s<>''
+     {
+       SET _JSON_File:=s
+       if ExistFile(_JSON_File)
+          {
+            init_tElementsName;
+            GetData_From_JSON_FILE(_JSON_File, 'CASH_PROT');
+            if GetLast _tElementsValue = tsOk
+               {
+                 var maxNpp:longint = _tElementsValue.Npp;
+                 for(i:=1;i<=maxNpp;inc(i))
+                 {
+                   _loop _tElementsName if GetFirst _telVal_one = tsOk _GetValues_CASH_PROT(_tElementsName.name);
+                   insert current _tmpCASH_PROT;
+                 }
+               }
+          }
+     }
+// привязка к кассе и подразделению розничной торговли
+  var _nRecPodr     : comp=0;
+  var _nRecKatKassa : comp=0;
+  var _dateNakl     : string;
+  if GetFirst _tmpCASH_PROT <> tsOk
+     {
+       message('Данные о продажах отсутствуют!' + chr(13)+
+               'Файл: ' + _JSON_File
+              );
+       Abort; Exit;
+     } else
+     {
+       if GetFirst KatKassa where ((_tmpCASH_PROT.TZ_NAME == KatKassa.nKassa)) = tsOk
+          {
+            _nRecPodr     := KatKassa.cPodr;
+            _nRecKatKassa := KatKassa.nRec;
+            _dateNakl     := _dateTimeToStr(_tmpCASH_PROT.H_DATE,'DD.MM.YYYY');
+          } else
+          {
+            message('Для подразделения '+ _tmpCASH_PROT.TZ_NAME +' отсутствует настройка обмена данными. Операция прервана.');
+            Abort; Exit;
+          }
+     }
+  StartNewVisual(vtRotateVisual,vftimer,'Заполнение таблицы ResTrade',0) ;
+
+  //Заполним временную глобальную таблицу TmpGrn и передадим управление хранимой процедуре GET_RESULTPROD_FROM_TORGZAL
+  //чтобы не реализовывать FIFO в разных местах
+  Delete TmpGrn where ((word(44777) == TmpGrn.kTbl));
+  _loop _tmpCASH_PROT
+  {
+//    message(_tmpCASH_PROT.oper+'   '+_tmpCASH_PROT.TZ_NAME+'   Date: '+ _tmpCASH_PROT.H_DATE);
+    NextVisual;
+    ClearBuffer(#TmpGrn);
+    TmpGrn.kTbl      := word(44777);
+    TmpGrn.wList     := word(44777);
+    TmpGrn.LS[1]     := _tmpCASH_PROT.OPER      ;//:word,
+    TmpGrn.S         := _tmpCASH_PROT.ARTICUL   ;//:string(30),
+    TmpGrn.SUMS[1]   := _tmpCASH_PROT.COUNT     ;//:double,
+    TmpGrn.SUMS[2]   := _tmpCASH_PROT.PRICE     ;//:double,
+    TmpGrn.LS[2]     := _tmpCASH_PROT.H_NO      ;//:longint,
+    TmpGrn.SS[2]     := _dateTimeToStr(_tmpCASH_PROT.H_DATE,'DD.MM.YYYY HH:NN:SS');    //:_DateTime,
+    TmpGrn.LS[3]     := _tmpCASH_PROT.T_ID      ;//:longint,
+    TmpGrn.LS[4]     := _tmpCASH_PROT.Z_ID      ;//:longint,
+    TmpGrn.LS[5]     := _tmpCASH_PROT.U_ID      ;//:longint,
+    TmpGrn.LS[6]     := _tmpCASH_PROT.H_Items   ;//:longint,
+    TmpGrn.LS[7]     := _tmpCASH_PROT.H_TYPE    ;//:word,
+    TmpGrn.LS[8]     := _tmpCASH_PROT.H_ID      ;//:longint,
+    TmpGrn.SS[1]     := _tmpCASH_PROT.TZ_NAME   ;//:string
+
+    TmpGrn.LS[9]     := _tmpCASH_PROT.H_RET     ;//:longint,
+    TmpGrn.LS[10]    := _tmpCASH_PROT.C_ID      ;//:longint,
+    TmpGrn.CRECS[1]  := _nRecKatKassa;
+
+    insert current TmpGrn;
+  }
+
+  //запишем содержимое TmpGrn в базу принудительно
+  MTFlush(#TmpGrn, mfFull);
+
+  var sql_result :integer;
+  var stmt :longint;
+  stmt := SqlAllocStmt;
+
+  SqlBindParam(stmt, 1, cur_Date());               //@DATEPROD  нам все равно, дата зашита в файле...
+  SqlBindParam(stmt, 2, 1);                        //DECLARE @ISOFFLINE -- 0 онлайн режим  -- 1 для офлайн обмена
+  sql_result := SqlExecStmt(stmt, 'Get_ResultProd_From_TorgZal(?,?)');
+  if (sql_result <> tsOk)
+     {
+       message('Хранимая процедура вернула ошибку: ' + sql_result);
+     } else
+     {
+       //сформируем накладные на реализацию
+//       message(_dateNakl);
+       RunInterface('L_KASSA::_Make_Nakl_AUTO',_dateNakl);
+
+       message('Загрузка данных по продажам выполнена!');
+     }
+  sqlFreeStmt(stmt);
+
+  //почистим TmpGrn чтобы случайно не инициировали загрузку из SQL
+//  Delete TmpGrn where ((word(44777) == TmpGrn.kTbl));
+  MTFlush(#TmpGrn, mfFull);
+
+  ReReadRecord(#ResTrade);
+  StopVisual;
+}
+cmDelete:{
+  if not isValid(#ResTrade) OR (used = '+')
+    {
+      abort;
+      exit;
+    }
+
+  if message('Удалить данные о продажах?', Confirmation + YesNo) <> cmYes
+    {
+      abort;
+      exit;
+    }
+
+  if GetFirst Pick where (( 558 == Pick.wList )) <> tsOk
+     {
+       delete ATC_ResTrade_atr where ((ResTrade.nRec == ATC_ResTrade_atr.cResTrade));
+       delete current ResTrade;
+     }
+
+  else
+    _LOOP Pick where (( 558 == Pick.wList ))
+    {
+      if GetFirst ResTrade where (( Pick.cRec == ResTrade.nRec)) =tsOk
+         {
+           delete ATC_ResTrade_atr where ((ResTrade.nRec == ATC_ResTrade_atr.cResTrade));
+           delete current ResTrade;
+         }
+    }
+  if GetNext ResTrade <> tsOk
+    {}
+  RescanPanel(#ResTrade);
+}
+end; //handleevent
+end; //panel
+
+
+HandleEvent
+cmInit:{
+  if (Inherited::HandleEvent(cmInit) = heOk)
+     {
+       // Спрячем стандартные кнопки
+       cfsSetProp('b_BEFORESUMMER_Принять_данные_от_касс', cfpVisible, false);
+       cfsSetProp('b_BEFORESUMMER_Сформировать_документы', cfpVisible, false);
+       cfsSetProp('b_BEFORESUMMER_Принять_данные_от_касс_за_дату', cfpVisible, false);
+     }
+}
+end;
+end.

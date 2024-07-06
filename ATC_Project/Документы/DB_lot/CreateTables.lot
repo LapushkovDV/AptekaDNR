@@ -1,0 +1,51 @@
+Create Table ATC_GRPOC "Гос.реестр предельных отпускных цен"
+With Table_Code = 31603
+With Replace
+With TableOptions branched
+(
+   NREC             : comp                        "Номер записи"
+ , UserLoaded       : string                      "Пользователь загрзивший реестр"
+ , DateLoaded       : _DateTime                   "Дата загрузки реестра" 
+ , ReestrDate       : date                        "Дата реестра"
+ , isActive         : boolean                     "Активность (активный тольо один)"
+ , SMEMO            : LVar                        "Элетронный документ (реестр)"
+)
+With Index
+(
+  ATC_GRPOC_00  = NREC(Unique, Surrogate, Journal),
+  ATC_GRPOC_01  = ReestrDate,
+  ATC_GRPOC_02  = isActive+ReestrDate
+);
+
+Create Table ATC_GRPOCSP "Специф-ия реестра предельных цен"
+With Table_Code = 31604
+With Replace
+With TableOptions branched
+(
+   NREC             : comp                        "Номер записи"
+ , cGRPOC           : comp                        "Ссылка на реестр"
+ , MNN              : string                      "Междунар. непатент. наименование"
+ , Name             : string                      "Торговое наименование "
+ , PharmForme       : string                      "Лекарственная форма"
+ , info             : string                      "Владелец РУ/произв/упаковщик/Выпускающий"
+ , ATX_code         : string                      "Код АТХ"
+ , KolInPack        : double                      "Кол-во в потреб. упаковке"
+ , maxPrice         : double                      "Предельная цена руб. без НДС"
+ , firstPrice       : double                      "Цена указана для первич. упаковки"
+ , RU_number        : string                      "Номер РУ"
+ , DDoc_NoDoc       : string                      "Дата регистр.цены и номер решения"
+ , article          : string                      "Штрих-код (EAN13)"
+ , DateBeg          : date                        "Дата вступления в силу"
+ , ReestrDate       : date                        "Дата реестра (шапки)"
+ , cMC              : comp                        "Ссылка на KatMC"
+ , npp              : longint                     "порядковый номер"
+)
+With Index
+(
+  ATC_GRPOCSP_00  = NREC(Unique, Surrogate, Journal),
+  ATC_GRPOCSP_01  = article+DateBeg+maxPrice,
+  ATC_GRPOCSP_02  = cGRPOC+DateBeg+article,
+  ATC_GRPOCSP_03  = cGRPOC+article+DateBeg,
+  ATC_GRPOCSP_04  = cGRPOC+cMC,
+  ATC_GRPOCSP_05  = cGRPOC+npp
+);

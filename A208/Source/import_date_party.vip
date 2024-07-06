@@ -1,0 +1,78 @@
+interface import_date_party,  cyan;
+Show at (,,120,4);
+create view
+var  _DBF_File: string;
+as select *
+from KatParty;
+
+Screen sc_ImportDateParty (, , sci1Esc);
+Fields
+  _DBF_File        (, , sci13Esc)                 : Protect,PickButton;
+Buttons
+  cmLoad,,,            'Загрузить данные из файла', , sci1Esc;
+
+<<
+ `Путь на KatParty.dbf`
+  .@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+                                                                           <.   Загрузить данные   .>
+
+>>
+end; // screen
+
+
+Function _LoadFromDBF:boolean;
+{
+  StartNewVisual (vtRotateVisual, vfTimer, 'Чтение данных из файла', 1 );
+
+  var hh: longint = 0;
+  _try{
+        hh := DBFOpen(_DBF_File ,stOpenRead);
+      }
+  _except {};
+
+  var _npp:longint = 0;
+  if hh <> 0
+     {
+       if DBFGetFirst(hh) = tsOk do
+          {
+            SetVisualHeader('Всего обработано позиций: '+_npp ) ;
+            NextVisual;
+            _npp++;
+            var nRec_Str:string =  DBFGetFieldValue(hh,'DBO_KATPAR');
+            var _nRec :comp = 0;
+            if nRec_Str <> '' _nRec := comp(nRec_Str);
+            var _dDoc :date = StrToDate(DBFGetFieldValue(hh,'CREATEDATE'),'YYYYMMDD');
+
+            if GetFirst KatParty where ((_nRec == KatParty.nRec)) = tsOk
+               {
+                 SET KatParty.CreateDateTime := _dDoc;
+                 update current KatParty;
+               }
+          } while DBFGetNext(hh) = tsOk;
+
+       DBFClose(hh);
+     }
+
+  DBFClose(hh);
+  StopVisual('',0);
+}
+
+HandleEvent
+cmPick:{
+  if curField = #_DBF_File
+     {
+       var s:string
+       s:=GetFileName ('*.dbf','Выберите файл');
+       if s<>''
+          {
+            SET _DBF_File:=s
+          }
+     }
+}
+
+cmLoad:{
+  _LoadFromDBF;
+}
+end; //HandleEvent
+end. //interface

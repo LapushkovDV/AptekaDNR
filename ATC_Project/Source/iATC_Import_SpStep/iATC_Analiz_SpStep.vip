@@ -1,0 +1,542 @@
+#component "ATC"
+interface iATC_Analiz_SpStep 'Анализ позиций спецификации';
+Show at (,,160,26);
+
+table struct local _tmpUpdSP
+(
+  _nRec            :comp
+)
+with index
+(
+  by_nRec       = _nRec
+);
+
+
+table struct local _tmpAnaliz
+(
+  Npp            :word,
+  SCAN_CODE      :string,
+  MC_BarKod      :string(30),
+  MC_Name        :string,
+  TOV_ORIG       :string,
+  MC_OtpEd       :string(20),
+  ED_IZM         :string(20),
+  MC_Nalog       :double,
+  PROC_NDS       :double,
+  MC_MNN         :string,
+  NAME_MNN       :string,
+  MC_Proizv      :string,
+  MAK_ORIG       :string,
+  CenaMC         :double,
+  PR_REE         :double,
+  Status         :word,
+  Status_Name    :word,
+  Status_Ed      :word,
+  Status_Proiz   :word,
+  Status_NDS     :word,
+  Status_MNN     :word,
+  Status_Price   :word,
+  SpStep_nRec    :comp,
+  SpStep_cMC     :comp,
+  PR_MAK         :double,
+  SERIA          :string
+)
+with index
+(
+  by_Npp       = npp,
+  by_SpStep_nRec = SpStep_nRec
+);
+
+create view
+var
+  nRec_BaseDoc  : comp;
+  _cNalog       : comp;
+  ex            : iExtAttr;
+as select *
+ ,if(_tmpAnaliz.Status <> 0,'X','') (FieldName _Status)
+from
+  BaseDoc
+ ,StepDoc
+ ,SpStep
+ ,KatOrg
+ ,KatNalog
+ ,SpSopr
+ ,KatMC
+ ,KatMC KatMC_gf
+ ,KatParty
+ ,ATC_SpStep_Atr
+ ,KatOtpEd
+ , SpDocNal
+;
+
+Parameters nRec_BaseDoc;
+
+datastream Stream_iATC_Analiz_SpStep
+(
+  [CFH]      CommonFormHeader;
+  [NoDoc]    BaseDoc.NoDoc;
+  [dDoc]     BaseDoc.dDoc;
+  [Org]      KatOrg.Name;
+  Table _tmpAnaliz(
+     [Npp]            _tmpAnaliz.Npp;
+     [SCAN_CODE]      _tmpAnaliz.SCAN_CODE;
+     [MC_BarKod]      _tmpAnaliz.MC_BarKod;
+     [MC_Name]        _tmpAnaliz.MC_Name;
+     [TOV_ORIG]       _tmpAnaliz.TOV_ORIG;
+     [MC_OtpEd]       _tmpAnaliz.MC_OtpEd;
+     [ED_IZM]         _tmpAnaliz.ED_IZM;
+     [MC_Nalog]       _tmpAnaliz.MC_Nalog;
+     [PROC_NDS]       _tmpAnaliz.PROC_NDS;
+     [MC_MNN]         _tmpAnaliz.MC_MNN;
+     [NAME_MNN]       _tmpAnaliz.NAME_MNN;
+     [MC_Proizv]      _tmpAnaliz.MC_Proizv;
+     [MAK_ORIG]       _tmpAnaliz.MAK_ORIG;
+     [CenaMC]         _tmpAnaliz.CenaMC;
+     [PR_REE]         _tmpAnaliz.PR_REE;
+     [Status]         _Status;
+     [Status_Name]    _tmpAnaliz.Status_Name;
+     [Status_Ed]      _tmpAnaliz.Status_Ed;
+     [Status_Proiz]   _tmpAnaliz.Status_Proiz;
+     [Status_NDS]     _tmpAnaliz.Status_NDS;
+     [Status_MNN]     _tmpAnaliz.Status_MNN;
+     [Status_Price]   _tmpAnaliz.Status_Price;
+  );
+)
+end;
+
+
+sql query sql_Get_ATC_SpStep_Atr =
+select
+ SpStep.npp               as Npp
+,atr.SCAN_CODE            as SCAN_CODE
+,case when SpStep.PrMC = 1 then KatMC.BarKod else Null end as MC_BarKod
+// Сравнение МЦ =========================================================
+,case when SpStep.PrMC = 1 then KatMC.Name else Null end as MC_Name
+,atr.TOV_ORIG             as TOV_ORIG
+// Сравнение Ед.Изм. ====================================================
+,KatOtpEd.Abbr            as MC_OtpEd
+,atr.ED_IZM               as ED_IZM
+// Сравнение Ставки НДС =================================================
+,n.Nalog                  as MC_Nalog
+,SpDocNal.Nalog           as PROC_NDS
+// Сравнение МНН ========================================================
+,TRIM(Replace(ES_MNN.Name,ES_MNN.Value,'')) as MC_MNN
+,atr.NAME_MNN             as NAME_MNN
+// Сравнение Производителя ==============================================
+,GroupMC.Name             as MC_Proizv
+,atr.MAK_ORIG             as MAK_ORIG
+// Сравнение Цены по ЖВЛП ===============================================
+,KatMC.CenaMC             as CenaMC
+,atr.PR_REE               as PR_REE
+,SpStep.nRec              as SpStep_nRec
+,SpStep.cMcUsl            as SpStep_cMC
+,atr.PR_MAK               as PR_MAK
+,atr.SERIA                as SERIA
+
+from SpStep
+left join KatMC on KatMC.nRec = SpStep.cMcUsl
+left join ATC_SpStep_Atr atr on atr.cSpStep = SpStep.nRec
+left join KatOtpEd on KatOtpEd.nRec = SpStep.cOtpEd
+left join SpDocNal on SpDocNal.cSpDoc = SpStep.nRec
+                  and SpDocNal.TipDoc = 1101
+left join ExClassName EN_MNN on EN_MNN.wTable = 1411 and EN_MNN.Name = 'Категории ассортмента'
+left join ExClassVal EV_MNN on EV_MNN.wTable = 1411 and EV_MNN.CLASSCODE = EN_MNN.CLASSCODE and EV_MNN.cRec = KatMC.nRec
+left join ExClassSeg ES_MNN on ES_MNN.nRec = EV_MNN.cClassSeg
+left join GroupMC on GroupMC.nRec = KatMC.cGroupMC
+left join GrNal on GrNal.nRec = KatMC.cGrNal
+outer apply(select top 1 SpGrNal.Nalog
+from SpGrNal
+where SpGrNal.cGrNal = GrNal.nRec
+//and SpGrNal.cNalog = #comp(2)
+and SpGrNal.cNalog = :nRec_KatNalog
+
+)as n
+where
+//SpStep.cStepDoc = #comp(281474976710690)
+SpStep.cStepDoc = :nRec_StepDoc
+Order by SpStep.Npp
+; // end sql
+
+Procedure Create_Party;
+{
+  StartNewVisual (vtRotateVisual, vfTimer, 'Формирование партий', 1 );
+  var _nRec_NotMC  : comp = coGetTune('GALCOMMON.PARTNER.ImpSpStep_Atr.WhenNotMC');
+
+  var _npp : word = 0;
+  _loop _tmpUpdSP
+  {
+    _npp++
+    SetVisualHeader ('Формирование партий'+chr(13)+
+                     'Обработано позиций: '+ _npp
+                    );
+    NextVisual;
+    if GetFirst _tmpAnaliz where ((_tmpUpdSP._nRec ==  _tmpAnaliz.SpStep_nRec)) = tsOk
+       {
+         var _kodp : string = GetLastNumD(60);
+         if getfirst KatMC where (( _tmpAnaliz.SpStep_cMC == KatMC.nRec )) = tsOk and  KatMC.nRec <> _nRec_NotMC
+            {
+              if GetFirst ATC_SpStep_Atr where (( _tmpAnaliz.SpStep_nRec == ATC_SpStep_Atr.cSpStep )) = tsOk
+                 {
+                   var _Param_KUT:word = wGetTune('Rozn.NeedMakeKUT');
+
+                   if _kodp<>''
+                      {
+                        var _cparty: comp = GetNextNrec(tnKatParty,0);
+                        ClearBuffer(tnKatParty);
+                        KatParty.NREC           := _cparty;
+                        KatParty.KOD            := _kodp;
+                        KatParty.NAME           := '5-'+_kodp+'_'+replace(SubStr(KatMC.name,1,55),'|','')+'|_'+ATC_SpStep_Atr.SERIA;
+                        KatParty.CMC            := KatMC.nRec;
+                        KatParty.CORGPAR        := BaseDoc.cOrg;
+                        KatParty.NSERTIF        := ATC_SpStep_Atr.SERT;
+                        KatParty.MAXON          := ATC_SpStep_Atr.PR_MAK;
+                        KatParty.CENAZAV        := ATC_SpStep_Atr.PR_REE;
+                        KatParty.WhoSertif      := ATC_SpStep_Atr.GTD;
+                        KatParty.GODENDATETIME  := ATC_SpStep_Atr.DATE_GOD;
+                        KatParty.DGODN          := ATC_SpStep_Atr.DATE_GOD;
+                        KatParty.CreateDateTime := _curDateTime;
+                        // новое условие Формировать КУТ при оприходовании в розницу = Да
+                        if _Param_KUT = 0
+                           {
+                             if ATC_SpStep_Atr.PR_MAK <> 0
+                                {
+                                  SET KatParty.CENAZAV  := ATC_SpStep_Atr.PR_MAK;
+                                  SET KatParty.MAXON    := 0;
+                                  var _f1 :double = ((ATC_SpStep_Atr.Summa/ATC_SpStep_Atr.KOL_VO) - (ATC_SpStep_Atr.SUM_NDS/ATC_SpStep_Atr.KOL_VO));
+                                  SET KatParty.VHODON   := Round((_f1 - ATC_SpStep_Atr.PR_MAK) / ATC_SpStep_Atr.PR_MAK*100,12);
+                                }
+                           }
+
+                         if insert current KatParty = tsOk
+                           {
+                             // Дата реализации производителем          = D_SALE
+                             // Дата изготовления                       = D_MANUF
+                             // Фактическая цена производителя без НДС  = PR_MAK
+                             // Фактическая цена производителя с НДС    = PR_MAK_NDS
+                             if NOT Ex.dSetAttrEx (
+                                word(1430),                             // _wTable  : Word;
+                                KatParty.NREC,                          // _cRec    : Comp;
+                                'Дата реализации производителем',       // _Name    : String;
+                                ATC_SpStep_Atr.D_SALE,                  // _Val
+                                true                                    // bRealTbl : Boolean
+                              ) message('Не удалось добавить атрибут "Дата реализации производителем"');
+
+                             if NOT Ex.dSetAttrEx (
+                                word(1430),                             // _wTable  : Word;
+                                KatParty.NREC,                          // _cRec    : Comp;
+                                'Дата изготовления',                    // _Name    : String;
+                                ATC_SpStep_Atr.D_MANUF,                 // _Val
+                                true                                    // bRealTbl : Boolean
+                              ) message('Не удалось добавить атрибут "Дата изготовления"');
+
+                             if NOT Ex.doSetAttrEx (
+                                word(1430),                               // _wTable  : Word;
+                                KatParty.NREC,                            // _cRec    : Comp;
+                                'Фактическая цена производителя без НДС', // _Name    : String;
+                                ATC_SpStep_Atr.PR_MAK,                    // _Val
+                                true                                      // bRealTbl : Boolean
+                              ) message('Не удалось добавить атрибут "Фактическая цена производителя без НДС"');
+
+                             if NOT Ex.doSetAttrEx (
+                                word(1430),                             // _wTable  : Word;
+                                KatParty.NREC,                          // _cRec    : Comp;
+                                'Фактическая цена производителя с НДС', // _Name    : String;
+                                ATC_SpStep_Atr.PR_MAK_NDS,              // _Val
+                                true                                    // bRealTbl : Boolean
+                              ) message('Не удалось добавить атрибут "Фактическая цена производителя с НДС"');
+
+                             var _nalog : double = (ATC_SpStep_Atr.PR_REE * (1+ATC_SpStep_Atr.PROC_NDS/100)) - ATC_SpStep_Atr.PR_REE;
+                             if NOT Ex.doSetAttrEx (
+                                word(1430),                             // _wTable  : Word;
+                                KatParty.NREC,                          // _cRec    : Comp;
+                                'НАЛОГИ',                               // _Name    : String;
+                                _nalog,                                 // _Val
+                                true                                    // bRealTbl : Boolean
+                              ) message('Не удалось добавить атрибут "НАЛОГИ"');
+
+
+                             if GetFirst SpStep where ((_tmpAnaliz.SpStep_nRec == SpStep.nRec)) = tsOk
+                                {
+                                  SpStep.cParty := KatParty.nRec;
+                                  update current SpStep;
+                                }
+                           }
+                     }
+                 }
+            }
+       }
+  }
+  StopVisual('',0);
+}
+
+Procedure DoAnaliz;
+{
+  update _tmpAnaliz
+     set Status       := 0,
+         Status_Name  := 0,
+         Status_Ed    := 0,
+         Status_Proiz := 0,
+         Status_NDS   := 0,
+         Status_MNN   := 0,
+         Status_Price := 0;
+
+  var _collor :word = 13;
+  update _tmpAnaliz where _tmpAnaliz.MC_Name    <> _tmpAnaliz.TOV_ORIG   SET Status_Name   := _collor, Status :=  _collor;
+  update _tmpAnaliz where _tmpAnaliz.MC_OtpEd   <> _tmpAnaliz.ED_IZM     SET Status_Ed     := _collor, Status :=  _collor;
+  update _tmpAnaliz where _tmpAnaliz.MC_Proizv  <> _tmpAnaliz.MAK_ORIG   SET Status_Proiz  := _collor, Status :=  _collor;
+  update _tmpAnaliz where _tmpAnaliz.MC_Nalog   <> _tmpAnaliz.PROC_NDS   SET Status_NDS    := _collor, Status :=  _collor;
+  update _tmpAnaliz where _tmpAnaliz.MC_MNN     <> _tmpAnaliz.NAME_MNN   SET Status_MNN    := _collor, Status :=  _collor;
+  update _tmpAnaliz where _tmpAnaliz.CenaMC     <> _tmpAnaliz.PR_REE     SET Status_Price  := _collor, Status :=  _collor;
+}
+
+Procedure _makeReport;
+{
+  var qq: IQuery;
+  qq := queryManager.createQuery(sql_Get_ATC_SpStep_Atr);
+  if GetFirst StepDoc where (( nRec_BaseDoc == StepDoc.cBaseDoc)) = tsOk
+     {
+       qq.setParam('nRec_StepDoc', StepDoc.nRec );
+     }
+  if Getfirst KatNalog where (( coGetTune('NALOG.CNALOGNDS') == KatNalog.nRec )) = tsOk
+    {
+       qq.setParam('nRec_KatNalog', KatNalog.nRec);
+    }
+  qq.execute;
+  var ResultSet:IResultSet;
+  ResultSet:=qq.GetResultSet;
+  if (qq.errorCode=0)
+     {
+       Delete all _tmpAnaliz;
+       sqlCopyInto(ResultSet,#_tmpAnaliz,true);
+     }
+  //подсветка расхождений
+  DoAnaliz;
+}
+
+Browse brATC_GRPOCSP 'Анализ спецификации ДО' ('Анализ спецификации ДО',  ,  sci1Esc);
+table _tmpAnaliz;
+Fields
+  _Status                            '*'                            : [4],  protect,noPickButton,
+      {Font = {Color = _tmpAnaliz.Status; Bold = if(_tmpAnaliz.Status<>0,true,false) }};
+  _tmpAnaliz.npp             '№','п.п.'                             : [4],  protect,noPickButton;
+  _tmpAnaliz.MC_BarKod       'Каталог','МЦ','баркод'                : [10], protect,noPickButton;
+
+  _tmpAnaliz.MC_Name         'Каталог','МЦ' (, , sci13Esc)          : [20], protect,PickButton;
+  _tmpAnaliz.TOV_ORIG        'док.','МЦ'                            : [20], protect,noPickButton,
+    {Font = {Color = _tmpAnaliz.Status_Name; Bold = if(_tmpAnaliz.Status_Name<>0,true,false); backColor =if(_tmpAnaliz.Status_Name<>0,17,0) }};
+
+  _tmpAnaliz.SCAN_CODE       'док.','Штрихкод'                      : [14], protect,noPickButton;
+
+  _tmpAnaliz.PR_MAK          'док.','Цена завода','без НДС'         : [12,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpAnaliz.SERIA           'док.','Серия'                         : [14], protect,noPickButton;
+
+  _tmpAnaliz.MC_OtpEd        'Каталог','Ед.Изм'                     : [8],  protect,noPickButton;
+  _tmpAnaliz.ED_IZM          'док.','Ед.Изм'                        : [8],  protect,noPickButton,
+    {Font = {Color = _tmpAnaliz.Status_Ed; Bold = if(_tmpAnaliz.Status_Ed<>0,true,false); backColor =if(_tmpAnaliz.Status_Ed<>0,17,0) }};
+
+  _tmpAnaliz.MC_Proizv       'Каталог','произв-ль'                  : [20], protect,noPickButton;
+  _tmpAnaliz.MAK_ORIG        'док.','произв-ль'                     : [20], protect,noPickButton,
+    {Font = {Color = _tmpAnaliz.Status_Proiz; Bold = if(_tmpAnaliz.Status_Proiz<>0,true,false); backColor =if(_tmpAnaliz.Status_Proiz<>0,17,0) }};
+
+  _tmpAnaliz.MC_Nalog        'Каталог','ставка','НДС'               : [12,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpAnaliz.PROC_NDS        'док.','ставка','НДС'                  : [12,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton,
+    {Font = {Color = _tmpAnaliz.Status_NDS; Bold = if(_tmpAnaliz.Status_NDS<>0,true,false); backColor =if(_tmpAnaliz.Status_NDS<>0,17,0) }};
+
+
+  _tmpAnaliz.MC_MNN          'Каталог','МНН'                        : [15], protect,noPickButton;
+  _tmpAnaliz.NAME_MNN        'док.','МНН'                           : [15], protect,noPickButton,
+    {Font = {Color = _tmpAnaliz.Status_MNN; Bold = if(_tmpAnaliz.Status_MNN<>0,true,false); backColor =if(_tmpAnaliz.Status_MNN<>0,17,0) }};
+
+  _tmpAnaliz.CenaMC          'Каталог','цена','ЖВЛП'                : [12,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpAnaliz.PR_REE          'док.','цена','ЖВЛП'                   : [12,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton,
+    {Font = {Color = _tmpAnaliz.Status_Price; Bold = if(_tmpAnaliz.Status_Price<>0,true,false); backColor =if(_tmpAnaliz.Status_Price<>0,17,0) }};
+end;
+
+Procedure _GetMC (_mode:word);
+{
+       if GetFirst SpSopr where (( _tmpAnaliz.SpStep_nRec == SpSopr.cSpStep )) = tsOk
+          {
+            message('Для этой позиции уже есть накладная. Замена МЦ запрещена.');
+            Abort; Exit;
+          }
+
+       if GetFirst SpStep where ((_tmpAnaliz.SpStep_nRec == SpStep.nRec)) = tsOk
+          and GetFirst KatParty where ((SpStep.cParty == KatParty.nRec)) = tsOk
+          {
+            message('Эта позиция привязана к партии. Вначале нужно отвязать её от партии.');
+            Abort; Exit;
+          }
+       var _npp : word = _tmpAnaliz.Npp;
+       var _nRec_NotMC  : comp = coGetTune('GALCOMMON.PARTNER.ImpSpStep_Atr.WhenNotMC');
+       var _cMC : comp = if (_tmpAnaliz.SpStep_cMC <> _nRec_NotMC, _tmpAnaliz.SpStep_cMC, 0);
+       if (RunInterface('L_MCU::GetMC', _cMC, 0) = cmDefault) //
+          {
+            SET _tmpAnaliz.SpStep_cMC := _cMC;
+            var _IsEmpty :boolean = true;
+            if _mode = 0
+               {
+                 if GetFirst KatMC where ((_tmpAnaliz.SpStep_cMC == KatMC.nRec)) = tsOk
+                    {
+
+                      if GetFirst KatMC_gf where ((_tmpAnaliz.SCAN_CODE == KatMC_gf.BARKOD2)) = tsOk
+                         {
+                           if KatMC_gf.nRec <> KatMC.nRec
+                              {
+                                message('Внимание! Заводской код '+ _tmpAnaliz.SCAN_CODE + ' уже присвоен '+ SubStr(KatMC_gf.Name,1,30)+'... ' + KatMC_gf.BarKod +chr(13)+
+                                        'Дублирование заводского кода запрещено!');
+                                abort; exit;
+                              }
+                         }
+
+                      if KatMC.BARKOD2 <> '' _IsEmpty := false;
+                    }
+
+                 if _IsEmpty
+                    {
+                      if (message('Вы уверены, что хотите заменить МЦ? При этом замена произойдет в самом ДО?',YesNo)<>Yes)
+                         {
+                           Abort; Exit;
+                         }
+                    } else
+                    {
+                      if (message('Внимание! В выбранной карточке заводской код не пустой: '+ KatMC.BARKOD2 + chr(13) +
+                                   'Вы уверены, что хотите продолжить и заменить заводской код в выбранной карточке? При этом произойдет замена МЦ в т.ч. и в самом ДО?',YesNo)<>Yes)
+                         {
+                           Abort; Exit;
+                         }
+                    }
+               }
+            if _mode = 1
+               {
+                 if (message('Вы уверены, что хотите заменить МЦ? При этом замена произойдет в самом ДО?',YesNo)<>Yes)
+                    {
+                      Abort; Exit;
+                    }
+               }
+
+            if _mode = 0
+               {
+                 SET KatMC.BARKOD2 := _tmpAnaliz.SCAN_CODE;
+                 Update current KatMC;
+               }
+
+            if GetFirst _tmpUpdSP where ((_tmpAnaliz.SpStep_nRec == _tmpUpdSP._nRec)) <> tsOk
+               {
+                 SET _tmpUpdSP._nRec := _tmpAnaliz.SpStep_nRec;
+                 insert current _tmpUpdSP;
+               }
+               var _cGrNal : comp = 0h;
+            if GetFirst KatMC where ((_tmpAnaliz.SpStep_cMC == KatMC.nRec)) = tsOk
+               {
+                 SET _tmpAnaliz.MC_Name := KatMC.Name;
+                 _cGrNal := KatMC.cGrNal;
+                 update current _tmpAnaliz;
+               }
+
+            if GetFirst SpStep where ((_tmpAnaliz.SpStep_nRec == SpStep.nRec)) = tsOk
+               {
+                 SET SpStep.cMcUsl := _tmpAnaliz.SpStep_cMC;
+                 set SpStep.cGrNal := _cGrNal;
+
+                 if getfirst SpDocNal where ((SpStep.nRec == SpDocNal.cSpDoc
+                                           and word(1101) == SpDocNal.TipDoc)) =tsOK {
+                   update current SpDocNal set SpDocNal.cGrNal := _cGrNal;
+                  }
+
+                 if (GetFirst KatOtpEd where ((_tmpAnaliz.SpStep_cMC == KatOtpEd.cMcUsl and word(1) == KatOtpEd.PrMC and 1 == KatOtpEd.Akt))  ) = tsOk
+                    {
+                      SpStep.cOtpEd   := KatOtpEd.nRec;
+                    } else
+                    {
+                      if (GetFirst KatOtpEd where ((_tmpAnaliz.SpStep_cMC == KatOtpEd.cMcUsl and word(1) == KatOtpEd.PrMC))  )= tsOk
+                         {
+                           SpStep.cOtpEd   := KatOtpEd.nRec;
+                         }
+                    }
+                 update current SpStep;
+
+                 if GetFirst ATC_SpStep_Atr where ((SpStep.nRec == ATC_SpStep_Atr.cSpStep)) = tsOk
+                    {
+                      SET ATC_SpStep_Atr.cMC := _tmpAnaliz.SpStep_cMC
+                      update current ATC_SpStep_Atr;
+                    }
+               }
+            _makeReport;
+            if GetFirst _tmpAnaliz where ((_npp == _tmpAnaliz.Npp)) = tsOk {}
+            ReReadRecord(#_tmpAnaliz);
+          }
+
+}
+
+var i_x: longInt
+var f_x: array[0..0] of longInt
+var m_x: array[0..0] of integer
+
+HandleEvent
+cmInit:{
+  delete all _tmpUpdSP;
+  if Getfirst KatNalog where (( coGetTune('NALOG.CNALOGNDS') == KatNalog.nRec )) = tsOk
+     {
+       _cNalog := KatNalog.nRec;
+     }
+  _makeReport;
+  if GetFirst _tmpAnaliz = tsOk {};
+  if GetFirst BaseDoc where ((nRec_BaseDoc == BaseDoc.nRec)) = tsOk {};
+  if GetFirst KatOrg where ((BaseDoc.cOrg == KatOrg.nRec)) = tsOk {};
+//для сортировки по NPP
+  i_x := 1;
+  SetLimit(f_x, i_x);
+  f_x[0] := #_tmpAnaliz.npp;
+  SetLimit(m_x, i_x);
+  m_x[0] := 1
+  if SetBrowseSortFields(brATC_GRPOCSP, f_x, m_x) {};
+
+}
+
+cmPick:{
+  if CurField = #_tmpAnaliz.MC_Name
+     {
+       if _tmpAnaliz.SCAN_CODE <> ''
+          {
+            _GetMC(word(0));
+          } else
+          {
+            message('Внимание! В документе поле "Штрихкод" не заполнено! Привязка по F3 запрещена.'+chr(13)+
+                    'Можно воспользоваться функцией Ctrl+F3 (привязка МЦ без обновления заводского кода в Каталоге МЦ');
+          }
+
+     }
+}
+
+cmRestoreDoc:{
+  if CurField = #_tmpAnaliz.MC_Name
+     {
+       _GetMC(word(1));
+     }
+}
+
+cmHotKeys:{
+  if curTable = #_tmpAnaliz
+     {
+       PutHotCommand(RunMenu('mnu_winAnaliz_SpStep'));
+     }
+}
+
+cmPlansNo:{
+  RunFReport(Stream_iATC_Analiz_SpStep, '', true);
+}
+
+cmClose:{
+  Create_Party;
+}
+
+cmCancel:{
+  Create_Party;
+}
+end; //HandleEvent
+end. //Interface
+
+
+mnu_winAnaliz_SpStep Menu {
+   - 'Печать отчета',          cmPlansNo, '', hcNoContext, 'Alt+P'  , kbAltP, sci1Esc;
+}

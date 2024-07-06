@@ -1,0 +1,1140 @@
+#include marker.vih
+#include vschet.vih
+#component "ATC"
+
+Interface iATC_iVshetB_SP 'Выбор позиции спецификации ДО' (,hcNoContext,) EscClose, doAccept, Cyan;
+Show at (,,140,20);
+
+create view
+var
+  _BaseDoc_nRec  :comp;
+  _KatParty_nRec :comp;
+as select *
+  ,if(SpStep.PrMC=1,KatMC.Name,KatUsl.Name) (fieldname=Name_McUsl)
+  ,if(SpStep.PrMC=1,'Т','У') (fieldname=s_PrMC)
+from
+  BaseDoc
+ ,StepDoc
+ ,SpStep
+ ,KatMC
+ ,KatUsl
+ ,KatParty
+where ((
+    _BaseDoc_nRec              == BaseDoc.nRec
+and BaseDoc.nRec               == StepDoc.cBaseDoc
+and StepDoc.nRec               == SpStep.cStepDoc
+and SpStep.cMcUsl              == KatMC.nRec
+and SpStep.cMcUsl              == KatUsl.nRec
+and SpStep.cParty              == KatParty.nRec
+));
+
+Parameters _BaseDoc_nRec, _KatParty_nRec;
+
+Browse br_Otgruzka 'Список позиций' ('Список позиций',  , sci1EscEn );
+table SpStep
+Fields
+  SpStep.npp                          '№','п.п.'                                              :[4] , protect, NoPickButton;
+  s_PrMC                              'Т/У'                                                 :[2] , protect, NoPickButton;
+  Name_McUsl                          'Наименование'                                        :[20], protect, NoPickButton;
+  SpStep.KolSkl                       'Кол-во'                                              :[10 ,'\2p[|-]36`666`666`666`666.88'],protect,right,lessnull,noPickButton;
+  SpStep.Price                        'Цена'                                                :[10 ,'\2p[|-]36`666`666`666`666.88'],protect,right,lessnull,noPickButton;
+  SpStep.SUMMA                        'Сумма'                                               :[12 ,'\2p[|-]36`666`666`666`666.88'],protect,right,lessnull,noPickButton;
+  KatParty.Name                       'Партия'                                              :[20], protect, NoPickButton;
+end;
+
+HandleEvent
+cmDefault:{
+  SET _KatParty_nRec := KatParty.nRec;
+  CloseInterface(cmDefault);
+}
+end; //HandleEvent
+end. //Interface
+
+interface iATC_Import_Protocol 'Импорт протокола ';
+Show at (,,160,26);
+
+table struct _tmpImp
+(
+   npp              : longint
+ , cSpStep_Atr      : comp
+ , cParty           : comp
+ , Mnn              : string
+ , TorgName         : string
+ , Seria            : string
+ , Proizvoditel     : string
+ , PriceGRPOC       : double
+ , OtpPrice         : double
+ , OtpPrice_w_NDS   : double
+ , dRealiz          : date
+ , USN_ENVED        : double
+ , Price            : double
+ , Price_W_NDS      : double
+ , lnk_RON_Proc     : array[1..10] of double
+ , lnk_RON_Rub      : array[1..10] of double
+ , lnk_USN_ENVED    : array[1..10] of double
+ , lnk_Price        : array[1..10] of double
+ , lnk_Price_W_NDS  : array[1..10] of double
+ , nn               : word
+)
+with index
+(
+   ind0 = npp,
+   ind1 = cSpStep_Atr + cParty,
+   ind2 = cParty + cSpStep_Atr,
+   ind3 = nn+TorgName
+);
+
+var
+  xCol_MNN             :word;
+  xCol_TorgName        :word;
+  xCol_Seria           :word;
+  xCol_Proizvoditel    :word;
+  xCol_PriceGRPOC      :word;
+  xCol_OtpPrice        :word;
+  xCol_OtpPrice_w_NDS  :word;
+  xCol_dRealiz         :word;
+
+  xCol_USN_ENVED       :word;
+  xCol_Price           :word;
+  xCol_Price_W_NDS     :word;
+
+  xCol_lnk_RON_Proc    :array[1..10] of word;
+  xCol_lnk_RON_Rub     :array[1..10] of word;
+  xCol_lnk_USN_ENVED   :array[1..10] of word;
+  xCol_lnk_Price       :array[1..10] of word;
+  xCol_lnk_Price_W_NDS :array[1..10] of word;
+
+  _colorNDS_edit : word;
+
+create view
+var
+  file_name      : string;
+  nRec_BaseDoc   : comp;
+  _UserRowBeg    : longint;
+  _UserRowEnd    : longint;
+
+as select *
+from
+  BaseDoc
+ ,StepDoc
+ ,KatOrg
+ ,ATC_SpStep_Atr
+ ,ATC_KatParty_Atr
+ ,ATC_ExImpOrg
+ ,ATC_ExImpOrg ATC_ExImpOrg_gf
+
+ ,_tmpImp
+ ,_tmpImp _tmpImp_gf
+ ,KatParty KatParty_tmp
+ ,ATC_SpStep_Atr ATC_SpStep_Atr_tmp
+
+ ,KatParty KatParty_gf
+
+ ,(select count(*) (fieldname=_KolPart)
+  from _tmpImp _ti, KatParty _kp
+  where (( _ti.cParty /== _kp.nRec))
+  )
+
+where((
+    nRec_BaseDoc            ==  BaseDoc.nRec
+and BaseDoc.nRec            ==  StepDoc.cBaseDoc
+and StepDoc.nRec            ==  SpStep.cStepDoc
+and SpStep.nRec             ==  ATC_SpStep_Atr.cSpStep
+
+and BaseDoc.cOrg            ==  KatOrg.nRec
+and KatOrg.nRec             ==  ATC_ExImpOrg.cOrg
+and word(222)               ==  ATC_ExImpOrg.TypeNastr
+
+and _tmpImp.cParty          ==  KatParty_tmp.nRec
+and _tmpImp.cSpStep_Atr     ==  ATC_SpStep_Atr_tmp.nRec
+));
+
+Parameters nRec_BaseDoc;
+
+Procedure _ShowFields;
+{
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[1]_(1)_в_%'      ,  cfpVisible, false)
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[1]_(1)_в_рублях'  ,  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[1]_(1)_УСН/ЕНВД',  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[1]_(1)_без_НДС'     ,  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[1]_(1)_с_НДС' ,  cfpVisible, false);
+
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[2]_(2)_в_%'      ,  cfpVisible, false)
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[2]_(2)_в_рублях'  ,  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[2]_(2)_УСН/ЕНВД',  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[2]_(2)_без_НДС'     ,  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[2]_(2)_с_НДС' ,  cfpVisible, false);
+
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[3]_(3)_в_%'      ,  cfpVisible, false)
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[3]_(3)_в_рублях'  ,  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[3]_(3)_УСН/ЕНВД',  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[3]_(3)_без_НДС'     ,  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[3]_(3)_с_НДС' ,  cfpVisible, false);
+
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[4]_(4)_в_%'      ,  cfpVisible, false)
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[4]_(4)_в_рублях'  ,  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[4]_(4)_УСН/ЕНВД',  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[4]_(4)_без_НДС'     ,  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[4]_(4)_с_НДС' ,  cfpVisible, false);
+
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[5]_(5)_в_%'      ,  cfpVisible, false)
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[5]_(5)_в_рублях'  ,  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[5]_(5)_УСН/ЕНВД',  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[5]_(5)_без_НДС'     ,  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[5]_(5)_с_НДС' ,  cfpVisible, false);
+
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[6]_(6)_в_%'      ,  cfpVisible, false)
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[6]_(6)_в_рублях'  ,  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[6]_(6)_УСН/ЕНВД',  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[6]_(6)_без_НДС'     ,  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[6]_(6)_с_НДС' ,  cfpVisible, false);
+
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[7]_(7)_в_%'      ,  cfpVisible, false)
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[7]_(7)_в_рублях'  ,  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[7]_(7)_УСН/ЕНВД',  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[7]_(7)_без_НДС'     ,  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[7]_(7)_с_НДС' ,  cfpVisible, false);
+
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[8]_(8)_в_%'      ,  cfpVisible, false)
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[8]_(8)_в_рублях'  ,  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[8]_(8)_УСН/ЕНВД',  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[8]_(8)_без_НДС'     ,  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[8]_(8)_с_НДС' ,  cfpVisible, false);
+
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[9]_(9)_в_%'      ,  cfpVisible, false)
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[9]_(9)_в_рублях'  ,  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[9]_(9)_УСН/ЕНВД',  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[9]_(9)_без_НДС'     ,  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[9]_(9)_с_НДС' ,  cfpVisible, false);
+
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[10]_(10)_в_%'      ,  cfpVisible, false)
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[10]_(10)_в_рублях'  ,  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[10]_(10)_УСН/ЕНВД',  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[10]_(10)_без_НДС'     ,  cfpVisible, false);
+  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[10]_(10)_с_НДС' ,  cfpVisible, false);
+
+  StartNewVisual(vtRotateVisual, vfTimer, 'Обработка...', 1);
+  _loop ATC_ExImpOrg
+  {
+    if ATC_ExImpOrg.Npp > 11 and ATC_ExImpOrg.Num_Col > 0
+       {
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[1]_(1)_в_%'      ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[1]_(1)_в_%'      ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[1]_(1)_в_рублях'  ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[1]_(1)_в_рублях'  ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[1]_(1)_УСН/ЕНВД') <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[1]_(1)_УСН/ЕНВД',   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[1]_(1)_без_НДС'     ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[1]_(1)_без_НДС'     ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[1]_(1)_с_НДС' ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[1]_(1)_с_НДС' ,   cfpVisible, true);
+
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[2]_(2)_в_%'      ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[2]_(2)_в_%'      ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[2]_(2)_в_рублях'  ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[2]_(2)_в_рублях'  ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[2]_(2)_УСН/ЕНВД') <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[2]_(2)_УСН/ЕНВД',   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[2]_(2)_без_НДС'     ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[2]_(2)_без_НДС'     ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[2]_(2)_с_НДС' ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[2]_(2)_с_НДС' ,   cfpVisible, true);
+
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[3]_(3)_в_%'      ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[3]_(3)_в_%'      ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[3]_(3)_в_рублях'  ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[3]_(3)_в_рублях'  ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[3]_(3)_УСН/ЕНВД') <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[3]_(3)_УСН/ЕНВД',   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[3]_(3)_без_НДС'     ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[3]_(3)_без_НДС'     ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[3]_(3)_с_НДС' ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[3]_(3)_с_НДС' ,   cfpVisible, true);
+
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[4]_(4)_в_%'      ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[4]_(4)_в_%'      ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[4]_(4)_в_рублях'  ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[4]_(4)_в_рублях'  ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[4]_(4)_УСН/ЕНВД') <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[4]_(4)_УСН/ЕНВД',   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[4]_(4)_без_НДС'     ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[4]_(4)_без_НДС'     ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[4]_(4)_с_НДС' ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[4]_(4)_с_НДС' ,   cfpVisible, true);
+
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[5]_(5)_в_%'      ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[5]_(5)_в_%'      ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[5]_(5)_в_рублях'  ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[5]_(5)_в_рублях'  ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[5]_(5)_УСН/ЕНВД') <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[5]_(5)_УСН/ЕНВД',   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[5]_(5)_без_НДС'     ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[5]_(5)_без_НДС'     ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[5]_(5)_с_НДС' ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[5]_(5)_с_НДС' ,   cfpVisible, true);
+
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[6]_(6)_в_%'      ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[6]_(6)_в_%'      ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[6]_(6)_в_рублях'  ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[6]_(6)_в_рублях'  ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[6]_(6)_УСН/ЕНВД') <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[6]_(6)_УСН/ЕНВД',   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[6]_(6)_без_НДС'     ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[6]_(6)_без_НДС'     ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[6]_(6)_с_НДС' ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[6]_(6)_с_НДС' ,   cfpVisible, true);
+
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[7]_(7)_в_%'      ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[7]_(7)_в_%'      ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[7]_(7)_в_рублях'  ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[7]_(7)_в_рублях'  ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[7]_(7)_УСН/ЕНВД') <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[7]_(7)_УСН/ЕНВД',   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[7]_(7)_без_НДС'     ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[7]_(7)_без_НДС'     ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[7]_(7)_с_НДС' ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[7]_(7)_с_НДС' ,   cfpVisible, true);
+
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[8]_(8)_в_%'      ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[8]_(8)_в_%'      ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[8]_(8)_в_рублях'  ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[8]_(8)_в_рублях'  ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[8]_(8)_УСН/ЕНВД') <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[8]_(8)_УСН/ЕНВД',   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[8]_(8)_без_НДС'     ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[8]_(8)_без_НДС'     ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[8]_(8)_с_НДС' ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[8]_(8)_с_НДС' ,   cfpVisible, true);
+
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[9]_(9)_в_%'      ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[9]_(9)_в_%'      ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[9]_(9)_в_рублях'  ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[9]_(9)_в_рублях'  ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[9]_(9)_УСН/ЕНВД') <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[9]_(9)_УСН/ЕНВД',   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[9]_(9)_без_НДС'     ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[9]_(9)_без_НДС'     ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[9]_(9)_с_НДС' ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[9]_(9)_с_НДС' ,   cfpVisible, true);
+
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[10]_(10)_в_%'      ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_PROC[10]_(10)_в_%'      ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[10]_(10)_в_рублях'  ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_RON_RUB[10]_(10)_в_рублях'  ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[10]_(10)_УСН/ЕНВД') <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_USN_ENVED[10]_(10)_УСН/ЕНВД',   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[10]_(10)_без_НДС'     ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE[10]_(10)_без_НДС'     ,   cfpVisible, true);
+         if Pos(ATC_ExImpOrg.F_Name,'c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[10]_(10)_с_НДС' ) <> 0  cfsSetProp('c_BRATC_EXIMPORG_TMPIMP.LNK_PRICE_W_NDS[10]_(10)_с_НДС' ,   cfpVisible, true);
+       }
+    RescanPanel(#_tmpImp);
+    NextVisual;
+  }
+
+  StopVisual('', 0);
+}
+
+Procedure CloseWorkBookAndKillExcel;
+var s: string;
+{
+  xlGetActiveWorkBookName(s);
+  xlCloseWorkBookByName(s);
+  xlKillExcel;
+}
+
+Procedure _SetValueTable(_xValue:string; _xField:string);
+{
+  if _xValue <> ''
+     {
+       case _xField of
+         'MNN'                 : _tmpImp.MNN                := _xValue;
+         'TORGNAME'            : _tmpImp.TorgName           := _xValue;
+         'Seria'               : _tmpImp.Seria              := _xValue;
+         'Proizvoditel'        : _tmpImp.Proizvoditel       := _xValue;
+         'PriceGRPOC'          : _tmpImp.PriceGRPOC         := double(Replace(_xValue,',','.'));
+         'OtpPrice'            : _tmpImp.OtpPrice           := double(Replace(_xValue,',','.'));
+         'OtpPrice_w_NDS'      : _tmpImp.OtpPrice_w_NDS     := double(Replace(_xValue,',','.'));
+         'dRealiz'             : _tmpImp.dRealiz            := StrToDate(_xValue,'DD.MM.YYYY')
+
+         'USN_ENVED'           : _tmpImp.USN_ENVED          := double(Replace(_xValue,',','.'));
+         'PRICE'               : _tmpImp.Price              := double(Replace(_xValue,',','.'));
+         'Price_W_NDS'         : _tmpImp.Price_W_NDS        := double(Replace(_xValue,',','.'));
+
+         'LNK_RON_PROC[1]'     : _tmpImp.LNK_RON_PROC[1]    := double(Replace(_xValue,',','.'));
+         'LNK_RON_RUB[1]'      : _tmpImp.lnk_RON_Rub[1]     := double(Replace(_xValue,',','.'));
+         'LNK_USN_ENVED[1]'    : _tmpImp.lnk_USN_ENVED[1]   := double(Replace(_xValue,',','.'));
+         'LNK_PRICE[1]'        : _tmpImp.lnk_Price[1]       := double(Replace(_xValue,',','.'));
+         'LNK_PRICE_W_NDS[1]'  : _tmpImp.lnk_Price_W_NDS[1] := double(Replace(_xValue,',','.'));
+
+         'LNK_RON_PROC[2]'     : _tmpImp.LNK_RON_PROC[2]    := double(Replace(_xValue,',','.'));
+         'LNK_RON_RUB[2]'      : _tmpImp.lnk_RON_Rub[2]     := double(Replace(_xValue,',','.'));
+         'LNK_USN_ENVED[2]'    : _tmpImp.lnk_USN_ENVED[2]   := double(Replace(_xValue,',','.'));
+         'LNK_PRICE[2]'        : _tmpImp.lnk_Price[2]       := double(Replace(_xValue,',','.'));
+         'LNK_PRICE_W_NDS[2]'  : _tmpImp.lnk_Price_W_NDS[2] := double(Replace(_xValue,',','.'));
+
+         'LNK_RON_PROC[3]'     : _tmpImp.LNK_RON_PROC[3]    := double(Replace(_xValue,',','.'));
+         'LNK_RON_RUB[3]'      : _tmpImp.lnk_RON_Rub[3]     := double(Replace(_xValue,',','.'));
+         'LNK_USN_ENVED[3]'    : _tmpImp.lnk_USN_ENVED[3]   := double(Replace(_xValue,',','.'));
+         'LNK_PRICE[3]'        : _tmpImp.lnk_Price[3]       := double(Replace(_xValue,',','.'));
+         'LNK_PRICE_W_NDS[3]'  : _tmpImp.lnk_Price_W_NDS[3] := double(Replace(_xValue,',','.'));
+
+         'LNK_RON_PROC[4]'     : _tmpImp.LNK_RON_PROC[4]    := double(Replace(_xValue,',','.'));
+         'LNK_RON_RUB[4]'      : _tmpImp.lnk_RON_Rub[4]     := double(Replace(_xValue,',','.'));
+         'LNK_USN_ENVED[4]'    : _tmpImp.lnk_USN_ENVED[4]   := double(Replace(_xValue,',','.'));
+         'LNK_PRICE[4]'        : _tmpImp.lnk_Price[4]       := double(Replace(_xValue,',','.'));
+         'LNK_PRICE_W_NDS[4]'  : _tmpImp.lnk_Price_W_NDS[4] := double(Replace(_xValue,',','.'));
+
+         'LNK_RON_PROC[5]'     : _tmpImp.LNK_RON_PROC[5]    := double(Replace(_xValue,',','.'));
+         'LNK_RON_RUB[5]'      : _tmpImp.lnk_RON_Rub[5]     := double(Replace(_xValue,',','.'));
+         'LNK_USN_ENVED[5]'    : _tmpImp.lnk_USN_ENVED[5]   := double(Replace(_xValue,',','.'));
+         'LNK_PRICE[5]'        : _tmpImp.lnk_Price[5]       := double(Replace(_xValue,',','.'));
+         'LNK_PRICE_W_NDS[5]'  : _tmpImp.lnk_Price_W_NDS[5] := double(Replace(_xValue,',','.'));
+
+         'LNK_RON_PROC[6]'     : _tmpImp.LNK_RON_PROC[6]    := double(Replace(_xValue,',','.'));
+         'LNK_RON_RUB[6]'      : _tmpImp.lnk_RON_Rub[6]     := double(Replace(_xValue,',','.'));
+         'LNK_USN_ENVED[6]'    : _tmpImp.lnk_USN_ENVED[6]   := double(Replace(_xValue,',','.'));
+         'LNK_PRICE[6]'        : _tmpImp.lnk_Price[6]       := double(Replace(_xValue,',','.'));
+         'LNK_PRICE_W_NDS[6]'  : _tmpImp.lnk_Price_W_NDS[6] := double(Replace(_xValue,',','.'));
+
+         'LNK_RON_PROC[7]'     : _tmpImp.LNK_RON_PROC[7]    := double(Replace(_xValue,',','.'));
+         'LNK_RON_RUB[7]'      : _tmpImp.lnk_RON_Rub[7]     := double(Replace(_xValue,',','.'));
+         'LNK_USN_ENVED[7]'    : _tmpImp.lnk_USN_ENVED[7]   := double(Replace(_xValue,',','.'));
+         'LNK_PRICE[7]'        : _tmpImp.lnk_Price[7]       := double(Replace(_xValue,',','.'));
+         'LNK_PRICE_W_NDS[7]'  : _tmpImp.lnk_Price_W_NDS[7] := double(Replace(_xValue,',','.'));
+
+         'LNK_RON_PROC[8]'     : _tmpImp.LNK_RON_PROC[8]    := double(Replace(_xValue,',','.'));
+         'LNK_RON_RUB[8]'      : _tmpImp.lnk_RON_Rub[8]     := double(Replace(_xValue,',','.'));
+         'LNK_USN_ENVED[8]'    : _tmpImp.lnk_USN_ENVED[8]   := double(Replace(_xValue,',','.'));
+         'LNK_PRICE[8]'        : _tmpImp.lnk_Price[8]       := double(Replace(_xValue,',','.'));
+         'LNK_PRICE_W_NDS[8]'  : _tmpImp.lnk_Price_W_NDS[8] := double(Replace(_xValue,',','.'));
+
+         'LNK_RON_PROC[9]'     : _tmpImp.LNK_RON_PROC[9]    := double(Replace(_xValue,',','.'));
+         'LNK_RON_RUB[9]'      : _tmpImp.lnk_RON_Rub[9]     := double(Replace(_xValue,',','.'));
+         'LNK_USN_ENVED[9]'    : _tmpImp.lnk_USN_ENVED[9]   := double(Replace(_xValue,',','.'));
+         'LNK_PRICE[9]'        : _tmpImp.lnk_Price[9]       := double(Replace(_xValue,',','.'));
+         'LNK_PRICE_W_NDS[9]'  : _tmpImp.lnk_Price_W_NDS[9] := double(Replace(_xValue,',','.'));
+
+         'LNK_RON_PROC[10]'    : _tmpImp.LNK_RON_PROC[10]   := double(Replace(_xValue,',','.'));
+         'LNK_RON_RUB[10]'     : _tmpImp.lnk_RON_Rub[10]    := double(Replace(_xValue,',','.'));
+         'LNK_USN_ENVED[10]'   : _tmpImp.lnk_USN_ENVED[10]  := double(Replace(_xValue,',','.'));
+         'LNK_PRICE[10]'       : _tmpImp.lnk_Price[10]      := double(Replace(_xValue,',','.'));
+         'LNK_PRICE_W_NDS[10]' : _tmpImp.lnk_Price_W_NDS[10]:= double(Replace(_xValue,',','.'));
+       end;
+     }
+}
+
+Function _LoadFromEx :boolean;
+{
+  StartNewVisual (vtRotateVisual, vfTimer, 'Обработано позиций: ', 1 );
+  var _nRec_NotMC  : comp = coGetTune('GALCOMMON.PARTNER.ImpSpStep_Atr.WhenNotMC');
+  xlKillExcel;
+  if not xlOpenNewExcel(false)
+     {
+       Message('Ошибка открытия Excel (xlOpenExcel)!', Warning);
+       xlKillExcel;
+       _LoadFromEx:=false;
+       StopVisual('',0);
+       Abort; Exit;
+     }
+  if not xlOpenWorkBook(file_name)
+     {
+       Message('Ошибка открытия '+file_name, Warning);
+       xlKillExcel;
+       _LoadFromEx:=false;
+       StopVisual('',0);
+       Abort; Exit;
+     }
+
+  xlSetActiveSheet(1);
+
+  var _rowBeg,_rowEnd :longint;
+  var _colBeg,_colEnd :longint;
+
+  SET _rowBeg := _UserRowBeg;
+  SET _rowEnd := _UserRowEnd;
+
+  var i :longint = _rowBeg;
+  var _npp :longint =0;
+
+  while(true)
+  {
+
+    SetVisualHeader ('Обработка файла'+chr(13)+
+                     'Обработано строк '+ i + ' из '+  _rowEnd
+                    );
+    NextVisual;
+
+    if i > _rowEnd break;
+
+    _npp++;
+    ClearBuffer(#_tmpImp);
+
+    _loop ATC_ExImpOrg
+    {
+      var _xValue  :string='';
+
+      if ATC_ExImpOrg.NUM_COL <> 0
+         {
+           xlGetCellValue(i,ATC_ExImpOrg.NUM_COL, _xValue);
+           _SetValueTable(_xValue, ATC_ExImpOrg.F_Name);
+         }
+    }
+
+    _tmpImp.npp  := _npp;
+    insert current _tmpImp;
+    i++;
+  }
+
+  CloseWorkBookAndKillExcel;
+
+  _loop SpStep
+  {
+    NextVisual;
+    if GetFirst ATC_SpStep_Atr = tsOk
+       {
+         _loop _tmpImp where (( 0 ==  _tmpImp.nn and (     _tmpImp.TorgName  like UpCase('%'+ATC_SpStep_Atr.SCAN_CODE+'%')
+                                                       and _tmpImp.Seria     like UpCase('%'+ATC_SpStep_Atr.SERIA+'%')
+                                                     )
+                             ))
+         {
+           if (
+//Было принято решение исключить проверку на совпадение цены ЖВЛП и Дату продажи (поскольку даты нет в СКЛИТе)
+//               _tmpImp.PriceGRPOC = ATC_SpStep_Atr.PR_REE and
+               _tmpImp.OtpPrice   = ATC_SpStep_Atr.PR_MAK
+//               _tmpImp.dRealiz    = ATC_SpStep_Atr.D_SALE
+              )
+            _tmpImp.cParty := SpStep.cParty;
+            update current _tmpImp;
+         }
+       }
+  }
+
+  StopVisual('',0);
+
+  if GetFirst _tmpImp = tsOk {};
+  ReReadRecord(#_tmpImp);
+  Verify(_KolPart);
+  SetTitle('Импорт протокола ЖВЛП (' + _KolPart + ')');
+}
+
+
+Procedure _SetDefaultFields;
+{
+  _loop ATC_ExImpOrg
+  {
+    delete current ATC_ExImpOrg;
+  }
+
+  var i,j:word;
+  for(i:=1;i<=11;inc(i))
+  {
+    ClearBuffer(#ATC_ExImpOrg);
+    ATC_ExImpOrg.nRec      := GetNextNRec(#ATC_ExImpOrg,0);
+    ATC_ExImpOrg.cOrg      := KatOrg.nRec;
+    ATC_ExImpOrg.TypeNastr := word(222);
+    if i = 1  {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'МНН';                     ATC_ExImpOrg.F_Name := 'MNN'           ; ATC_ExImpOrg.Num_Col := 1;  }
+    if i = 2  {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'Торговое наименование';   ATC_ExImpOrg.F_Name := 'TORGNAME'      ; ATC_ExImpOrg.Num_Col := 11; }
+    if i = 3  {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'Серия';                   ATC_ExImpOrg.F_Name := 'Seria'         ; ATC_ExImpOrg.Num_Col := 25; }
+    if i = 4  {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'Производитель';           ATC_ExImpOrg.F_Name := 'Proizvoditel'  ; ATC_ExImpOrg.Num_Col := 33; }
+    if i = 5  {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'предельная цена';         ATC_ExImpOrg.F_Name := 'PriceGRPOC'    ; ATC_ExImpOrg.Num_Col := 41; }
+    if i = 6  {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'отпуск. цена без НДС';    ATC_ExImpOrg.F_Name := 'OtpPrice'      ; ATC_ExImpOrg.Num_Col := 51; }
+    if i = 7  {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'отпуск. цена с НДС';      ATC_ExImpOrg.F_Name := 'OtpPrice_w_NDS'; ATC_ExImpOrg.Num_Col := 60; }
+    if i = 8  {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'Дата реализации произв.'; ATC_ExImpOrg.F_Name := 'dRealiz'       ; ATC_ExImpOrg.Num_Col := 69; }
+    if i = 9  {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'УСН/ЕНВД (руб.)';         ATC_ExImpOrg.F_Name := 'USN_ENVED'     ; ATC_ExImpOrg.Num_Col := 79; }
+    if i = 10 {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'без НДС (руб.)';          ATC_ExImpOrg.F_Name := 'PRICE'         ; ATC_ExImpOrg.Num_Col := 87; }
+    if i = 11 {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'с НДС (руб.)';            ATC_ExImpOrg.F_Name := 'Price_W_NDS'   ; ATC_ExImpOrg.Num_Col := 95; }
+
+    insert current ATC_ExImpOrg;
+  }
+  SET i := 11;
+  for(j:=1;j<=10;inc(j))
+  {
+    ClearBuffer(#ATC_ExImpOrg);
+    ATC_ExImpOrg.cOrg      := KatOrg.nRec;
+    ATC_ExImpOrg.TypeNastr := word(222);
+    ATC_ExImpOrg.npp := i+j;  ATC_ExImpOrg.Name_Col := 'в процентах';            ATC_ExImpOrg.F_Name := 'LNK_RON_PROC['   + j +']'; ATC_ExImpOrg.Num_Col := if(i+j=12,103,0);
+    ATC_ExImpOrg.nRec      := GetNextNRec(#ATC_ExImpOrg,0);
+    insert current ATC_ExImpOrg;
+
+    ClearBuffer(#ATC_ExImpOrg);
+    ATC_ExImpOrg.cOrg      := KatOrg.nRec;
+    ATC_ExImpOrg.TypeNastr := word(222);
+    ATC_ExImpOrg.npp := i+j;  ATC_ExImpOrg.Name_Col := 'в рублях';               ATC_ExImpOrg.F_Name := 'LNK_RON_RUB['    + j +']'; ATC_ExImpOrg.Num_Col := if(i+j=12,109,0);
+    ATC_ExImpOrg.nRec      := GetNextNRec(#ATC_ExImpOrg,0);
+    insert current ATC_ExImpOrg;
+
+    ClearBuffer(#ATC_ExImpOrg);
+    ATC_ExImpOrg.cOrg      := KatOrg.nRec;
+    ATC_ExImpOrg.TypeNastr := word(222);
+    ATC_ExImpOrg.npp := i+j;  ATC_ExImpOrg.Name_Col := 'УСН/ЕНВД (руб.)';        ATC_ExImpOrg.F_Name := 'LNK_USN_ENVED['  + j +']'; ATC_ExImpOrg.Num_Col := if(i+j=12,115,0);
+    ATC_ExImpOrg.nRec      := GetNextNRec(#ATC_ExImpOrg,0);
+    insert current ATC_ExImpOrg;
+
+    ClearBuffer(#ATC_ExImpOrg);
+    ATC_ExImpOrg.cOrg      := KatOrg.nRec;
+    ATC_ExImpOrg.TypeNastr := word(222);
+    ATC_ExImpOrg.npp := i+j;  ATC_ExImpOrg.Name_Col := 'без НДС (руб.)';         ATC_ExImpOrg.F_Name := 'LNK_PRICE['      + j +']'; ATC_ExImpOrg.Num_Col := if(i+j=12,123,0);
+    ATC_ExImpOrg.nRec      := GetNextNRec(#ATC_ExImpOrg,0);
+    insert current ATC_ExImpOrg;
+
+    ClearBuffer(#ATC_ExImpOrg);
+    ATC_ExImpOrg.cOrg      := KatOrg.nRec;
+    ATC_ExImpOrg.TypeNastr := word(222);
+    ATC_ExImpOrg.npp := i+j;  ATC_ExImpOrg.Name_Col := 'с НДС (руб.)';           ATC_ExImpOrg.F_Name := 'LNK_PRICE_W_NDS['+ j +']'; ATC_ExImpOrg.Num_Col := if(i+j=12,131,0);
+    ATC_ExImpOrg.nRec      := GetNextNRec(#ATC_ExImpOrg,0);
+    insert current ATC_ExImpOrg;
+  }
+  ReReadRecord(#ATC_ExImpOrg);
+}
+
+Procedure _ReadNumFields;
+{
+  var i,j:word;
+  for(i:=1;i<=11;inc(i))
+  {
+    if GetFirst ATC_ExImpOrg_gf where ((KatOrg.nRec == ATC_ExImpOrg_gf.cOrg and word(222) == ATC_ExImpOrg_gf.TYPENASTR and i == ATC_ExImpOrg_gf.npp)) = tsOk
+       {
+         if i = 1  SET xCol_MNN            :=  ATC_ExImpOrg_gf.Num_Col;
+         if i = 2  SET xCol_TorgName       :=  ATC_ExImpOrg_gf.Num_Col;
+         if i = 3  SET xCol_Seria          :=  ATC_ExImpOrg_gf.Num_Col;
+         if i = 4  SET xCol_Proizvoditel   :=  ATC_ExImpOrg_gf.Num_Col;
+         if i = 5  SET xCol_PriceGRPOC     :=  ATC_ExImpOrg_gf.Num_Col;
+         if i = 6  SET xCol_OtpPrice       :=  ATC_ExImpOrg_gf.Num_Col;
+         if i = 7  SET xCol_OtpPrice_w_NDS :=  ATC_ExImpOrg_gf.Num_Col;
+         if i = 8  SET xCol_dRealiz        :=  ATC_ExImpOrg_gf.Num_Col;
+         if i = 9  SET xCol_USN_ENVED      :=  ATC_ExImpOrg_gf.Num_Col;
+         if i = 10 SET xCol_Price          :=  ATC_ExImpOrg_gf.Num_Col;
+         if i = 11 SET xCol_Price_W_NDS    :=  ATC_ExImpOrg_gf.Num_Col;
+       }
+  }
+  SET i := 11;
+  for(j:=1;j<=10;inc(j))
+  {
+    _loop ATC_ExImpOrg_gf where ((KatOrg.nRec == ATC_ExImpOrg_gf.cOrg and word(222) == ATC_ExImpOrg_gf.TYPENASTR and i+j == ATC_ExImpOrg_gf.npp))
+    {
+//      message(i+j +'    '+ ATC_ExImpOrg_gf.Num_Col);
+      if ATC_ExImpOrg_gf.F_Name = 'LNK_RON_PROC['    +j+']'  SET xCol_lnk_RON_Proc[j]    := ATC_ExImpOrg_gf.Num_Col;
+      if ATC_ExImpOrg_gf.F_Name = 'LNK_RON_RUB['     +j+']'  SET xCol_lnk_RON_Rub[j]     := ATC_ExImpOrg_gf.Num_Col;
+      if ATC_ExImpOrg_gf.F_Name = 'LNK_USN_ENVED['   +j+']'  SET xCol_lnk_USN_ENVED[j]   := ATC_ExImpOrg_gf.Num_Col;
+      if ATC_ExImpOrg_gf.F_Name = 'LNK_PRICE['       +j+']'  SET xCol_lnk_Price[j]       := ATC_ExImpOrg_gf.Num_Col;
+      if ATC_ExImpOrg_gf.F_Name = 'LNK_PRICE_W_NDS[' +j+']'  SET xCol_lnk_Price_W_NDS[j] := ATC_ExImpOrg_gf.Num_Col;
+    }
+  }
+}
+
+Procedure _SaveNumFields;
+{
+  _loop ATC_ExImpOrg
+  {
+    delete current ATC_ExImpOrg;
+  }
+
+  var i,j:word;
+  for(i:=1;i<=11;inc(i))
+  {
+    ClearBuffer(#ATC_ExImpOrg);
+    ATC_ExImpOrg.nRec      := GetNextNRec(#ATC_ExImpOrg,0);
+    ATC_ExImpOrg.cOrg      := KatOrg.nRec;
+    ATC_ExImpOrg.TypeNastr := word(222);
+    if i = 1  {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'МНН';                     ATC_ExImpOrg.F_Name := 'MNN'           ; ATC_ExImpOrg.Num_Col := xCol_MNN           ; }
+    if i = 2  {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'Торговое наименование';   ATC_ExImpOrg.F_Name := 'TORGNAME'      ; ATC_ExImpOrg.Num_Col := xCol_TorgName      ; }
+    if i = 3  {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'Серия';                   ATC_ExImpOrg.F_Name := 'Seria'         ; ATC_ExImpOrg.Num_Col := xCol_Seria         ; }
+    if i = 4  {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'Производитель';           ATC_ExImpOrg.F_Name := 'Proizvoditel'  ; ATC_ExImpOrg.Num_Col := xCol_Proizvoditel  ; }
+    if i = 5  {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'предельная цена';         ATC_ExImpOrg.F_Name := 'PriceGRPOC'    ; ATC_ExImpOrg.Num_Col := xCol_PriceGRPOC    ; }
+    if i = 6  {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'отпуск. цена без НДС';    ATC_ExImpOrg.F_Name := 'OtpPrice'      ; ATC_ExImpOrg.Num_Col := xCol_OtpPrice      ; }
+    if i = 7  {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'отпуск. цена с НДС';      ATC_ExImpOrg.F_Name := 'OtpPrice_w_NDS'; ATC_ExImpOrg.Num_Col := xCol_OtpPrice_w_NDS; }
+    if i = 8  {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'Дата реализации произв.'; ATC_ExImpOrg.F_Name := 'dRealiz'       ; ATC_ExImpOrg.Num_Col := xCol_dRealiz       ; }
+    if i = 9  {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'УСН/ЕНВД (руб.)';         ATC_ExImpOrg.F_Name := 'USN_ENVED'     ; ATC_ExImpOrg.Num_Col := xCol_USN_ENVED  ; }
+    if i = 10 {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'без НДС (руб.)';          ATC_ExImpOrg.F_Name := 'PRICE'         ; ATC_ExImpOrg.Num_Col := xCol_Price      ; }
+    if i = 11 {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'с НДС (руб.)';            ATC_ExImpOrg.F_Name := 'Price_W_NDS'   ; ATC_ExImpOrg.Num_Col := xCol_Price_W_NDS; }
+    insert current ATC_ExImpOrg;
+  }
+  SET i := 11;
+  for(j:=1;j<=10;inc(j))
+  {
+    ClearBuffer(#ATC_ExImpOrg);
+    ATC_ExImpOrg.cOrg      := KatOrg.nRec;
+    ATC_ExImpOrg.TypeNastr := word(222);
+
+    ATC_ExImpOrg.npp := i+j;  ATC_ExImpOrg.Name_Col := 'в процентах';       ATC_ExImpOrg.F_Name := 'LNK_RON_PROC['   + j +']'; ATC_ExImpOrg.Num_Col := xCol_lnk_RON_Proc[j];
+    ATC_ExImpOrg.nRec      := GetNextNRec(#ATC_ExImpOrg,0);
+    insert current ATC_ExImpOrg;
+
+    ATC_ExImpOrg.npp := i+j;  ATC_ExImpOrg.Name_Col := 'в рублях';          ATC_ExImpOrg.F_Name := 'LNK_RON_RUB['    + j +']'; ATC_ExImpOrg.Num_Col := xCol_lnk_RON_Rub[j];
+    ATC_ExImpOrg.nRec      := GetNextNRec(#ATC_ExImpOrg,0);
+    insert current ATC_ExImpOrg;
+
+    ATC_ExImpOrg.npp := i+j;  ATC_ExImpOrg.Name_Col := 'УСН/ЕНВД (руб.)';   ATC_ExImpOrg.F_Name := 'LNK_USN_ENVED['  + j +']'; ATC_ExImpOrg.Num_Col := xCol_lnk_USN_ENVED[j];
+    ATC_ExImpOrg.nRec      := GetNextNRec(#ATC_ExImpOrg,0);
+    insert current ATC_ExImpOrg;
+
+    ATC_ExImpOrg.npp := i+j;  ATC_ExImpOrg.Name_Col := 'без НДС (руб.)';    ATC_ExImpOrg.F_Name := 'LNK_PRICE['      + j +']'; ATC_ExImpOrg.Num_Col := xCol_lnk_Price[j];
+    ATC_ExImpOrg.nRec      := GetNextNRec(#ATC_ExImpOrg,0);
+    insert current ATC_ExImpOrg;
+
+    ATC_ExImpOrg.npp := i+j;  ATC_ExImpOrg.Name_Col := 'с НДС (руб.)';      ATC_ExImpOrg.F_Name := 'LNK_PRICE_W_NDS['+ j +']'; ATC_ExImpOrg.Num_Col := xCol_lnk_Price_W_NDS[j];
+    ATC_ExImpOrg.nRec      := GetNextNRec(#ATC_ExImpOrg,0);
+    insert current ATC_ExImpOrg;
+  }
+  ReReadRecord(#ATC_ExImpOrg);
+}
+
+Window winNastrExcelCol 'Настройка колонок для импорта из Excel' EscClose;
+Show at (,,100,14);
+Screen sc3 (, , sci1Esc);
+Fields
+//------------------------------------------------------------------------------
+  [hh1] '1.  МНН'                   :skip;  xCol_MNN         :NoProtect,lessnull;  [h1]  '2.  Торговое наименование':skip;  xCol_TorgName       :NoProtect,lessnull;
+  [hh3] '3.  Серия'                 :skip;  xCol_Seria       :NoProtect,lessnull;  [hh4] '4.  Производитель'        :skip;  xCol_Proizvoditel   :NoProtect,lessnull;
+  [hh5] '5.  предельная цена ЖВЛП'  :skip;  xCol_PriceGRPOC  :NoProtect,lessnull;
+  [hh6] '6.  отпуск. цена без НДС'  :skip;  xCol_OtpPrice    :NoProtect,lessnull;  [hh7] '7.  отпуск. цена с НДС'   :skip;  xCol_OtpPrice_w_NDS :NoProtect,lessnull; [hh8] '8.  Дата реализации произв.'   :skip;  xCol_dRealiz :NoProtect,lessnull;
+  [h2]  '9.  УСН/ЕНВД (руб.)'       :skip;  xCol_USN_ENVED   :NoProtect,lessnull;  [h3]  '10. без НДС (руб.)'       :skip;  xCol_Price       :NoProtect,lessnull;    [h4]  '11. с НДС (руб.)'              :skip;  xCol_Price_W_NDS :NoProtect,lessnull;
+
+  [n0]  'Цепочка поставщиков'       :skip;
+  [n1]  '(1)'                       :skip,Centered;
+  [n2]  '(2)'                       :skip,Centered;
+  [n3]  '(3)'                       :skip,Centered;
+  [n4]  '(4)'                       :skip,Centered;
+  [n5]  '(5)'                       :skip,Centered;
+  [n6]  '(6)'                       :skip,Centered;
+  [n7]  '(7)'                       :skip,Centered;
+  [n8]  '(8)'                       :skip,Centered;
+  [n9]  '(9)'                       :skip,Centered;
+  [n10] '(10)'                      :skip,Centered;
+
+  [h5]  '12. в процентах'           :skip;  [xCol_lnk_RON_Proc1]    xCol_lnk_RON_Proc   [1] :Protect,lessnull; [xCol_lnk_RON_Proc2]    xCol_lnk_RON_Proc   [2] :Protect,lessnull; [xCol_lnk_RON_Proc3]    xCol_lnk_RON_Proc   [3] :Protect,lessnull; [xCol_lnk_RON_Proc4]    xCol_lnk_RON_Proc   [4] :Protect,lessnull; [xCol_lnk_RON_Proc5]    xCol_lnk_RON_Proc   [5] :Protect,lessnull; [xCol_lnk_RON_Proc6]    xCol_lnk_RON_Proc   [6] :Protect,lessnull; [xCol_lnk_RON_Proc7]    xCol_lnk_RON_Proc   [7] :Protect,lessnull; [xCol_lnk_RON_Proc8]    xCol_lnk_RON_Proc   [8] :Protect,lessnull; [xCol_lnk_RON_Proc9]    xCol_lnk_RON_Proc   [9] :Protect,lessnull; [xCol_lnk_RON_Proc10]    xCol_lnk_RON_Proc   [10] :Protect,lessnull;
+  [h6]  '13. в рублях'              :skip;  [xCol_lnk_RON_Rub1]     xCol_lnk_RON_Rub    [1] :Protect,lessnull; [xCol_lnk_RON_Rub2]     xCol_lnk_RON_Rub    [2] :Protect,lessnull; [xCol_lnk_RON_Rub3]     xCol_lnk_RON_Rub    [3] :Protect,lessnull; [xCol_lnk_RON_Rub4]     xCol_lnk_RON_Rub    [4] :Protect,lessnull; [xCol_lnk_RON_Rub5]     xCol_lnk_RON_Rub    [5] :Protect,lessnull; [xCol_lnk_RON_Rub6]     xCol_lnk_RON_Rub    [6] :Protect,lessnull; [xCol_lnk_RON_Rub7]     xCol_lnk_RON_Rub    [7] :Protect,lessnull; [xCol_lnk_RON_Rub8]     xCol_lnk_RON_Rub    [8] :Protect,lessnull; [xCol_lnk_RON_Rub9]     xCol_lnk_RON_Rub    [9] :Protect,lessnull; [xCol_lnk_RON_Rub10]     xCol_lnk_RON_Rub    [10] :Protect,lessnull;
+  [h7]  '14. УСН/ЕНВД (руб.)'       :skip;  [xCol_lnk_USN_ENVED1]   xCol_lnk_USN_ENVED  [1] :Protect,lessnull; [xCol_lnk_USN_ENVED2]   xCol_lnk_USN_ENVED  [2] :Protect,lessnull; [xCol_lnk_USN_ENVED3]   xCol_lnk_USN_ENVED  [3] :Protect,lessnull; [xCol_lnk_USN_ENVED4]   xCol_lnk_USN_ENVED  [4] :Protect,lessnull; [xCol_lnk_USN_ENVED5]   xCol_lnk_USN_ENVED  [5] :Protect,lessnull; [xCol_lnk_USN_ENVED6]   xCol_lnk_USN_ENVED  [6] :Protect,lessnull; [xCol_lnk_USN_ENVED7]   xCol_lnk_USN_ENVED  [7] :Protect,lessnull; [xCol_lnk_USN_ENVED8]   xCol_lnk_USN_ENVED  [8] :Protect,lessnull; [xCol_lnk_USN_ENVED9]   xCol_lnk_USN_ENVED  [9] :Protect,lessnull; [xCol_lnk_USN_ENVED10]   xCol_lnk_USN_ENVED  [10] :Protect,lessnull;
+  [h8]  '15. без НДС (руб.) '       :skip;  [xCol_lnk_Price1]       xCol_lnk_Price      [1] :Protect,lessnull; [xCol_lnk_Price2]       xCol_lnk_Price      [2] :Protect,lessnull; [xCol_lnk_Price3]       xCol_lnk_Price      [3] :Protect,lessnull; [xCol_lnk_Price4]       xCol_lnk_Price      [4] :Protect,lessnull; [xCol_lnk_Price5]       xCol_lnk_Price      [5] :Protect,lessnull; [xCol_lnk_Price6]       xCol_lnk_Price      [6] :Protect,lessnull; [xCol_lnk_Price7]       xCol_lnk_Price      [7] :Protect,lessnull; [xCol_lnk_Price8]       xCol_lnk_Price      [8] :Protect,lessnull; [xCol_lnk_Price9]       xCol_lnk_Price      [9] :Protect,lessnull; [xCol_lnk_Price10]       xCol_lnk_Price      [10] :Protect,lessnull;
+  [h9]  '16. с НДС (руб.)   '       :skip;  [xCol_lnk_Price_W_NDS1] xCol_lnk_Price_W_NDS[1] :Protect,lessnull; [xCol_lnk_Price_W_NDS2] xCol_lnk_Price_W_NDS[2] :Protect,lessnull; [xCol_lnk_Price_W_NDS3] xCol_lnk_Price_W_NDS[3] :Protect,lessnull; [xCol_lnk_Price_W_NDS4] xCol_lnk_Price_W_NDS[4] :Protect,lessnull; [xCol_lnk_Price_W_NDS5] xCol_lnk_Price_W_NDS[5] :Protect,lessnull; [xCol_lnk_Price_W_NDS6] xCol_lnk_Price_W_NDS[6] :Protect,lessnull; [xCol_lnk_Price_W_NDS7] xCol_lnk_Price_W_NDS[7] :Protect,lessnull; [xCol_lnk_Price_W_NDS8] xCol_lnk_Price_W_NDS[8] :Protect,lessnull; [xCol_lnk_Price_W_NDS9] xCol_lnk_Price_W_NDS[9] :Protect,lessnull; [xCol_lnk_Price_W_NDS10] xCol_lnk_Price_W_NDS[10] :Protect,lessnull;
+//------------------------------------------------------------------------------
+Buttons
+  cmSetDefCol,,,  'Установить номера колонок по умолчанию', , sci1Esc;
+  cmYes,,,        'Сохранить', , sci1Esc;
+  cmCancel,,,     'Отмена', , sci1Esc;
+<<
+ .@@@@@@@@@@@@@@@@@@@@@ .@@@@   .@@@@@@@@@@@@@@@@@@@@@@.@@@@
+ .@@@@@@@@@@@@@@@@@@@@@ .@@@@   .@@@@@@@@@@@@@@@@@@@@@@.@@@@
+ .@@@@@@@@@@@@@@@@@@@@@ .@@@@
+ .@@@@@@@@@@@@@@@@@@@@@ .@@@@   .@@@@@@@@@@@@@@@@@@@@@@.@@@@   .@@@@@@@@@@@@@@@@@@@@@@@.@@@@
+ .@@@@@@@@@@@@@@@@@@@@@ .@@@@   .@@@@@@@@@@@@@@@@@@@@@@.@@@@   .@@@@@@@@@@@@@@@@@@@@@@@.@@@@
+
+ .@@@@@@@@@@@@@@@@@@@@@ .@@@@   .@@@@  .@@@@   .@@@@   .@@@@   .@@@@   .@@@@   .@@@@   .@@@@  .@@@@
+ .@@@@@@@@@@@@@@@@@@@@@ .@@@@ | .@@@@ |.@@@@ | .@@@@ | .@@@@ | .@@@@ | .@@@@ | .@@@@ | .@@@@| .@@@@
+ .@@@@@@@@@@@@@@@@@@@@@ .@@@@ | .@@@@ |.@@@@ | .@@@@ | .@@@@ | .@@@@ | .@@@@ | .@@@@ | .@@@@| .@@@@
+ .@@@@@@@@@@@@@@@@@@@@@ .@@@@ | .@@@@ |.@@@@ | .@@@@ | .@@@@ | .@@@@ | .@@@@ | .@@@@ | .@@@@| .@@@@
+ .@@@@@@@@@@@@@@@@@@@@@ .@@@@ | .@@@@ |.@@@@ | .@@@@ | .@@@@ | .@@@@ | .@@@@ | .@@@@ | .@@@@| .@@@@
+ .@@@@@@@@@@@@@@@@@@@@@ .@@@@ | .@@@@ |.@@@@ | .@@@@ | .@@@@ | .@@@@ | .@@@@ | .@@@@ | .@@@@| .@@@@
+
+ <.  По умолчанию  .>   <.   Сохранить    .>  <.   Отмена   .>
+
+>>
+end; // screen
+
+
+function SetValue_cur_i (Fld: longint; _value:word): word;
+{
+  case Fld of
+    #xCol_lnk_RON_Proc1     : xCol_lnk_RON_Proc[1]    := _value
+    #xCol_lnk_RON_Rub1      : xCol_lnk_RON_Rub[1]     := _value;
+    #xCol_lnk_USN_ENVED1    : xCol_lnk_USN_ENVED[1]   := _value;
+    #xCol_lnk_Price1        : xCol_lnk_Price[1]       := _value;
+    #xCol_lnk_Price_W_NDS1  : xCol_lnk_Price_W_NDS[1] := _value;
+
+    #xCol_lnk_RON_Proc2     : xCol_lnk_RON_Proc[2]    := _value;
+    #xCol_lnk_RON_Rub2      : xCol_lnk_RON_Rub[2]     := _value;
+    #xCol_lnk_USN_ENVED2    : xCol_lnk_USN_ENVED[2]   := _value;
+    #xCol_lnk_Price2        : xCol_lnk_Price[2]       := _value;
+    #xCol_lnk_Price_W_NDS2  : xCol_lnk_Price_W_NDS[2] := _value;
+
+    #xCol_lnk_RON_Proc3     : xCol_lnk_RON_Proc[3]    := _value;
+    #xCol_lnk_RON_Rub3      : xCol_lnk_RON_Rub[3]     := _value;
+    #xCol_lnk_USN_ENVED3    : xCol_lnk_USN_ENVED[3]   := _value;
+    #xCol_lnk_Price3        : xCol_lnk_Price[3]       := _value;
+    #xCol_lnk_Price_W_NDS3  : xCol_lnk_Price_W_NDS[3] := _value;
+
+    #xCol_lnk_RON_Proc4     : xCol_lnk_RON_Proc[4]    := _value;
+    #xCol_lnk_RON_Rub4      : xCol_lnk_RON_Rub[4]     := _value;
+    #xCol_lnk_USN_ENVED4    : xCol_lnk_USN_ENVED[4]   := _value;
+    #xCol_lnk_Price4        : xCol_lnk_Price[4]       := _value;
+    #xCol_lnk_Price_W_NDS4  : xCol_lnk_Price_W_NDS[4] := _value;
+
+    #xCol_lnk_RON_Proc5     : xCol_lnk_RON_Proc[5]    := _value;
+    #xCol_lnk_RON_Rub5      : xCol_lnk_RON_Rub[5]     := _value;
+    #xCol_lnk_USN_ENVED5    : xCol_lnk_USN_ENVED[5]   := _value;
+    #xCol_lnk_Price5        : xCol_lnk_Price[5]       := _value;
+    #xCol_lnk_Price_W_NDS5  : xCol_lnk_Price_W_NDS[5] := _value;
+
+    #xCol_lnk_RON_Proc6     : xCol_lnk_RON_Proc[6]    := _value;
+    #xCol_lnk_RON_Rub6      : xCol_lnk_RON_Rub[6]     := _value;
+    #xCol_lnk_USN_ENVED6    : xCol_lnk_USN_ENVED[6]   := _value;
+    #xCol_lnk_Price6        : xCol_lnk_Price[6]       := _value;
+    #xCol_lnk_Price_W_NDS6  : xCol_lnk_Price_W_NDS[6] := _value;
+
+    #xCol_lnk_RON_Proc7     : xCol_lnk_RON_Proc[7]    := _value;
+    #xCol_lnk_RON_Rub7      : xCol_lnk_RON_Rub[7]     := _value;
+    #xCol_lnk_USN_ENVED7    : xCol_lnk_USN_ENVED[7]   := _value;
+    #xCol_lnk_Price7        : xCol_lnk_Price[7]       := _value;
+    #xCol_lnk_Price_W_NDS7  : xCol_lnk_Price_W_NDS[7] := _value;
+
+    #xCol_lnk_RON_Proc8     : xCol_lnk_RON_Proc[8]    := _value;
+    #xCol_lnk_RON_Rub8      : xCol_lnk_RON_Rub[8]     := _value;
+    #xCol_lnk_USN_ENVED8    : xCol_lnk_USN_ENVED[8]   := _value;
+    #xCol_lnk_Price8        : xCol_lnk_Price[8]       := _value;
+    #xCol_lnk_Price_W_NDS8  : xCol_lnk_Price_W_NDS[8] := _value;
+
+    #xCol_lnk_RON_Proc9     : xCol_lnk_RON_Proc[9]    := _value;
+    #xCol_lnk_RON_Rub9      : xCol_lnk_RON_Rub[9]     := _value;
+    #xCol_lnk_USN_ENVED9    : xCol_lnk_USN_ENVED[9]   := _value;
+    #xCol_lnk_Price9        : xCol_lnk_Price[9]       := _value;
+    #xCol_lnk_Price_W_NDS9  : xCol_lnk_Price_W_NDS[9] := _value;
+
+    #xCol_lnk_RON_Proc10    : xCol_lnk_RON_Proc[10]   := _value;
+    #xCol_lnk_RON_Rub10     : xCol_lnk_RON_Rub[10]    := _value;
+    #xCol_lnk_USN_ENVED10   : xCol_lnk_USN_ENVED[10]  := _value;
+    #xCol_lnk_Price10       : xCol_lnk_Price[10]      := _value;
+    #xCol_lnk_Price_W_NDS10 : xCol_lnk_Price_W_NDS[10]:= _value;
+  end;
+}
+
+HandleEvent
+cmInit:{
+  SetWindowTitle(winNastrExcelCol, 'Настройка колонок Excel ('+KatOrg.Name+')');
+  if GetFirst ATC_ExImpOrg <> tsOk
+     {
+       _SetDefaultFields;
+     }
+  _ReadNumFields;
+}
+
+cmYes:{
+  _SaveNumFields;
+  CloseWindowEx(winNastrExcelCol, cmDefault);
+}
+
+cmCancel:{
+  _ReadNumFields;
+  CloseWindowEx(winNastrExcelCol, cmCancel);
+}
+
+cmSetDefCol:{
+  if (message('Вы уверены, что хотите установить значения номеров колонок по умолчанию?',YesNo)<>Yes)
+     {
+       Abort; Exit;
+     }
+  _SetDefaultFields;
+  _ReadNumFields;
+}
+
+cmOpenSearch:{
+  abort;
+  var _ncol :word;
+  if RunDialog('GetNum_col', _ncol) = cmCancel exit;
+  if SetValue_cur_i(curField, _ncol) = true {};
+}
+
+end; // HandleEvent
+end; // Window winImportExcel
+
+
+Window winEditPosArray 'Редактирование позиции протокола' EscClose;
+Show at (,,100,14);
+Screen sc_EditPos (, , sci1Esc);
+table _tmpImp;
+Fields
+  [E_h1]  '12. в процентах'   :skip;
+  [E_h2]  '13. в рублях'      :skip;
+  [E_h3]  '14. УСН/ЕНВД'      :skip;
+  [E_h4]  '15. без НДС'       :skip;
+  [E_h5]  '16. с НДС'         :skip;
+  _tmpImp.lnk_RON_Proc[1] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_RON_Rub[1] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_USN_ENVED[1] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_Price[1] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_Price_W_NDS[1] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull;
+  _tmpImp.lnk_RON_Proc[2] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_RON_Rub[2] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_USN_ENVED[2] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_Price[2] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_Price_W_NDS[2] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull;
+  _tmpImp.lnk_RON_Proc[3] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_RON_Rub[3] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_USN_ENVED[3] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_Price[3] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_Price_W_NDS[3] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull;
+  _tmpImp.lnk_RON_Proc[4] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_RON_Rub[4] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_USN_ENVED[4] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_Price[4] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_Price_W_NDS[4] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull;
+  _tmpImp.lnk_RON_Proc[5] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_RON_Rub[5] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_USN_ENVED[5] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_Price[5] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_Price_W_NDS[5] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull;
+  _tmpImp.lnk_RON_Proc[6] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_RON_Rub[6] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_USN_ENVED[6] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_Price[6] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_Price_W_NDS[6] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull;
+  _tmpImp.lnk_RON_Proc[7] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_RON_Rub[7] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_USN_ENVED[7] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_Price[7] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_Price_W_NDS[7] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull;
+  _tmpImp.lnk_RON_Proc[8] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_RON_Rub[8] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_USN_ENVED[8] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_Price[8] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_Price_W_NDS[8] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull;
+  _tmpImp.lnk_RON_Proc[9] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_RON_Rub[9] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_USN_ENVED[9] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_Price[9] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_Price_W_NDS[9] :['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull;
+  _tmpImp.lnk_RON_Proc[10]:['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_RON_Rub[10]:['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_USN_ENVED[10]:['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_Price[10]:['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull; _tmpImp.lnk_Price_W_NDS[10]:['\2P[|-]3666`666`666`666.88'], noProtect,noPickButton,lessnull;
+Buttons
+  cmSavePos,,,  'Сохранить изменения', , sci1Esc;
+  cmCancel,,,   'Отмена', , sci1Esc;
+<<
+
+     .@@@@@@@@@@@@  .@@@@@@@@@@@@   .@@@@@@@@@@@@   .@@@@@@@@@@@@   .@@@@@@@@@@@@
+ 1   .@@@@@@@@@@@@ |.@@@@@@@@@@@@ | .@@@@@@@@@@@@ | .@@@@@@@@@@@@ | .@@@@@@@@@@@@
+ 2   .@@@@@@@@@@@@ |.@@@@@@@@@@@@ | .@@@@@@@@@@@@ | .@@@@@@@@@@@@ | .@@@@@@@@@@@@
+ 3   .@@@@@@@@@@@@ |.@@@@@@@@@@@@ | .@@@@@@@@@@@@ | .@@@@@@@@@@@@ | .@@@@@@@@@@@@
+ 4   .@@@@@@@@@@@@ |.@@@@@@@@@@@@ | .@@@@@@@@@@@@ | .@@@@@@@@@@@@ | .@@@@@@@@@@@@
+ 5   .@@@@@@@@@@@@ |.@@@@@@@@@@@@ | .@@@@@@@@@@@@ | .@@@@@@@@@@@@ | .@@@@@@@@@@@@
+ 6   .@@@@@@@@@@@@ |.@@@@@@@@@@@@ | .@@@@@@@@@@@@ | .@@@@@@@@@@@@ | .@@@@@@@@@@@@
+ 7   .@@@@@@@@@@@@ |.@@@@@@@@@@@@ | .@@@@@@@@@@@@ | .@@@@@@@@@@@@ | .@@@@@@@@@@@@
+ 8   .@@@@@@@@@@@@ |.@@@@@@@@@@@@ | .@@@@@@@@@@@@ | .@@@@@@@@@@@@ | .@@@@@@@@@@@@
+ 9   .@@@@@@@@@@@@ |.@@@@@@@@@@@@ | .@@@@@@@@@@@@ | .@@@@@@@@@@@@ | .@@@@@@@@@@@@
+ 10  .@@@@@@@@@@@@ |.@@@@@@@@@@@@ | .@@@@@@@@@@@@ | .@@@@@@@@@@@@ | .@@@@@@@@@@@@
+
+                                            <.   Сохранить    .>  <.   Отмена   .>
+>>
+
+end; //screen
+HandleEvent
+cmSavePos:{
+  CloseWindowEx(winEditPosArray, cmDefault);
+}
+cmCancel:{
+  RereadRecord(#_tmpImp);
+  CloseWindowEx(winEditPosArray, cmCancel);
+}
+
+end; //HandleEvent
+end; //Window winEditPosArray
+
+
+Screen sc_ParamImport (, , sci1Esc);
+Show at (,,,4) Fixed_y;
+Fields
+  _UserRowBeg          ('Диапазон обрабатываемых строк "с"',, sci1Esc)                    : noProtect,noPickButton;
+  _UserRowEnd          ('Диапазон обрабатываемых строк "по"',, sci1Esc)                   : noProtect,noPickButton;
+  file_name            ('Файл для импорта данных', , sci13Esc)                            : Protect,PickButton;
+Buttons
+  cmNastrImport,,,     'Настройка импорта'            , , sci1Esc;
+  cmLoadExcel,,,       'Загрузить из файла'           , , sci1Esc;
+  cmSaveSP   ,,,       'Сохранить спецификацию в ДО'  , , sci1Esc;
+<<
+ `Путь на Excel-файл:`     `Обработка строк  с` .@@@@@ `по` .@@@@@    <.   Настройка импорта    .>  <.   Загрузить данные из Excel    .>
+  .@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                                                                      <.   Сохранить протокол   .>
+
+>>
+end; // screen
+
+Browse brATC_ExImpOrg 'Список импортируемых полей' ('Список импортируемых полей',  ,  sci13478Esc);
+Show at (,5,,);
+table _tmpImp;
+Fields
+  _tmpImp.Npp                 '№'                                                       : [3],  protect,noPickButton;
+  KatParty_tmp.Name           'Партия'                                                  : [20], protect,noPickButton;
+  _tmpImp.Mnn                 'МНН'                                                     : [10], protect,noPickButton;
+  _tmpImp.TorgName            'Торг. Наименование'                                      : [20], protect,noPickButton;
+  _tmpImp.Seria               'Серия'                                                   : [10], protect,noPickButton;
+  _tmpImp.Proizvoditel        'Производитель'                                           : [10], protect,noPickButton;
+  _tmpImp.PriceGRPOC          'Цена','ЖВЛП'                                             : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.OtpPrice            'Отп. цена','производ.','без НДС'                         : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.OtpPrice_w_NDS      'Отп. цена','производ.','с НДС'                           : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.dRealiz             'Дата','реализ.','производ.'                              : [10, 'DD/MM/YYYY'], protect, noPickButton;
+
+  _tmpImp.USN_ENVED           'УСН/ЕНВД'                                                : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.Price               'без НДС '                                                : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.Price_W_NDS         'с НДС '                                                  : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+
+  [impH1] ''                  '*','*','*'                                               : [1],skip,{Font = {Color = 1;backColor = ColorGray}},NoAutoSize;
+  _tmpImp.LNK_RON_PROC[1]     '(1)','в %'                                               : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_RON_Rub[1]      '(1)','в рублях'                                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_USN_ENVED[1]    '(1)','УСН/ЕНВД'                                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_Price[1]        '(1)','без НДС'                                           : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton,
+      {Font = {backColor = _colorNDS_edit }};
+  _tmpImp.lnk_Price_W_NDS[1]  '(1)','с НДС'                                             : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+
+  [impH2] ''                  '*','*','*'                                               : [1],skip,{Font = {Color = 1;backColor = ColorGray}},NoAutoSize;
+  _tmpImp.LNK_RON_PROC[2]     '(2)','в %'                                               : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_RON_Rub[2]      '(2)','в рублях'                                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_USN_ENVED[2]    '(2)','УСН/ЕНВД'                                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_Price[2]        '(2)','без НДС'                                           : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton,
+      {Font = {backColor = _colorNDS_edit }};
+  _tmpImp.lnk_Price_W_NDS[2]  '(2)','с НДС'                                             : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+
+  [impH3] ''                  '*','*','*'                                               : [1],skip,{Font = {Color = 1;backColor = ColorGray}},NoAutoSize;
+  _tmpImp.LNK_RON_PROC[3]     '(3)','в %'                                               : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_RON_Rub[3]      '(3)','в рублях'                                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_USN_ENVED[3]    '(3)','УСН/ЕНВД'                                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_Price[3]        '(3)','без НДС'                                           : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton,
+      {Font = {backColor = _colorNDS_edit }};
+  _tmpImp.lnk_Price_W_NDS[3]  '(3)','с НДС'                                             : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+
+  [impH4] ''                  '*','*','*'                                               : [1],skip,{Font = {Color = 1;backColor = ColorGray}},NoAutoSize;
+  _tmpImp.LNK_RON_PROC[4]     '(4)','в %'                                               : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_RON_Rub[4]      '(4)','в рублях'                                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_USN_ENVED[4]    '(4)','УСН/ЕНВД'                                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_Price[4]        '(4)','без НДС'                                           : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton,
+      {Font = {backColor = _colorNDS_edit }};
+  _tmpImp.lnk_Price_W_NDS[4]  '(4)','с НДС'                                             : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+
+  [impH5] ''                  '*','*','*'                                               : [1],skip,{Font = {Color = 1;backColor = ColorGray}},NoAutoSize;
+  _tmpImp.LNK_RON_PROC[5]     '(5)','в %'                                               : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_RON_Rub[5]      '(5)','в рублях'                                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_USN_ENVED[5]    '(5)','УСН/ЕНВД'                                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_Price[5]        '(5)','без НДС'                                           : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton,
+      {Font = {backColor = _colorNDS_edit }};
+  _tmpImp.lnk_Price_W_NDS[5]  '(5)','с НДС'                                             : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+
+  [impH6] ''                  '*','*','*'                                               : [1],skip,{Font = {Color = 1;backColor = ColorGray}},NoAutoSize;
+  _tmpImp.LNK_RON_PROC[6]     '(6)','в %'                                               : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_RON_Rub[6]      '(6)','в рублях'                                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_USN_ENVED[6]    '(6)','УСН/ЕНВД'                                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_Price[6]        '(6)','без НДС'                                           : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton,
+      {Font = {backColor = _colorNDS_edit }};
+  _tmpImp.lnk_Price_W_NDS[6]  '(6)','с НДС'                                             : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+
+  [impH7] ''                  '*','*','*'                                               : [1],skip,{Font = {Color = 1;backColor = ColorGray}},NoAutoSize;
+  _tmpImp.LNK_RON_PROC[7]     '(7)','в %'                                               : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_RON_Rub[7]      '(7)','в рублях'                                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_USN_ENVED[7]    '(7)','УСН/ЕНВД'                                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_Price[7]        '(7)','без НДС'                                           : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton,
+      {Font = {backColor = _colorNDS_edit }};
+  _tmpImp.lnk_Price_W_NDS[7]  '(7)','с НДС'                                             : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+
+  [impH8] ''                  '*','*','*'                                               : [1],skip,{Font = {Color = 1;backColor = ColorGray}},NoAutoSize;
+  _tmpImp.LNK_RON_PROC[8]     '(8)','в %'                                               : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_RON_Rub[8]      '(8)','в рублях'                                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_USN_ENVED[8]    '(8)','УСН/ЕНВД'                                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_Price[8]        '(8)','без НДС'                                           : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton,
+      {Font = {backColor = _colorNDS_edit }};
+  _tmpImp.lnk_Price_W_NDS[8]  '(8)','с НДС'                                             : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+
+  [impH9] ''                  '*','*','*'                                               : [1],skip,{Font = {Color = 1;backColor = ColorGray}},NoAutoSize;
+  _tmpImp.LNK_RON_PROC[9]     '(9)','в %'                                               : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_RON_Rub[9]      '(9)','в рублях'                                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_USN_ENVED[9]    '(9)','УСН/ЕНВД'                                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_Price[9]        '(9)','без НДС'                                           : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton,
+      {Font = {backColor = _colorNDS_edit }};
+  _tmpImp.lnk_Price_W_NDS[9]  '(9)','с НДС'                                             : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+
+  [impH10] ''                  '*','*','*'                                              : [1],skip,{Font = {Color = 1;backColor = ColorGray}},NoAutoSize;
+  _tmpImp.LNK_RON_PROC[10]     '(10)','в %'                                             : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_RON_Rub[10]      '(10)','в рублях'                                        : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_USN_ENVED[10]    '(10)','УСН/ЕНВД'                                        : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImp.lnk_Price[10]        '(10)','без НДС'                                         : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton,
+      {Font = {backColor = _colorNDS_edit }};
+  _tmpImp.lnk_Price_W_NDS[10]  '(10)','с НДС'                                           : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+
+end;
+
+
+HandleEvent
+cmPick:{
+  if curField = #KatParty_tmp.Name
+     {
+       var _katParty_nRec:comp=0;
+       if (RunInterface('ATC::iATC_iVshetB_SP',nRec_BaseDoc,_katParty_nRec) = CmDefault)
+          {
+            if GetFirst KatParty_gf where ((_katParty_nRec == KatParty_gf.nRec)) <> tsOk
+               {
+                 message('Выбранная позиция не связанна с партией');
+                 abort; exit;
+               }
+            if GetFirst _tmpImp_gf where ((_katParty_nRec == _tmpImp_gf.cParty)) <> tsOk
+               {
+                 SET _tmpImp.cParty := _katParty_nRec;
+                 update current _tmpImp;
+                 ReReadRecord(#_tmpImp);
+               } else
+               {
+                 message('Внимание! Вы выбрали позицию, к партии которой уже имеется привязка позиции протокола. Порядковый № позиции: '+ _tmpImp_gf.Npp);
+               }
+
+          }
+       Verify(_KolPart);
+       SetTitle('Импорт протокола ЖВЛП (' + _KolPart + ')');
+     }
+}
+cmEdit:{
+  if (isValid(tn_tmpImp))
+     {
+       if (RunWindowModal(winEditPosArray)<>cmDefault)
+          {
+            abort; exit;
+          } else
+          {
+            update current _tmpImp;
+          }
+     }
+}
+
+cmInit:{
+  _colorNDS_edit := 67; // подсветка колонки Цена без НДС - бледно-желтый
+  if GetFirst BaseDoc <> tsOk
+     {
+       message('Не найден ДО');
+       Abort; Exit;
+     }
+  if GetFirst KatOrg <> tsOk
+     {
+       message('В ДО не определен контрагент');
+       Abort; Exit;
+     }
+   _ShowFields;
+   Verify(_KolPart);
+   SetTitle('Импорт протокола ЖВЛП (' + _KolPart + ')');
+}
+
+cmNastrImport:{
+  if (RunWindowModal(winNastrExcelCol)<>cmDefault)
+     {
+       abort; exit;
+     }
+  _ShowFields;
+}
+
+cmPick:{
+  if curField = #file_name
+     {
+       var s:string
+       s:=GetFileName ('*.csv;*.xls;*.xlsx;*.xlsm;','Выберите файл');
+       if s<>''
+          {
+            SET file_name:=s;
+          }
+     }
+}
+
+cmLoadExcel:{
+  delete all _tmpImp;
+  if _LoadFromEx {};
+}
+
+cmSaveSP:{
+  if GetFirst _tmpImp <> tsOk
+     {
+       message('Отсутствуют загруженные позиции. Нечего сохранять.');
+       Abort; Exit;
+     }
+  if (message('Вы уверены, что хотите сохранить Протокол согласования цен?',YesNo)<>Yes)
+     {
+       Abort; Exit;
+     }
+
+  StartNewVisual (vtRotateVisual, vfTimer, 'Обработано позиций: ', 1 );
+
+
+  _loop _tmpImp
+  {
+    if GetFirst KatParty_tmp = tsOk
+       {
+         if GetFirst ATC_KatParty_Atr where ((KatParty_tmp.nRec == ATC_KatParty_Atr.cParty)) <> tsOk
+             {
+               ClearBuffer(#ATC_KatParty_Atr);
+               ATC_KatParty_Atr.NREC               := GetNextNRec(#ATC_KatParty_Atr,0);
+               ATC_KatParty_Atr.cParty             := _tmpImp.cParty;
+               ATC_KatParty_Atr.MNN                := _tmpImp.MNN;
+               ATC_KatParty_Atr.TorgName           := _tmpImp.TorgName;
+               ATC_KatParty_Atr.Seria              := _tmpImp.Seria;
+               ATC_KatParty_Atr.Proizvoditel       := _tmpImp.Proizvoditel;
+               ATC_KatParty_Atr.PriceGRPOC         := _tmpImp.PriceGRPOC;
+               ATC_KatParty_Atr.OtpPrice           := _tmpImp.OtpPrice;
+               ATC_KatParty_Atr.OtpPrice_w_NDS     := _tmpImp.OtpPrice_w_NDS;
+               ATC_KatParty_Atr.dRealiz            := _tmpImp.dRealiz;
+
+               ATC_KatParty_Atr.USN_ENVED          := _tmpImp.USN_ENVED;
+               ATC_KatParty_Atr.Price              := _tmpImp.Price;
+               ATC_KatParty_Atr.Price_W_NDS        := _tmpImp.Price_W_NDS;
+               var i:word;
+               for(i:=1;i<=10;inc(i))
+               {
+                 ATC_KatParty_Atr.lnk_RON_Proc[i]    := _tmpImp.lnk_RON_Proc[i];
+                 ATC_KatParty_Atr.lnk_RON_Rub[i]     := _tmpImp.lnk_RON_Rub[i];
+                 ATC_KatParty_Atr.lnk_USN_ENVED[i]   := _tmpImp.lnk_USN_ENVED[i];
+                 ATC_KatParty_Atr.lnk_Price[i]       := _tmpImp.lnk_Price[i];
+                 ATC_KatParty_Atr.lnk_Price_W_NDS[i] := _tmpImp.lnk_Price_W_NDS[i];
+               }
+               insert current ATC_KatParty_Atr;
+             } else
+             {
+               ATC_KatParty_Atr.cParty             := _tmpImp.cParty;
+               ATC_KatParty_Atr.MNN                := _tmpImp.MNN;
+               ATC_KatParty_Atr.TorgName           := _tmpImp.TorgName;
+               ATC_KatParty_Atr.Seria              := _tmpImp.Seria;
+               ATC_KatParty_Atr.Proizvoditel       := _tmpImp.Proizvoditel;
+               ATC_KatParty_Atr.PriceGRPOC         := _tmpImp.PriceGRPOC;
+               ATC_KatParty_Atr.OtpPrice           := _tmpImp.OtpPrice;
+               ATC_KatParty_Atr.OtpPrice_w_NDS     := _tmpImp.OtpPrice_w_NDS;
+               ATC_KatParty_Atr.dRealiz            := _tmpImp.dRealiz;
+
+               ATC_KatParty_Atr.USN_ENVED          := _tmpImp.USN_ENVED;
+               ATC_KatParty_Atr.Price              := _tmpImp.Price;
+               ATC_KatParty_Atr.Price_W_NDS        := _tmpImp.Price_W_NDS;
+               var i:word;
+               for(i:=1;i<=10;inc(i))
+               {
+                 ATC_KatParty_Atr.lnk_RON_Proc[i]    := _tmpImp.lnk_RON_Proc[i];
+                 ATC_KatParty_Atr.lnk_RON_Rub[i]     := _tmpImp.lnk_RON_Rub[i];
+                 ATC_KatParty_Atr.lnk_USN_ENVED[i]   := _tmpImp.lnk_USN_ENVED[i];
+                 ATC_KatParty_Atr.lnk_Price[i]       := _tmpImp.lnk_Price[i];
+                 ATC_KatParty_Atr.lnk_Price_W_NDS[i] := _tmpImp.lnk_Price_W_NDS[i];
+               }
+               update current ATC_KatParty_Atr;
+             }
+       }
+  }
+  StopVisual('',0);
+  CloseInterface(cmDefault);
+}
+end; //HandleEvent
+end. //Interface
+
+
+GetNum_col DIALOG
+Fields
+  BarCount('Введите номер колонки') : integer [5];
+Buttons
+  cmOk,Default, , 'Подтверждение ввода';
+  cmCancel,,,'Выход';
+
+<<'Ввод номера колонки'
+
+    `Номер колонки:` .@@@@@
+
+  <. ~В~вод .>  <. ~О~тмена .>
+>>
+

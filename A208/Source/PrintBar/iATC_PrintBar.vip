@@ -1,0 +1,220 @@
+#include FRRecordDefinition.vih
+#component "L_Kassa"
+interface iATC_PrintBar 'Печать этикеток', cyan;
+Show at (,,120,26);
+
+table struct local _tmpRep
+(
+  addr        :string(20),
+  price       :double,
+  article     :string,
+  KoefDel     :double,
+  rNameDoc  	:string[40],
+  rNoDoc    	:string[20],
+  rDDoc      	:date,
+  TypePrih    :word,
+  cSopr       :comp
+
+)
+with index
+(
+  by_article = article,
+  by_Doc     = rDDoc+rNoDoc,
+  by_cDoc    = TypePrih + cSopr +rDDoc
+);
+
+table struct _tmpReportDoc
+(
+  rNameDoc    :string[40],
+  rNoDoc      :string[20],
+  rDDoc       :date,
+  TypePrih    :word,
+  cSopr       :comp
+
+)
+with index
+(
+  ARep01    = rDDoc+rNoDoc,
+  by_cDoc    = TypePrih + cSopr + rDDoc
+);
+
+create view
+var
+  _Param      : word;
+  _FileReport : string;
+
+as select *
+ ,if( rzKutPrih.TypePrih = FROM_ORG or rzKutPrih.TypePrih = FROM_PODR
+      ,KatSopr.NSopr
+      ,if(rzKutPrih.TypePrih = 0,rzKutPrih.Nomer, rzDoc.NDoc)
+    ) (fieldName NomDoc)
+
+from
+  Pick
+, Pick Pick_gf
+, rzKUTPRIH(rzKUTPRIH06)
+, KatOrg
+, KatMC
+, KatEd
+, KatOtpEd
+, KatOrg KatOrgPrih
+, rzKUTRash
+, _tmpRep
+, KatOtpEd KatOtpEdMin
+, ListGood
+, _tmpReportDoc
+, KatSopr
+, rzDoc
+, _tmpRep _tmpRep_not_Group
+where
+((
+       word(30000)        == Pick.wList
+  and  Pick.cRec          == rzKutPrih.nRec
+  and  rzKUTPRIH.cMC      == KatMC.NRec
+  and  KatMC.cEd          == KatEd.NRec
+  and  coGetTune('MyOrg') == KatOrg.Nrec
+  and  rzKutPrih.cOtpEd   == KatOtpEd.NRec
+  and  rzKutPrih.cOrg     == KatOrgPrih.nRec
+  and  1                  == KatOtpEdMin.PRMC
+  and rzKutPrih.cMc       == KatOtpEdMin.CMCUSL
+
+  and rzKutPrih.cSopr     == KatSopr.nRec        // приход от поставщика
+  and rzKutPrih.cSopr     == rzDoc.nRec          // приход по документам розницы
+
+
+  and _tmpReportDoc.TypePrih  == _tmpRep.TypePrih
+  and _tmpReportDoc.cSopr     == _tmpRep.cSopr
+
+));
+
+Parameters _Param, _FileReport;
+
+datastream Stream_iATC_PrintBar
+(
+  [CFH] CommonFormHeader;
+  Table _tmpReportDoc(
+        [NameDoc]  _tmpReportDoc.rNameDoc;
+        [NoDoc]    _tmpReportDoc.rNoDoc;
+        [DDoc]     _tmpReportDoc.rDDoc;
+        Table _tmpRep(
+          [addr]     _tmpRep.addr;
+          [article]  _tmpRep.article;
+          [price]    _tmpRep.price;
+          [KoefDel]  _tmpRep.KoefDel;
+          );
+  );
+  Table _tmpRep_not_Group(
+    [addr]     _tmpRep_not_Group.addr;
+    [article]  _tmpRep_not_Group.article;
+    [price]    _tmpRep_not_Group.price;
+    [KoefDel]  _tmpRep_not_Group.KoefDel;
+    );
+
+)
+end;
+
+
+HandleEvent
+cmInit:{
+  if (Message('Сформировать бирки?', Confirmation + YesNo) <> cmYes)
+     {
+       abort; exit;
+     }
+
+  StartNewVisual(vtRotateVisual, vfTimer, 'Формирование бирок', 1);
+
+  delete Pick_gf where ((word(30000) == Pick_gf.wList));
+  if (_Param = 1 or _Param = 3)
+     Update Pick_gf where ((word(555) == Pick_gf.wList)) set Pick_gf.wList := word(30000);
+  if _Param = 2
+     {
+       _loop Pick_gf where ((word(555) == Pick_gf.wList ))
+       {
+         if GetFirst ListGood where ((Pick_gf.cRec == ListGood.nRec  )) = tsOk
+            {
+              ClearBuffer(#Pick_gf);
+              Pick_gf.wList := word(30000);
+              Pick_gf.cRec  := ListGood.c1;
+              insert current Pick_gf;
+            }
+       }
+     }
+
+  delete all _tmpRep;
+  _loop Pick
+  {
+    nextVisual;
+//   if GetFirst _tmpReportDoc where ((NomDoc == _tmpReportDoc.rNoDoc and rzKutPrih.DDoc == _tmpReportDoc.rDDoc)) <> tsOk
+   if GetFirst _tmpReportDoc where ((rzKutPrih.TypePrih == _tmpReportDoc.TypePrih and rzKutPrih.cSopr == _tmpReportDoc.cSopr)) <> tsOk
+      {
+        ClearBuffer(#_tmpReportDoc);
+        _tmpReportDoc.rNameDoc := rzKutPrih.TypePrih;
+        _tmpReportDoc.rNoDoc   := NomDoc;
+        _tmpReportDoc.rDDoc    := rzKutPrih.DDoc;
+        _tmpReportDoc.TypePrih := rzKutPrih.TypePrih;
+        _tmpReportDoc.cSopr    := rzKutPrih.cSopr;
+        insert current _tmpReportDoc;
+      }
+
+    var i:word;
+    var _copy:word=1;
+    if _Param = 1
+       {
+         _copy := if(rzKutPrih.kol<1,1,rzKutPrih.kol)
+       }
+    if _Param = 3 _copy := Pick.PICKKOL/integer(1/KatOtpEdMin.Koef);;
+
+    for(i:=1;i<=_copy;inc(i))
+    {
+      nextVisual;
+      ClearBuffer(#_tmpRep);
+      _tmpRep.cSopr    := rzKutPrih.cSopr;
+      _tmpRep.TypePrih := rzKutPrih.TypePrih;
+      _tmpRep.rNameDoc := rzKutPrih.TypePrih;
+      _tmpRep.rNoDoc   := NomDoc;
+      _tmpRep.rDDoc    := rzKutPrih.DDoc;
+      _tmpRep.addr     := KatMC.RemMC;
+      _tmpRep.article  := rzKutPrih.BARCODE;//lpadch(rzKutPrih.BARCODE,'0',13);
+      if GetFirst Prices where (( comp(4612207583001225432) == Prices.CKLPRICE and rzKutPrih.cMC == Prices.CTHING)) = tsOk
+         {
+           _tmpRep.price := 0;
+         } else _tmpRep.price   := rzKutPrih.rPrice;
+
+      _tmpRep.KoefDel := integer(1/KatOtpEdMin.Koef);
+      insert current _tmpRep;
+    }
+  }
+
+  if _Param = 3
+     {
+// формирование отчета
+       var _rep_Path : string = GetStringParameter('Files', 'OutputFilesDirectory', 0);
+       _rep_Path := _rep_Path  +'\Этикетки (по документам) ' + DateToStr(cur_date,'YYYYMMDD')+'_'+timetostr(cur_time,'HHMMSS') + '.pdf';
+       _rep_Path := replace(_rep_Path,'\\','\');
+       SET _FileReport := _rep_Path;
+       var _fr :boolean = false;
+       var FReport: TPtr =  FrCreate(Stream_iATC_PrintBar);
+       if FReport <> 0
+          {
+            if FROpenReport(FReport,'Этикетки (по документам)')
+               {
+                 if FRSetParameters(FReport, frExportPDF, 'OpenAfterExport=false')
+                    {
+                      if FRExportReport(FReport, frExportPDF, _rep_Path)
+                         {
+                           _fr := true;
+                         }
+                    }
+               }
+          } else
+          {
+            _fr := false;
+            message('Отчеты FastReport (для печати этикеток) не найдены');
+          }
+     }
+  if _Param <> 3 RunFReport(Stream_iATC_PrintBar, '', true);
+  StopVisual('', 0);
+  CloseInterface(cmDefault);
+}
+end; //HandleEvent
+end. //interface

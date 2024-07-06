@@ -1,0 +1,125 @@
+USE [GAL208]
+GO
+/****** Object:  StoredProcedure [PRICES].[PRICES_LOAD]    Script Date: 12/25/2023 14:51:35 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		GARY
+-- Create date: 2009-07-19 18:44:45.823
+-- Description:	Предварительная загрузка прайс-листов из 
+--				КИС "Галактика" в базу данных POS-терминалов
+--				EXEC [PRICES].[PRICES_LOAD]
+-- =============================================
+ALTER PROCEDURE [PRICES].[PRICES_LOAD]
+	@CKLPRICE BIGINT = 4612207583001225432	-- "Розн торговля (Цены для POS-терминалов)"
+AS
+BEGIN
+	SET NOCOUNT ON;
+
+-- LOG START PROCEDURE
+	DECLARE @RC int;
+	EXEC @RC = [LOG_SP_START] '[PRICES].[PRICES_LOAD]';
+
+-- Если заданный прайс-лист (@CKLPRICE) не пустой
+--	IF (SELECT COUNT(*) FROM ODBC_PVSGAL.GAL..PRICES WHERE CKLPRICE = @CKLPRICE) > 0
+--	BEGIN		
+
+-- Корректировка в LOG-TABLE (Отменить предыдущие загрузки)
+		UPDATE [GAL208].[dbo].[_LOG_LOAD_PRICES]
+		SET [LLP_STATE] = 2		-- Статус: Удален
+		WHERE [LLP_STATE] = 1;	-- Статус: Ожидание
+-- ID ЗАПИСИ В LOG-TABLE
+		DECLARE @LID INT; 
+-- Запись в LOG-TABLE
+		INSERT INTO [GAL208].[dbo].[_LOG_LOAD_PRICES] ([LLP_STATE]) VALUES (0);
+		SET @LID = SCOPE_IDENTITY();
+-- Очистить табл.прайс-листов в БД POS-терминалов
+		DELETE FROM [192.168.24.151].[new].[DBO].[PRICES];
+-- Загрузить данные в табл.прайс-листов в БД POS-терминалов
+		INSERT INTO [192.168.24.151].[new].[DBO].[PRICES]
+           ([NREC]
+           ,[ATL_LASTDATE]
+           ,[ATL_LASTTIME]
+           ,[ATL_LASTUSER]
+           ,[ATL_ORIGINOFFICE]
+           ,[LASTUSER]
+           ,[LASTTIME]
+           ,[LASTDATE]
+           ,[FILIALNO]
+           ,[CKLPRICE]
+           ,[CTHING]
+           ,[TIP]
+           ,[NAME]
+           ,[BARKOD]
+           ,[BAROTP]
+           ,[DISKRET]
+           ,[PRICE]
+           ,[CVAL]
+           ,[SUMVAL]
+           ,[DFORM]
+           ,[PRAVT]
+           ,[COTPED]
+           ,[GARANT]
+           ,[DOPHAR]
+           ,[CGROUPMC]
+           ,[KOD]
+           ,[PRSORT]
+           ,[CPARTY]
+           ,[NPARTY]
+           ,[SRPRICE]
+           ,[SRVPRICE]
+           ,[CGRUSL])
+		SELECT 
+            [NREC]
+           ,[ATL_LASTDATE]
+           ,[ATL_LASTTIME]
+           ,[ATL_LASTUSER]
+           ,[ATL_ORIGINOFFICE]
+           ,[LASTUSER]
+           ,[LASTTIME]
+           ,[LASTDATE]
+           ,[FILIALNO]
+           ,[CKLPRICE]
+           ,[CTHING]
+           ,[TIP]
+           ,[NAME]
+           ,[BARKOD]
+           ,[BAROTP]
+           ,[DISKRET]
+           ,[PRICE]
+           ,[CVAL]
+           ,[SUMVAL]
+           ,[DFORM]
+           ,[PRAVT]
+           ,[COTPED]
+           ,[GARANT]
+           ,[DOPHAR]
+           ,[CGROUPMC]
+           ,[KOD]
+           ,[PRSORT]
+           ,[CPARTY]
+-- Наименование отпускной единицы измерения
+           ,(SELECT UPPER([NAME]) FROM ODBC_PVSGAL.GAL..KATOTPED WHERE NREC = PRICES.COTPED)
+           ,[SRPRICE]
+-- Коефициент делимости отпускной единицы измерения
+           ,(SELECT [KOEF] FROM ODBC_PVSGAL.GAL..KATOTPED WHERE NREC = PRICES.COTPED)
+           ,[CGRUSL]
+		FROM ODBC_PVSGAL.GAL..PRICES 
+		WHERE CKLPRICE = @CKLPRICE AND PRICE<>0;
+-- Корректировка в LOG-TABLE
+		UPDATE [GAL208].[dbo].[_LOG_LOAD_PRICES]
+		SET [LLP_DTS_END] = GETDATE()
+		   ,[LLP_STATE] = 1		-- Статус: Ожидание
+		   ,[COUNTSTR] = (SELECT COUNT(*) FROM [192.168.24.151].[new].[DBO].[PRICES])
+		WHERE LLP_ID = @LID;
+-- Отчет
+		SELECT * FROM [GAL208].[dbo].[_LOG_LOAD_PRICES] WHERE LLP_ID = @LID;
+
+--	END;
+
+-- LOG END PROCEDURE
+	EXEC [LOG_SP_END] @RC;
+
+END

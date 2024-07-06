@@ -1,0 +1,138 @@
+#component "ATC"
+interface iATC_Show_Protocol 'Протокол согласования цен';
+Show at (,,160,26);
+
+create view
+var
+  nRec_BaseDoc  : comp;
+as select *
+from
+  BaseDoc
+ ,StepDoc
+ ,SpStep
+ ,ATC_SpStep_Atr
+ ,ATC_KatParty_Atr
+ ,KatParty
+
+ ,(select count(*) (fieldname=_KolPart)
+  from SpStep _sp,  ATC_KatParty_Atr _kp
+  where ((      StepDoc.nRec  == _sp.cStepdoc
+           and  _sp.cParty   /== _kp.cParty
+        ))
+  )
+
+where ((
+    nRec_BaseDoc            ==  BaseDoc.nRec
+and BaseDoc.nRec            ==  StepDoc.cBaseDoc
+and StepDoc.nRec            ==  SpStep.cStepDoc
+and SpStep.nRec             ==  ATC_SpStep_Atr.cSpStep
+and SpStep.cParty           ==  KatParty.nRec
+and SpStep.cParty           ==  ATC_KatParty_Atr.cParty
+));
+
+Parameters nRec_BaseDoc;
+
+
+Browse brSpStep 'Просмотр протокола' ('Просмотр протокола',  ,  sci1Esc);
+table SpStep
+Fields
+  SpStep.npp                           '№','п.п.'                             : [4],  protect,noPickButton;
+
+  KatParty.Name                        'Партия'                               : [20], protect,noPickButton;
+  ATC_KatParty_Atr.Mnn                 'МНН'                                  : [10], protect,noPickButton;
+
+  ATC_KatParty_Atr.TorgName            'Торг. Наименование'                   : [20], protect,noPickButton;
+  ATC_KatParty_Atr.Seria               'Серия'                                : [10], protect,noPickButton;
+  ATC_KatParty_Atr.Proizvoditel        'Производитель'                        : [10], protect,noPickButton;
+  ATC_KatParty_Atr.PriceGRPOC          'Цена','ЖВЛП'                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.OtpPrice            'Отп. цена','производ.','без НДС'      : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.OtpPrice_w_NDS      'Отп. цена','производ.','с НДС'        : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.dRealiz             'Дата','реализ.','производ.'           : [10, 'DD/MM/YYYY'], protect, noPickButton;
+
+  ATC_KatParty_Atr.USN_ENVED           'УСН/ЕНВД'                             : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.Price               'без НДС '                             : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.Price_W_NDS         'с НДС '                               : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+
+  [impH1] ''                  '*','*','*'                                     : [1],skip,{Font = {Color = 1;backColor = ColorGray}},NoAutoSize;
+  ATC_KatParty_Atr.LNK_RON_PROC[1]     '(1)','в %'                            : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_RON_Rub[1]      '(1)','в рублях'                       : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_USN_ENVED[1]    '(1)','УСН/ЕНВД'                       : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_Price[1]        '(1)','без НДС'                        : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_Price_W_NDS[1]  '(1)','с НДС'                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+
+  [impH2] ''                  '*','*','*'                                     : [1],skip,{Font = {Color = 1;backColor = ColorGray}},NoAutoSize;
+  ATC_KatParty_Atr.LNK_RON_PROC[2]     '(2)','в %'                            : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_RON_Rub[2]      '(2)','в рублях'                       : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_USN_ENVED[2]    '(2)','УСН/ЕНВД'                       : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_Price[2]        '(2)','без НДС'                        : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_Price_W_NDS[2]  '(2)','с НДС'                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+
+  [impH3] ''                  '*','*','*'                                     : [1],skip,{Font = {Color = 1;backColor = ColorGray}},NoAutoSize;
+  ATC_KatParty_Atr.LNK_RON_PROC[3]     '(3)','в %'                            : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_RON_Rub[3]      '(3)','в рублях'                       : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_USN_ENVED[3]    '(3)','УСН/ЕНВД'                       : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_Price[3]        '(3)','без НДС'                        : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_Price_W_NDS[3]  '(3)','с НДС'                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+
+  [impH4] ''                  '*','*','*'                                     : [1],skip,{Font = {Color = 1;backColor = ColorGray}},NoAutoSize;
+  ATC_KatParty_Atr.LNK_RON_PROC[4]     '(4)','в %'                            : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_RON_Rub[4]      '(4)','в рублях'                       : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_USN_ENVED[4]    '(4)','УСН/ЕНВД'                       : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_Price[4]        '(4)','без НДС'                        : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_Price_W_NDS[4]  '(4)','с НДС'                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+
+  [impH5] ''                  '*','*','*'                                     : [1],skip,{Font = {Color = 1;backColor = ColorGray}},NoAutoSize;
+  ATC_KatParty_Atr.LNK_RON_PROC[5]     '(5)','в %'                            : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_RON_Rub[5]      '(5)','в рублях'                       : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_USN_ENVED[5]    '(5)','УСН/ЕНВД'                       : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_Price[5]        '(5)','без НДС'                        : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_Price_W_NDS[5]  '(5)','с НДС'                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+
+  [impH6] ''                  '*','*','*'                                     : [1],skip,{Font = {Color = 1;backColor = ColorGray}},NoAutoSize;
+  ATC_KatParty_Atr.LNK_RON_PROC[6]     '(6)','в %'                            : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_RON_Rub[6]      '(6)','в рублях'                       : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_USN_ENVED[6]    '(6)','УСН/ЕНВД'                       : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_Price[6]        '(6)','без НДС'                        : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_Price_W_NDS[6]  '(6)','с НДС'                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+
+  [impH7] ''                  '*','*','*'                                     : [1],skip,{Font = {Color = 1;backColor = ColorGray}},NoAutoSize;
+  ATC_KatParty_Atr.LNK_RON_PROC[7]     '(7)','в %'                            : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_RON_Rub[7]      '(7)','в рублях'                       : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_USN_ENVED[7]    '(7)','УСН/ЕНВД'                       : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_Price[7]        '(7)','без НДС'                        : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_Price_W_NDS[7]  '(7)','с НДС'                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+
+  [impH8] ''                  '*','*','*'                                     : [1],skip,{Font = {Color = 1;backColor = ColorGray}},NoAutoSize;
+  ATC_KatParty_Atr.LNK_RON_PROC[8]     '(8)','в %'                            : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_RON_Rub[8]      '(8)','в рублях'                       : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_USN_ENVED[8]    '(8)','УСН/ЕНВД'                       : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_Price[8]        '(8)','без НДС'                        : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_Price_W_NDS[8]  '(8)','с НДС'                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+
+  [impH9] ''                  '*','*','*'                                     : [1],skip,{Font = {Color = 1;backColor = ColorGray}},NoAutoSize;
+  ATC_KatParty_Atr.LNK_RON_PROC[9]     '(9)','в %'                            : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_RON_Rub[9]      '(9)','в рублях'                       : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_USN_ENVED[9]    '(9)','УСН/ЕНВД'                       : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_Price[9]        '(9)','без НДС'                        : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_Price_W_NDS[9]  '(9)','с НДС'                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+
+  [impH10] ''                  '*','*','*'                                    : [1],skip,{Font = {Color = 1;backColor = ColorGray}},NoAutoSize;
+  ATC_KatParty_Atr.LNK_RON_PROC[10]     '(10)','в %'                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_RON_Rub[10]      '(10)','в рублях'                     : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_USN_ENVED[10]    '(10)','УСН/ЕНВД'                     : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_Price[10]        '(10)','без НДС'                      : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_KatParty_Atr.lnk_Price_W_NDS[10]  '(10)','с НДС'                        : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+
+end;
+
+HandleEvent
+cmInit:{
+  if GetFirst BaseDoc where ((nRec_BaseDoc == BaseDoc.nRec)) = tsOk {};
+  if GetFirst KatOrg where ((BaseDoc.cOrg == KatOrg.nRec)) = tsOk {};
+  Verify(_KolPart);
+  SetTitle('Протокол согласования цен. ЖВЛП (' + _KolPart + ')');
+
+}
+
+end; //HandleEvent
+end. //Interface

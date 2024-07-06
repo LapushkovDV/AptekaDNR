@@ -1,0 +1,1105 @@
+#include marker.vih
+#include vschet.vih
+#component "ATC"
+interface iATC_Import_SpStep 'Параметры импорта';
+Show at (,,160,26);
+
+table struct tFields
+(
+   nRec       : comp
+ , NAME       : string
+ , TITLE      : string
+ , SYSNAMETBL : string
+ , DATATYPE   : string
+ , code       : word
+)
+with index
+(
+   ind0 = nRec (Surrogate,unique),
+   ind1 = code
+);
+
+table struct _tmpImpSp
+(
+   npp              : longint
+ , ID_ORIG          : string
+ , TOV_ORIG         : string
+ , TOVAR            : string
+ , KOL_VO           : double
+ , PR_W_NDS         : double
+ , SUMMA            : double
+ , BL_ROSN_NC       : double
+ , BL_ROSN_PR       : double
+ , SUM_ROSN_A       : double
+ , MAK_ORIG         : string
+ , MAKER            : string
+ , NAC_OPT          : double
+ , PROC_NDS         : double
+ , SUM_NDS          : double
+ , ROSN_NDS_A       : double
+ , PR_REE           : double
+ , PR_MAK           : double
+ , PR_MAK_NDS       : double
+ , DATE_GOD         : date
+ , SERIA            : string
+ , ED_IZM           : string
+ , GTD              : string
+ , PROTOKOL         : string
+ , ZV               : boolean
+ , SERT             : string
+ , NAKL_NUM         : string
+ , NAKL_DATE        : date
+ , DATE_OPL         : date
+ , SUM_W_NDS        : double
+ , SUMMA_NDS        : double
+ , NAKL_PRIH        : date
+ , SUM_ROSN_B       : double
+ , ROSN_NDS_B       : double
+ , POST             : string
+ , NAME             : string
+ , SCAN_CODE        : string
+ , PR_WO_NDS        : double
+ , SUM_B_NDS        : double
+ , ID_TOV           : longint
+ , ID_MAK           : longint
+ , SF_NUM           : string
+ , SF_DATE          : date
+ , COUNTRY          : string
+ , PRODUCER         : string
+ , ID_GR            : longint
+ , NAME_GR          : string
+ , ID_MNN           : longint
+ , BRN_IDOPT        : string
+ , IS_MARK          : boolean
+ , BACKACCEPT       : boolean
+ , GTIN             : string
+ , NAME_MNN         : string
+ , D_manuf          : date
+ , D_Sale           : date
+ , D_PariceZV       : date
+ , cMC              : comp
+ , cSpStep          : comp
+)
+with index
+(
+   ind0 = npp,
+   ind1 = cSpStep
+);
+
+
+create view
+var
+  file_name     : string;
+  nRec_BaseDoc  : comp;
+  _UserRowBeg   : longint;
+  _UserRowEnd   : longint;
+  pMarker       : IMarker(Marker) new;
+  pMarker2      : IMarker(Marker) new;
+  marker        : longInt;
+  ex            : iExtAttr;
+as select *
+from
+  BaseDoc
+ ,StepDoc
+ ,KatOrg
+ ,ATC_SpStep_Atr
+ ,ATC_ExImpOrg
+ ,ATC_ExImpOrg ATC_ExImpOrg_gf
+ ,x$fields
+ ,KatMC KatMC_tmp
+ ,KatMC KatMC_gf
+ ,_tmpImpSp
+ ,tFields (ind1)
+ ,SpStep
+ ,KatOtpEd
+ ,KatNalog
+ ,SpDocNal
+ ,KatParty
+
+ ,(select Sum(_tmp.SUMMA)   (fieldname=_SumDoc_W_nds)       from _tmpImpSp _tmp)
+ ,(select Sum(_tmp.SUM_NDS) (fieldname=_SumDoc_nds)         from _tmpImpSp _tmp)
+ ,(select
+    Sum( Round( (_tmp.SUMMA*_tmp.PROC_NDS)/(_tmp.PROC_NDS+100) ,2)
+       )(fieldname=_SumDoc_nds_count)                       from _tmpImpSp _tmp)
+
+where ((
+    nRec_BaseDoc            ==  BaseDoc.nRec
+and BaseDoc.nRec            ==  StepDoc.cBaseDoc
+and StepDoc.nRec            ==  SpStep.cStepDoc
+and BaseDoc.cOrg            ==  KatOrg.nRec
+and KatOrg.nRec             ==  ATC_ExImpOrg.cOrg
+and word(111)               ==  ATC_ExImpOrg.TypeNastr
+
+and _tmpImpSp.cMC           ==  KatMC_tmp.nRec
+));
+
+Parameters nRec_BaseDoc;
+
+
+Procedure CloseWorkBookAndKillExcel;
+var s: string;
+{
+  xlGetActiveWorkBookName(s);
+  xlCloseWorkBookByName(s);
+  xlKillExcel;
+}
+
+Procedure _SetValueTable(_xValue:string; _xField:string);
+{
+  if _xValue <> ''
+     {
+       case _xField of
+        'ID_ORIG'    : _tmpImpSp.ID_ORIG        := _xValue;
+        'TOV_ORIG'   : _tmpImpSp.TOV_ORIG       := _xValue;
+        'TOVAR'      : _tmpImpSp.TOVAR          := _xValue;
+        'KOL_VO'     : _tmpImpSp.KOL_VO         := double(Replace(_xValue,',','.'));
+        'PR_W_NDS'   : _tmpImpSp.PR_W_NDS       := double(Replace(_xValue,',','.'));
+        'SUMMA'      : _tmpImpSp.SUMMA          := double(Replace(_xValue,',','.'));
+        'BL_ROSN_NC' : _tmpImpSp.BL_ROSN_NC     := double(Replace(_xValue,',','.'));
+        'BL_ROSN_PR' : _tmpImpSp.BL_ROSN_PR     := double(Replace(_xValue,',','.'));
+        'SUM_ROSN_A' : _tmpImpSp.SUM_ROSN_A     := double(Replace(_xValue,',','.'));
+        'MAK_ORIG'   : _tmpImpSp.MAK_ORIG       := _xValue;
+        'MAKER'      : _tmpImpSp.MAKER          := _xValue;
+        'NAC_OPT'    : _tmpImpSp.NAC_OPT        := double(Replace(_xValue,',','.'));
+        'PROC_NDS'   : _tmpImpSp.PROC_NDS       := double(Replace(_xValue,',','.'));
+        'SUM_NDS'    : _tmpImpSp.SUM_NDS        := double(Replace(_xValue,',','.'));
+        'ROSN_NDS_A' : _tmpImpSp.ROSN_NDS_A     := double(Replace(_xValue,',','.'));
+        'PR_REE'     : _tmpImpSp.PR_REE         := double(Replace(_xValue,',','.'));
+        'PR_MAK'     : _tmpImpSp.PR_MAK         := double(Replace(_xValue,',','.'));
+        'PR_MAK_NDS' : _tmpImpSp.PR_MAK_NDS     := double(Replace(_xValue,',','.'));
+        'DATE_GOD'   : _tmpImpSp.DATE_GOD       := StrToDate(_xValue,'DD.MM.YYYY');
+        'SERIA'      : _tmpImpSp.SERIA          := _xValue;
+        'ED_IZM'     : _tmpImpSp.ED_IZM         := _xValue;
+        'GTD'        : _tmpImpSp.GTD            := _xValue;
+        'PROTOKOL'   : _tmpImpSp.PROTOKOL       := _xValue;
+        'ZV'         : _tmpImpSp.ZV             := if (_xValue = 'ЛОЖЬ',false,true);
+        'SERT'       : _tmpImpSp.SERT           := _xValue;
+        'NAKL_NUM'   : _tmpImpSp.NAKL_NUM       := _xValue;
+        'NAKL_DATE'  : _tmpImpSp.NAKL_DATE      := StrToDate(_xValue,'DD.MM.YYYY');
+        'DATE_OPL'   : _tmpImpSp.DATE_OPL       := StrToDate(_xValue,'DD.MM.YYYY');
+        'SUM_W_NDS'  : _tmpImpSp.SUM_W_NDS      := double(Replace(_xValue,',','.'));
+        'SUMMA_NDS'  : _tmpImpSp.SUMMA_NDS      := double(Replace(_xValue,',','.'));
+        'NAKL_PRIH'  : _tmpImpSp.NAKL_PRIH      := StrToDate(_xValue,'DD.MM.YYYY');
+        'SUM_ROSN_B' : _tmpImpSp.SUM_ROSN_B     := double(Replace(_xValue,',','.'));
+        'ROSN_NDS_B' : _tmpImpSp.ROSN_NDS_B     := double(Replace(_xValue,',','.'));
+        'POST'       : _tmpImpSp.POST           := _xValue;
+        'NAME'       : _tmpImpSp.NAME           := _xValue;
+        'SCAN_CODE'  : _tmpImpSp.SCAN_CODE      := _xValue;
+        'PR_WO_NDS'  : _tmpImpSp.PR_WO_NDS      := double(Replace(_xValue,',','.'));
+        'SUM_B_NDS'  : _tmpImpSp.SUM_B_NDS      := double(Replace(_xValue,',','.'));
+        'ID_TOV'     : _tmpImpSp.ID_TOV         := _xValue;
+        'ID_MAK'     : _tmpImpSp.ID_MAK         := _xValue;
+        'SF_NUM'     : _tmpImpSp.SF_NUM         := _xValue;
+        'SF_DATE'    : _tmpImpSp.SF_DATE        := StrToDate(_xValue,'DD.MM.YYYY');
+        'COUNTRY'    : _tmpImpSp.COUNTRY        := _xValue;
+        'PRODUCER'   : _tmpImpSp.PRODUCER       := _xValue;
+        'ID_GR'      : _tmpImpSp.ID_GR          := _xValue;
+        'NAME_GR'    : _tmpImpSp.NAME_GR        := _xValue;
+        'ID_MNN'     : _tmpImpSp.ID_MNN         := _xValue;
+        'BRN_IDOPT'  : _tmpImpSp.BRN_IDOPT      := _xValue;
+        'IS_MARK'    : _tmpImpSp.IS_MARK        := if (_xValue = 'ЛОЖЬ',false,true);
+        'BACKACCEPT' : _tmpImpSp.BACKACCEPT     := if (_xValue = 'ЛОЖЬ',false,true);
+        'GTIN'       : _tmpImpSp.GTIN           := _xValue;
+        'NAME_MNN'   : _tmpImpSp.NAME_MNN       := _xValue;
+        'D_MANUF'    : _tmpImpSp.D_MANUF        := StrToDate(_xValue,'DD.MM.YYYY');
+        'D_SALE'     : _tmpImpSp.D_SALE         := StrToDate(_xValue,'DD.MM.YYYY');
+        'D_PARICEZV' : _tmpImpSp.D_PARICEZV     := StrToDate(_xValue,'DD.MM.YYYY');
+       end;
+     }
+}
+
+Function _LoadFromEx :boolean;
+{
+  StartNewVisual (vtRotateVisual, vfTimer, 'Обработано позиций: ', 1 );
+  var _nRec_NotMC  : comp = coGetTune('GALCOMMON.PARTNER.ImpSpStep_Atr.WhenNotMC');
+  xlKillExcel;
+  if not xlOpenNewExcel(false)
+     {
+       Message('Ошибка открытия Excel (xlOpenExcel)!', Warning);
+       xlKillExcel;
+       _LoadFromEx:=false;
+       StopVisual('',0);
+       Abort; Exit;
+     }
+  if not xlOpenWorkBook(file_name)
+     {
+       Message('Ошибка открытия '+file_name, Warning);
+       xlKillExcel;
+       _LoadFromEx:=false;
+       StopVisual('',0);
+       Abort; Exit;
+     }
+
+  xlSetActiveSheet(1);
+
+  var _rowBeg,_rowEnd :longint;
+  var _colBeg,_colEnd :longint;
+
+  SET _rowBeg := _UserRowBeg;
+  SET _rowEnd := _UserRowEnd;
+
+  var i :longint = _rowBeg;
+  var _npp :longint =0;
+
+  while(true)
+  {
+
+    SetVisualHeader ('Обработка файла'+chr(13)+
+                     'Обработано строк '+ i + ' из '+  _rowEnd
+                    );
+    NextVisual;
+
+    if i > _rowEnd break;
+
+    _npp++;
+    ClearBuffer(#_tmpImpSp);
+
+    _loop ATC_ExImpOrg
+    {
+      var _xValue  :string='';
+
+      if ATC_ExImpOrg.NUM_COL <> 0
+         {
+           xlGetCellValue(i,ATC_ExImpOrg.NUM_COL, _xValue);
+           _SetValueTable(_xValue, ATC_ExImpOrg.F_Name);
+         }
+    }
+
+    _tmpImpSp.npp  := _npp;
+    _tmpImpSp.cMC  := _nRec_NotMC;
+
+    if _tmpImpSp.SCAN_CODE <> ''
+       {
+         if GetFirst KatMC_gf where ((_tmpImpSp.SCAN_CODE == KatMC_gf.BarKod2 )) = tsOk
+            {
+              _tmpImpSp.cMC := KatMC_gf.nRec;
+            }
+       }
+    if (_tmpImpSp.TOV_ORIG <> '' and _tmpImpSp.KOL_VO <> 0 )//and _tmpImpSp.SUMMA <> 0)
+       insert current _tmpImpSp;
+    i++;
+  }
+
+  StopVisual('',0);
+  CloseWorkBookAndKillExcel;
+  if GetFirst _tmpImpSp = tsOk {};
+  ReReadRecord(#_tmpImpSp);
+}
+
+Procedure _SetDefaultFields;
+{
+  _loop ATC_ExImpOrg
+  {
+    delete current ATC_ExImpOrg;
+  }
+
+  var i:word;
+  for(i:=1;i<=19;inc(i))
+  {
+    ClearBuffer(#ATC_ExImpOrg);
+    ATC_ExImpOrg.nRec      := GetNextNRec(#ATC_ExImpOrg,0);
+    ATC_ExImpOrg.cOrg      := KatOrg.nRec;
+    ATC_ExImpOrg.TypeNastr := word(111);
+    if i = 1  {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'Штрих-код';                      ATC_ExImpOrg.F_Name := 'SCAN_CODE'  ; }
+    if i = 2  {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'Наименование поставщика';        ATC_ExImpOrg.F_Name := 'TOV_ORIG'   ; }
+    if i = 3  {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'Единица измерения';              ATC_ExImpOrg.F_Name := 'ED_IZM'     ; }
+    if i = 4  {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'Количество';                     ATC_ExImpOrg.F_Name := 'KOL_VO'     ; }
+    if i = 5  {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'Сумма по позиции с НДС';         ATC_ExImpOrg.F_Name := 'SUMMA'      ; }
+    if i = 6  {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'Сумма НДС по позиции';           ATC_ExImpOrg.F_Name := 'SUM_NDS'    ; }
+    if i = 7  {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'НДС поставщика %';               ATC_ExImpOrg.F_Name := 'PROC_NDS'   ; }
+    if i = 8  {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'Производитель';                  ATC_ExImpOrg.F_Name := 'MAK_ORIG'   ; }
+    if i = 9  {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'ГТД';                            ATC_ExImpOrg.F_Name := 'GTD'        ; }
+    if i = 10 {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'Серия';                          ATC_ExImpOrg.F_Name := 'SERIA'      ; }
+    if i = 11 {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'Сертификат';                     ATC_ExImpOrg.F_Name := 'SERT'       ; }
+    if i = 12 {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'GTIN';                           ATC_ExImpOrg.F_Name := 'GTIN'       ; }
+    if i = 13 {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'Страна происхождения товара';    ATC_ExImpOrg.F_Name := 'COUNTRY'    ; }
+    if i = 14 {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'Срок годности препарата';        ATC_ExImpOrg.F_Name := 'DATE_GOD'   ; }
+    if i = 15 {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'Цена по гос. реестру';           ATC_ExImpOrg.F_Name := 'PR_REE'     ; }
+    if i = 16 {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'Цена завода без НДС';            ATC_ExImpOrg.F_Name := 'PR_MAK'     ; }
+    if i = 17 {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'Дата изготовления';              ATC_ExImpOrg.F_Name := 'D_MANUF'    ; }
+    if i = 18 {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'Дата реализации производителем'; ATC_ExImpOrg.F_Name := 'D_SALE'     ; }
+    if i = 19 {ATC_ExImpOrg.npp := i;  ATC_ExImpOrg.Name_Col := 'Дата цены ЖВЛП';                 ATC_ExImpOrg.F_Name := 'D_PARICEZV' ; }
+    insert current ATC_ExImpOrg;
+  }
+  ReReadRecord(#ATC_ExImpOrg);
+}
+
+function getNameDataType(_type : byte) : string; cacheable;
+{
+  case _type of
+        1 : result := 'boolean'
+        4 : result := 'word'
+        6 : result := 'longint'
+        7 : result := 'date'
+        8 : result := 'time'
+       11 : result := 'double'
+       12 : result := 'string'
+       17 : result := 'comp'
+   else result := string(_type)
+  end;
+}
+
+function gettableCodebyTableName(_name : string) : string; cacheable;
+{
+  result := '';
+  if getfirst x$files where ((_name == x$files.xf$name)) = tsOK
+     then result := String(x$files.xf$code);
+}
+
+procedure inserttFieldsByTableName(_tableName : string);
+{
+ _loop x$fields where ((gettableCodebyTableName(_tableName) == x$fields.XE$FILECODE))
+    {
+      tFields.nRec       := GetNextNRec(#tFields,0);
+      tFields.NAME       := x$fields.XE$NAME
+      tFields.TITLE      := x$fields.XE$TITLE
+      tFields.SYSNAMETBL := _tableName
+      tFields.DATATYPE   := getNameDataType(x$fields.XE$DATATYPE)
+      tFields.code       := x$fields.XE$CODE
+      Insert current tFields;
+    }
+}
+
+
+Window winAddCol 'Выбор колонок' EscClose, doAccept;
+Show at (,,100,25);
+Browse brATC_ExImpOrg 'Список импортируемых полей' ('Список импортируемых полей',  ,  sci178Esc);
+table tFields;
+  recMarker = pMarker2 { tFields.nRec };
+Fields
+  tFields.code                 'Код'             : [5], protect,noPickButton;
+  tFields.NAME                 'Поле'            : [20], protect,noPickButton;
+  tFields.TITLE                'Описание'        : [40], protect,noPickButton;
+  tFields.DATATYPE             'Тип'             : [10], protect,noPickButton;
+end;
+
+/*
+var i_x: longInt
+var f_x: array[0..0] of longInt
+var m_x: array[0..0] of integer
+*/
+
+HandleEvent
+cmInit:{
+  delete all tFields;
+//для сортировки по подразделению по коду
+/*
+  i_x := 1;
+  SetLimit(f_x, i_x);
+  f_x[0] := #tFields.code;
+  SetLimit(m_x, i_x);
+  m_x[0] := 1
+  if SetBrowseSortFields(brATC_ExImpOrg, f_x, m_x) {};
+*/
+  inserttFieldsByTableName('ATC_SPSTEP_ATR');
+  _loop tFields
+  {
+    if tFields.code > 10
+       {
+         if GetFirst ATC_ExImpOrg_gf where ((     KatOrg.nRec             ==  ATC_ExImpOrg_gf.cOrg
+                                              and word(111)               ==  ATC_ExImpOrg_gf.TypeNastr
+                                              and tFields.NAME            ==  ATC_ExImpOrg_gf.F_NAME (noIndex)
+                                           )) = tsOk
+            {
+              delete current tFields;
+            }
+       } else delete current tFields;
+  }
+  if GetFirst tFields = tsOk {};
+  RescanPanel(#tFields);
+}
+
+cmDefault:{
+  pMarker2.ExportTo(marker);
+}
+end; // HandleEvent
+end; // Window winImportExcel
+
+
+
+Window winNastrExcelCol 'Настройка колонок Excel' EscClose;
+Show at (,,60,20);
+Browse brATC_ExImpOrg 'Список импортируемых полей' ('Список импортируемых полей',  ,  sci178Esc);
+table ATC_ExImpOrg;
+  recMarker = pMarker { ATC_ExImpOrg.nRec };
+Fields
+  ATC_ExImpOrg.npp                          '№', 'п.п.'                  : [4],  protect,noPickButton;
+  ATC_ExImpOrg.F_NAME                       'Имя','поля','СКЛИТ'         : [10], protect,noPickButton;
+  ATC_ExImpOrg.Name_Col                     'Имя','колонки','СКЛИТ'      : [40], protect,noPickButton;
+  ATC_ExImpOrg.Num_Col                      'Номер','колонки'            : [5],  noProtect,noPickButton;
+end;
+
+HandleEvent
+cmInit:{
+  SetWindowTitle(winNastrExcelCol, 'Настройка колонок Excel ('+KatOrg.Name+')');
+  if GetFirst ATC_ExImpOrg <> tsOk
+     {
+       _SetDefaultFields;
+     }
+}
+
+cmDelete:{
+  if GetFirst ATC_ExImpOrg_gf <> tsOk {Abort; Exit;}
+  if (message('Вы уверены, что хотите удалить текущую запись?',YesNo)<>Yes)
+     {
+       Abort; Exit;
+     }
+  delete current ATC_ExImpOrg;
+}
+
+cmInsert:{
+  marker:=InitMarker('iPpick', 8, 100, 10);
+
+  if (RunWindowModal(winAddCol)<>cmDefault)
+     {
+       abort; exit;
+     } else
+     {
+       var _npp : word =0;
+       if GetLast ATC_ExImpOrg_gf where ((     KatOrg.nRec             ==  ATC_ExImpOrg_gf.cOrg
+                                            and word(111)              ==  ATC_ExImpOrg_gf.TypeNastr
+                                         )) = tsOk
+          {
+            SET _npp := ATC_ExImpOrg_gf.npp;
+          }
+
+       if GetmarkerCount(marker) = 0
+          {
+            _npp++;
+            ClearBuffer(#ATC_ExImpOrg);
+            ATC_ExImpOrg.nRec      := GetNextNRec(#ATC_ExImpOrg,0);
+            ATC_ExImpOrg.cOrg      := KatOrg.nRec;
+            ATC_ExImpOrg.TypeNastr := word(111);
+            ATC_ExImpOrg.Name_Col  := tFields.TITLE;
+            ATC_ExImpOrg.F_Name    := tFields.NAME;
+            ATC_ExImpOrg.npp       := _npp;
+            ATC_ExImpOrg.Num_Col   := 0;
+            insert current ATC_ExImpOrg;
+          } else
+          {
+            var i:word;
+            var _nRec:comp=0;
+            for(i:=0;i<GetmarkerCount(marker);inc(i))
+            {
+              GetMarker(marker, i, _nRec);
+              if GetFirst tFields where ((_nRec == tFields.nRec)) = tsOk
+                 {
+                   _npp++;
+                   ATC_ExImpOrg.nRec      := GetNextNRec(#ATC_ExImpOrg,0);
+                   ATC_ExImpOrg.cOrg      := KatOrg.nRec;
+                   ATC_ExImpOrg.TypeNastr := word(111);
+                   ATC_ExImpOrg.Name_Col  := tFields.TITLE;
+                   ATC_ExImpOrg.F_Name    := tFields.NAME;
+                   ATC_ExImpOrg.npp       := _npp;
+                   ATC_ExImpOrg.Num_Col   := 0;
+                   insert current ATC_ExImpOrg;
+                 }
+            }
+            DoneMarker(Marker,'iPpick');
+          }
+     }
+}
+cmValue1:{
+  if (message('Вы уверены, что хотите установить поля по умолчанию?',YesNo)<>Yes)
+     {
+       Abort; Exit;
+     }
+  _SetDefaultFields;
+  if GetFirst ATC_ExImpOrg = tsOk {};
+  ReReadRecord(#ATC_ExImpOrg);
+}
+
+cmHotKeys:{
+  if curTable = #ATC_ExImpOrg
+     {
+       PutHotCommand(RunMenu('mnu_winNastrExcelCol'));
+     }
+}
+
+cmDeleteRecord:{
+  message('css');
+}
+
+end; // HandleEvent
+end; // Window winImportExcel
+
+
+Procedure _ShowFields;
+{
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.ID_ORIG_ИД_товара_у_поставщика', cfpVisible, false);                  //1
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.TOV_ORIG_Наименование_поставщика', cfpVisible, false);                //2
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.TOVAR_Наим-е_из_справочника_СКЛИТ', cfpVisible, false);               //3
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.KOL_VO_Количество', cfpVisible, false);                               //4
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.PR_W_NDS_Цена_поставщика_с_НДС', cfpVisible, false);                  //5
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.SUMMA_Сумма_по_позиции_с_НДС', cfpVisible, false);                    //6
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.BL_ROSN_NC_Розничный_процент', cfpVisible, false);                    //7
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.BL_ROSN_PR_Розничная_цена', cfpVisible, false);                       //8
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.SUM_ROSN_A_Сумма_розничная_по_позиции', cfpVisible, false);           //9
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.MAK_ORIG_Производитель', cfpVisible, false);                          //10
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.MAKER_Производитель_из_справочника_СКЛИТ', cfpVisible, false);        //11
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.NAC_OPT_Процент_наценки_поставщика', cfpVisible, false);              //12
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.PROC_NDS_НДС_поставщика_%', cfpVisible, false);                       //13
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.SUM_NDS_Сумма_НДС_по_позиции', cfpVisible, false);                    //14
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.ROSN_NDS_A_Сумма_НДС_розничная_по_позиции', cfpVisible, false);       //15
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.PR_REE_Цена_по_гос._реестру', cfpVisible, false);                     //16
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.PR_MAK_Цена_завода_без_НДС', cfpVisible, false);                      //17
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.PR_MAK_NDS_Цена_завода_с_НДС', cfpVisible, false);                    //18
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.DATE_GOD_Срок_годности_препарата', cfpVisible, false);                //19
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.SERIA_Серия', cfpVisible, false);                                     //20
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.ED_IZM_Единица_измерения', cfpVisible, false);                        //21
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.GTD_ГТД', cfpVisible, false);                                         //22
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.PROTOKOL_Местный_сертификат', cfpVisible, false);                     //23
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.ZV_Признак_ЖВЛП', cfpVisible, false);                                 //24
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.SERT_Сертификат', cfpVisible, false);                                 //25
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.NAKL_NUM_Номер_накладной', cfpVisible, false);                        //26
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.NAKL_DATE_Дата_накладной', cfpVisible, false);                        //27
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.DATE_OPL_Дата_оплаты_накладной', cfpVisible, false);                  //28
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.SUM_W_NDS_Сумма_по_всей_накладной_с_НДС', cfpVisible, false);         //29
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.SUMMA_NDS_Сумма_НДС_по_всей_накладной', cfpVisible, false);           //30
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.NAKL_PRIH_Дата_расценки', cfpVisible, false);                         //31
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.SUM_ROSN_B_Сумма_розничная', cfpVisible, false);                      //32
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.ROSN_NDS_B_Сумма_НДС_розничная', cfpVisible, false);                  //33
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.POST_Наименование_поставщика', cfpVisible, false);                    //34
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.NAME_Клиент', cfpVisible, false);                                     //35
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.SCAN_CODE_Штрих-код', cfpVisible, false);                             //36
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.PR_WO_NDS_Цена_поставщика_без_НДС', cfpVisible, false);               //37
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.SUM_B_NDS_Сумма_по_позиции_без_НДС', cfpVisible, false);              //38
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.ID_TOV_Код_товара_из_справочника_СКЛИТ', cfpVisible, false);          //39
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.ID_MAK_Код_произв-ля_из_справочника_СКЛИТ', cfpVisible, false);       //40
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.SF_NUM_Номер_счета_фактуры', cfpVisible, false);                      //41
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.SF_DATE_Дата_счета_фактуры', cfpVisible, false);                      //42
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.COUNTRY_Страна_происхождения_товара', cfpVisible, false);             //43
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.PRODUCER_Производитель/Импортер', cfpVisible, false);                 //44
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.ID_GR_ИД_группы_товара', cfpVisible, false);                          //45
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.NAME_GR_Наименование_группы_товара', cfpVisible, false);              //46
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.ID_MNN_ИД_МНН', cfpVisible, false);                                   //47
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.BRN_IDOPT_ИД_поставщика_в_честном_знаке', cfpVisible, false);         //48
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.IS_MARK_Является_маркируемым', cfpVisible, false);                    //49
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.BACKACCEPT_признак_обратной_маркировки', cfpVisible, false);          //50
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.GTIN_GTIN', cfpVisible, false);                                       //51
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.NAME_MNN_МНН', cfpVisible, false);                                    //52
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.D_MANUF_Дата_изготовления', cfpVisible, false);                       //53
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.D_SALE_Дата_реализации_производителем', cfpVisible, false);           //54
+    cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.D_PARICEZV_Дата_цены_ЖВЛП', cfpVisible, false);                       //55
+
+  _loop ATC_ExImpOrg
+  {
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.ID_ORIG_ИД_товара_у_поставщика') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.ID_ORIG_ИД_товара_у_поставщика', cfpVisible, true);                 //1
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.TOV_ORIG_Наименование_поставщика') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.TOV_ORIG_Наименование_поставщика', cfpVisible, true);               //2
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.TOVAR_Наим-е_из_справочника_СКЛИТ') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.TOVAR_Наим-е_из_справочника_СКЛИТ', cfpVisible, true);              //3
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.KOL_VO_Количество') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.KOL_VO_Количество', cfpVisible, true);                              //4
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.PR_W_NDS_Цена_поставщика_с_НДС') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.PR_W_NDS_Цена_поставщика_с_НДС', cfpVisible, true);                 //5
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.SUMMA_Сумма_по_позиции_с_НДС') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.SUMMA_Сумма_по_позиции_с_НДС', cfpVisible, true);                   //6
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.BL_ROSN_NC_Розничный_процент') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.BL_ROSN_NC_Розничный_процент', cfpVisible, true);                   //7
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.SUM_ROSN_A_Сумма_розничная_по_позиции') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.SUM_ROSN_A_Сумма_розничная_по_позиции', cfpVisible, true);          //8
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.SUM_ROSN_A_Сумма_розничная_по_позиции') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.SUM_ROSN_A_Сумма_розничная_по_позиции', cfpVisible, true);          //9
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.MAK_ORIG_Производитель') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.MAK_ORIG_Производитель', cfpVisible, true);                         //10
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.MAKER_Производитель_из_справочника_СКЛИТ') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.MAKER_Производитель_из_справочника_СКЛИТ', cfpVisible, true);       //11
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.NAC_OPT_Процент_наценки_поставщика') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.NAC_OPT_Процент_наценки_поставщика', cfpVisible, true);             //12
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.PROC_NDS_НДС_поставщика_%') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.PROC_NDS_НДС_поставщика_%', cfpVisible, true);                      //13
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.SUM_NDS_Сумма_НДС_по_позиции') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.SUM_NDS_Сумма_НДС_по_позиции', cfpVisible, true);                   //14
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.ROSN_NDS_A_Сумма_НДС_розничная_по_позиции') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.ROSN_NDS_A_Сумма_НДС_розничная_по_позиции', cfpVisible, true);      //15
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.PR_REE_Цена_по_гос._реестру') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.PR_REE_Цена_по_гос._реестру', cfpVisible, true);                    //16
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.PR_MAK_Цена_завода_без_НДС') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.PR_MAK_Цена_завода_без_НДС', cfpVisible, true);                     //17
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.PR_MAK_NDS_Цена_завода_с_НДС') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.PR_MAK_NDS_Цена_завода_с_НДС', cfpVisible, true);                   //18
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.DATE_GOD_Срок_годности_препарата') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.DATE_GOD_Срок_годности_препарата', cfpVisible, true);               //19
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.SERIA_Серия') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.SERIA_Серия', cfpVisible, true);                                    //20
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.ED_IZM_Единица_измерения') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.ED_IZM_Единица_измерения', cfpVisible, true);                       //21
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.GTD_ГТД') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.GTD_ГТД', cfpVisible, true);                                        //22
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.PROTOKOL_Местный_сертификат') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.PROTOKOL_Местный_сертификат', cfpVisible, true);                    //23
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.ZV_Признак_ЖВЛП') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.ZV_Признак_ЖВЛП', cfpVisible, true);                                //24
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.NAKL_NUM_Номер_накладной') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.NAKL_NUM_Номер_накладной', cfpVisible, true);                       //25
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.NAKL_NUM_Номер_накладной') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.NAKL_NUM_Номер_накладной', cfpVisible, true);                       //26
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.NAKL_DATE_Дата_накладной') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.NAKL_DATE_Дата_накладной', cfpVisible, true);                       //27
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'), 'c_BRATC_EXIMPORG_TMPIMPSP.DATE_OPL_Дата_оплаты_накладной') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.DATE_OPL_Дата_оплаты_накладной', cfpVisible, true);                 //28
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.SUM_W_NDS_Сумма_по_всей_накладной_с_НДС') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.SUM_W_NDS_Сумма_по_всей_накладной_с_НДС', cfpVisible, true);        //29
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.SUMMA_NDS_Сумма_НДС_по_всей_накладной') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.SUMMA_NDS_Сумма_НДС_по_всей_накладной', cfpVisible, true);          //30
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.NAKL_PRIH_Дата_расценки') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.NAKL_PRIH_Дата_расценки', cfpVisible, true);                        //31
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.SUM_ROSN_B_Сумма_розничная') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.SUM_ROSN_B_Сумма_розничная', cfpVisible, true);                     //32
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.ROSN_NDS_B_Сумма_НДС_розничная') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.ROSN_NDS_B_Сумма_НДС_розничная', cfpVisible, true);                 //33
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.POST_Наименование_поставщика') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.POST_Наименование_поставщика', cfpVisible, true);                   //34
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.NAME_Клиент') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.NAME_Клиент', cfpVisible, true);                                    //35
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.SCAN_CODE_Штрих-код') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.SCAN_CODE_Штрих-код', cfpVisible, true);                            //36
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.PR_WO_NDS_Цена_поставщика_без_НДС') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.PR_WO_NDS_Цена_поставщика_без_НДС', cfpVisible, true);              //37
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.SUM_B_NDS_Сумма_по_позиции_без_НДС') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.SUM_B_NDS_Сумма_по_позиции_без_НДС', cfpVisible, true);             //38
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.ID_TOV_Код_товара_из_справочника_СКЛИТ') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.ID_TOV_Код_товара_из_справочника_СКЛИТ', cfpVisible, true);         //39
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.ID_MAK_Код_произв-ля_из_справочника_СКЛИТ') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.ID_MAK_Код_произв-ля_из_справочника_СКЛИТ', cfpVisible, true);      //40
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.SF_NUM_Номер_счета_фактуры') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.SF_NUM_Номер_счета_фактуры', cfpVisible, true);                     //41
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.SF_DATE_Дата_счета_фактуры') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.SF_DATE_Дата_счета_фактуры', cfpVisible, true);                     //42
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.COUNTRY_Страна_происхождения_товара') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.COUNTRY_Страна_происхождения_товара', cfpVisible, true);            //43
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.PRODUCER_Производитель/Импортер') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.PRODUCER_Производитель/Импортер', cfpVisible, true);                //44
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.ID_GR_ИД_группы_товара') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.ID_GR_ИД_группы_товара', cfpVisible, true);                         //45
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.NAME_GR_Наименование_группы_товара') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.NAME_GR_Наименование_группы_товара', cfpVisible, true);             //46
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.ID_MNN_ИД_МНН') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.ID_MNN_ИД_МНН', cfpVisible, true);                                  //47
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.BRN_IDOPT_ИД_поставщика_в_честном_знаке') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.BRN_IDOPT_ИД_поставщика_в_честном_знаке', cfpVisible, true);        //48
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.IS_MARK_Является_маркируемым') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.IS_MARK_Является_маркируемым', cfpVisible, true);                   //49
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.BACKACCEPT_признак_обратной_маркировки') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.BACKACCEPT_признак_обратной_маркировки', cfpVisible, true);         //50
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.GTIN_GTIN') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.GTIN_GTIN', cfpVisible, true);                                      //51
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.NAME_MNN_МНН') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.NAME_MNN_МНН', cfpVisible, true);                                   //52
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.D_MANUF_Дата_изготовления') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.D_MANUF_Дата_изготовления', cfpVisible, true);                      //53
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.D_SALE_Дата_реализации_производителем') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.D_SALE_Дата_реализации_производителем', cfpVisible, true);          //54
+    if Pos(ATC_ExImpOrg.F_Name+'_'+Replace(ATC_ExImpOrg.Name_Col,' ','_'),'c_BRATC_EXIMPORG_TMPIMPSP.D_PARICEZV_Дата_цены_ЖВЛП') <> 0
+       cfsSetProp('c_BRATC_EXIMPORG_TMPIMPSP.D_PARICEZV_Дата_цены_ЖВЛП', cfpVisible, true);                      //55
+  }
+
+}
+
+Screen sc_ParamImport (, , sci1Esc);
+Show at (,,,5) Fixed_y;
+Fields
+  _UserRowBeg          ('Диапазон обрабатываемых строк "с"',, sci1Esc)                    : noProtect,noPickButton;
+  _UserRowEnd          ('Диапазон обрабатываемых строк "по"',, sci1Esc)                   : noProtect,noPickButton;
+  file_name            ('Файл для импорта данных', , sci13Esc)                            : Protect,PickButton;
+  _SumDoc_W_nds        ('Сумма по позициям с НДС', , sci1Esc)                             : ['\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _SumDoc_nds          ('Сумма НДС', , sci1Esc)                                           : ['\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _SumDoc_nds_count    ('Сумма НДС', , sci1Esc)                                           : ['\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton,
+           {Font = {backColor = if(_SumDoc_nds <> _SumDoc_nds_count, 18, 77)}};
+Buttons
+  cmNastrImport,,,     'Настройка импорта'            , , sci1Esc;
+  cmLoadExcel,,,       'Загрузить из файла'           , , sci1Esc;
+  cmSaveSP   ,,,       'Сохранить спецификацию в ДО'  , , sci1Esc;
+<<
+ `Путь на Excel-файл:`     `Обработка строк  с` .@@@@@ `по` .@@@@@    <.   Настройка импорта    .>  <.   Загрузить данные из Excel    .>
+  .@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ `Сумма по позициям с НДС`.@@@@@@@@@@@@`Расчетная сумма НДС`          <. Сохранить спецификацию .>
+ `Сумма НДС`              .@@@@@@@@@@@@ .@@@@@@@@@@@@
+>>
+end; // screen
+Browse brATC_ExImpOrg 'Список импортируемых полей' ('Список импортируемых полей',  ,  sci178Esc);
+Show at (,6,,);
+table _tmpImpSp;
+Fields
+  _tmpImpSp.Npp                 '№'                                                       : [3],  protect,noPickButton;
+  KatMC_tmp.Name                'Каталог МЦ'                                              : [20], protect,noPickButton;
+  KatMC_tmp.BarKod              'Каталог МЦ','баркод'                                     : [10], protect,noPickButton;
+  _tmpImpSp.ID_ORIG             'ИД товара у поставщика'                                  : [10], protect,noPickButton;
+  _tmpImpSp.TOV_ORIG            'Наименование поставщика'                                 : [20], protect,noPickButton;
+  _tmpImpSp.TOVAR               'Наим-е из справочника СКЛИТ'                             : [20], protect,noPickButton;
+  _tmpImpSp.KOL_VO              'Количество'                                              : [10,'\2P[|-]3666`666`666`666.888'] ,protect,right,lessnull,noPickButton;
+  _tmpImpSp.PR_W_NDS            'Цена поставщика с НДС'                                   : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImpSp.SUMMA               'Сумма по позиции с НДС'                                  : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImpSp.BL_ROSN_NC          'Розничный процент'                                       : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImpSp.BL_ROSN_PR          'Розничная цена'                                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImpSp.SUM_ROSN_A          'Сумма розничная по позиции'                              : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImpSp.MAK_ORIG            'Производитель'                                           : [20], protect,noPickButton;
+  _tmpImpSp.MAKER               'Производитель из справочника СКЛИТ'                      : [20], protect,noPickButton;
+  _tmpImpSp.NAC_OPT             'Процент наценки поставщика'                              : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImpSp.PROC_NDS            'НДС поставщика %'                                        : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImpSp.SUM_NDS             'Сумма НДС по позиции'                                    : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImpSp.ROSN_NDS_A          'Сумма НДС розничная по позиции'                          : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImpSp.PR_REE              'Цена по гос. реестру'                                    : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImpSp.PR_MAK              'Цена завода без НДС'                                     : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImpSp.PR_MAK_NDS          'Цена завода с НДС'                                       : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImpSp.DATE_GOD            'Срок годности препарата'                                 : [10, 'DD/MM/YYYY'], protect, noPickButton;
+  _tmpImpSp.SERIA               'Серия'                                                   : [10], protect,noPickButton;
+  _tmpImpSp.ED_IZM              'Единица измерения'                                       : [5],  protect,noPickButton;
+  _tmpImpSp.GTD                 'ГТД'                                                     : [20], protect,noPickButton;
+  _tmpImpSp.PROTOKOL            'Местный сертификат'                                      : [10], protect,noPickButton;
+  _tmpImpSp.ZV                  'Признак ЖВЛП'                                            : [3],  protect,noPickButton;
+  _tmpImpSp.SERT                'Сертификат'                                              : [20], protect,noPickButton;
+  _tmpImpSp.NAKL_NUM            'Номер накладной'                                         : [10], protect,noPickButton;
+  _tmpImpSp.NAKL_DATE           'Дата накладной'                                          : [10, 'DD/MM/YYYY'], protect, noPickButton;
+  _tmpImpSp.DATE_OPL            'Дата оплаты накладной'                                   : [10, 'DD/MM/YYYY'], protect, noPickButton;
+  _tmpImpSp.SUM_W_NDS           'Сумма по всей накладной с НДС'                           : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImpSp.SUMMA_NDS           'Сумма НДС по всей накладной'                             : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImpSp.NAKL_PRIH           'Дата расценки'                                           : [10, 'DD/MM/YYYY'], protect, noPickButton;
+  _tmpImpSp.SUM_ROSN_B          'Сумма розничная'                                         : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImpSp.ROSN_NDS_B          'Сумма НДС розничная'                                     : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImpSp.POST                'Наименование поставщика'                                 : [20], protect,noPickButton;
+  _tmpImpSp.NAME                'Клиент'                                                  : [20], protect,noPickButton;
+  _tmpImpSp.SCAN_CODE           'Штрих-код'                                               : [15], protect,noPickButton;
+  _tmpImpSp.PR_WO_NDS           'Цена поставщика без НДС'                                 : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImpSp.SUM_B_NDS           'Сумма по позиции без НДС'                                : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpImpSp.ID_TOV              'Код товара из справочника СКЛИТ'                         : [8],  protect,noPickButton;
+  _tmpImpSp.ID_MAK              'Код произв-ля из справочника СКЛИТ'                      : [8],  protect,noPickButton;
+  _tmpImpSp.SF_NUM              'Номер счета фактуры'                                     : [10], protect,noPickButton;
+  _tmpImpSp.SF_DATE             'Дата счета фактуры'                                      : [10, 'DD/MM/YYYY'], protect, noPickButton;
+  _tmpImpSp.COUNTRY             'Страна происхождения товара'                             : [10], protect,noPickButton;
+  _tmpImpSp.PRODUCER            'Производитель/Импортер'                                  : [10], protect,noPickButton;
+  _tmpImpSp.ID_GR               'ИД группы товара'                                        : [8],  protect,noPickButton;
+  _tmpImpSp.NAME_GR             'Наименование группы товара'                              : [20], protect,noPickButton;
+  _tmpImpSp.ID_MNN              'ИД МНН'                                                  : [8],  protect,noPickButton;
+  _tmpImpSp.BRN_IDOPT           'ИД поставщика в честном знаке'                           : [20], protect,noPickButton;
+  _tmpImpSp.IS_MARK             'Является маркируемым'                                    : [3],  protect,noPickButton;
+  _tmpImpSp.BACKACCEPT          'признак обратной маркировки'                             : [3], protect,noPickButton;
+  _tmpImpSp.GTIN                'GTIN'                                                    : [10], protect,noPickButton;
+  _tmpImpSp.NAME_MNN            'МНН'                                                     : [20], protect,noPickButton;
+  _tmpImpSp.D_MANUF             'Дата изготовления'                                       : [10, 'DD/MM/YYYY'], protect, noPickButton;
+  _tmpImpSp.D_SALE              'Дата реализации производителем'                          : [10, 'DD/MM/YYYY'], protect, noPickButton;
+  _tmpImpSp.D_PARICEZV          'Дата цены ЖВЛП'                                          : [10, 'DD/MM/YYYY'], protect, noPickButton;
+end;
+
+HandleEvent
+cmInit:{
+  if GetFirst BaseDoc <> tsOk
+     {
+       message('Не найден ДО');
+       Abort; Exit;
+     }
+  if GetFirst KatOrg <> tsOk
+     {
+       message('В ДО не определен контрагент');
+       Abort; Exit;
+     }
+   _ShowFields;
+}
+
+cmPick:{
+  if curField = #file_name
+     {
+       var s:string
+       s:=GetFileName ('*.csv;*.xls;*.xlsx;*.xlsm;','Выберите файл');
+       if s<>''
+          {
+            SET file_name:=s;
+          }
+     }
+}
+
+cmNastrImport:{
+  if (RunWindowModal(winNastrExcelCol) = cmDefault) {}
+  _ShowFields;
+}
+
+cmSetDefault:{
+  if CurTable  = #ATC_ExImpOrg
+     {
+       if GetFirst ATC_ExImpOrg_gf where ((     KatOrg.nRec             ==  ATC_ExImpOrg_gf.cOrg
+                                            and word(111)               ==  ATC_ExImpOrg_gf.TypeNastr
+                                         )) = tsOk
+          {
+            Abort; Exit;
+          }
+     }
+}
+
+cmCheckField:{
+  if curTable = #ATC_ExImpOrg update current ATC_ExImpOrg;
+}
+
+cmLoadExcel:{
+  delete all _tmpImpSp;
+  if _LoadFromEx {};
+}
+
+cmSaveSP:{
+  if GetFirst _tmpImpSp <> tsOk
+     {
+       message('Отсутствуют загруженные позиции. Нечего сохранять.');
+       Abort; Exit;
+     }
+  if (_SumDoc_nds <> _SumDoc_nds_count) and _SumDoc_nds_count = 0
+      {
+        message( 'Внимание! Процедура сохранения была прервана.' + chr(13) +
+                 'Возможно неверно распознано значение ставки НДС. Проверьте исходный файл.');
+        Abort; Exit;
+      }
+  if (message('Вы уверены, что хотите сохранить позиции спецификации?',YesNo)<>Yes)
+     {
+       Abort; Exit;
+     }
+
+  StartNewVisual (vtRotateVisual, vfTimer, 'Обработано позиций: ', 1 );
+
+  var _nRec_NotMC  : comp = coGetTune('GALCOMMON.PARTNER.ImpSpStep_Atr.WhenNotMC');
+  var _pos : word = 0;
+  _loop _tmpImpSp
+  {
+    _pos++;
+    SetVisualHeader ('Формирование спецификации'+chr(13)+
+                     'Обработано позиций: '+ _pos
+                    );
+
+    //Какая группа налогов для неопределенной МЦ???
+    var _cGrNal :comp = KatMC_tmp.cGrNal;
+    var _cNalog :comp = 0;
+    if Getfirst KatNalog where (( coGetTune('NALOG.CNALOGNDS') == KatNalog.nRec )) = tsOk
+        {
+          _cNalog := KatNalog.nRec;
+        }
+
+    NextVisual;
+    ClearBuffer(#SpStep);
+    SpStep.nRec      := GetNextNRec(#SpStep,0);
+    SpStep.npp       := _tmpImpSp.npp;
+    SpStep.PrMC      := 1;
+    SpStep.cMcUsl    := _tmpImpSp.cMC;
+    if (GetFirst KatOtpEd where ((_tmpImpSp.cMC == KatOtpEd.cMcUsl and word(1) == KatOtpEd.PrMC and 1 == KatOtpEd.Akt))  ) = tsOk
+       {
+         SpStep.cOtpEd   := KatOtpEd.nRec;
+//         SpStep.cAltEd   := KatOtpEd.nRec;
+       } else
+       {
+         if (GetFirst KatOtpEd where ((_tmpImpSp.cMC == KatOtpEd.cMcUsl and word(1) == KatOtpEd.PrMC))  )= tsOk
+             {
+               SpStep.cOtpEd   := KatOtpEd.nRec;
+             }
+       }
+
+    SpStep.Kol       := _tmpImpSp.KOL_VO;
+    SpStep.KolSkl    := _tmpImpSp.KOL_VO;
+    SpStep.SUMMA     := _tmpImpSp.Summa;
+    SpStep.KolDop    := _tmpImpSp.Summa;
+    SpStep.PRICE     := _tmpImpSp.Summa/_tmpImpSp.KOL_VO;
+    SpStep.dDoc      := BaseDoc.dDoc;
+    SpStep.cStepDoc  := StepDoc.nRec;
+    SpStep.NDS       := _tmpImpSp.SUM_NDS;
+    SpStep.cGrNal    := _cGrNal;
+    SpStep.ManualTax := 1;
+    SpStep.PrSkid    := 1;
+    if insert current SpStep = tsOk
+       {
+         ClearBuffer(#SpDocNal);
+         SpDocNal.nRec      := GetNextNRec(#SpDocNal,0);
+         SpDocNal.cDoc      := nRec_BaseDoc;
+         SpDocNal.cSpDoc    := SpStep.nRec;
+         SpDocNal.TipDoc    := word(1101);
+         SpDocNal.cGrNal    := _cGrNal;
+         SpDocNal.cNalog    := _cNalog;
+         SpDocNal.Nalog     := _tmpImpSp.PROC_NDS;
+         SpDocNal.SumNal    := _tmpImpSp.SUM_NDS;
+         SpDocNal.SumVal    := _tmpImpSp.SUM_NDS;
+         SpDocNal.Summa     := _tmpImpSp.SUM_NDS;
+         SpDocNal.cOrg      := BaseDoc.cOrg;
+         SpDocNal.ValCurse  := 1;
+         SpDocNal.CrosCurse := 1;
+         SpDocNal.Npp       := KatNalog.npp;
+         insert current SpDocNal;
+
+         ClearBuffer(#ATC_SpStep_Atr);
+         ATC_SpStep_Atr.cSpStep     :=   SpStep.nRec;
+         ATC_SpStep_Atr.cBaseDoc    :=   nRec_BaseDoc;
+         ATC_SpStep_Atr.cMC         :=   _tmpImpSp.cMC         ;
+         ATC_SpStep_Atr.ID_ORIG     :=   _tmpImpSp.ID_ORIG     ;
+         ATC_SpStep_Atr.TOV_ORIG    :=   _tmpImpSp.TOV_ORIG    ;
+         ATC_SpStep_Atr.TOVAR       :=   _tmpImpSp.TOVAR       ;
+         ATC_SpStep_Atr.KOL_VO      :=   _tmpImpSp.KOL_VO      ;
+         ATC_SpStep_Atr.PR_W_NDS    :=   _tmpImpSp.PR_W_NDS    ;
+         ATC_SpStep_Atr.SUMMA       :=   _tmpImpSp.SUMMA       ;
+         ATC_SpStep_Atr.BL_ROSN_NC  :=   _tmpImpSp.BL_ROSN_NC  ;
+         ATC_SpStep_Atr.BL_ROSN_PR  :=   _tmpImpSp.BL_ROSN_PR  ;
+         ATC_SpStep_Atr.SUM_ROSN_A  :=   _tmpImpSp.SUM_ROSN_A  ;
+         ATC_SpStep_Atr.MAK_ORIG    :=   _tmpImpSp.MAK_ORIG    ;
+         ATC_SpStep_Atr.MAKER       :=   _tmpImpSp.MAKER       ;
+         ATC_SpStep_Atr.NAC_OPT     :=   _tmpImpSp.NAC_OPT     ;
+         ATC_SpStep_Atr.PROC_NDS    :=   _tmpImpSp.PROC_NDS    ;
+         ATC_SpStep_Atr.SUM_NDS     :=   _tmpImpSp.SUM_NDS     ;
+         ATC_SpStep_Atr.ROSN_NDS_A  :=   _tmpImpSp.ROSN_NDS_A  ;
+         ATC_SpStep_Atr.PR_REE      :=   _tmpImpSp.PR_REE      ;
+         ATC_SpStep_Atr.PR_MAK      :=   _tmpImpSp.PR_MAK      ;
+         ATC_SpStep_Atr.PR_MAK_NDS  :=   _tmpImpSp.PR_MAK_NDS  ;
+         ATC_SpStep_Atr.DATE_GOD    :=   _tmpImpSp.DATE_GOD    ;
+         ATC_SpStep_Atr.SERIA       :=   _tmpImpSp.SERIA       ;
+         ATC_SpStep_Atr.ED_IZM      :=   _tmpImpSp.ED_IZM      ;
+         ATC_SpStep_Atr.GTD         :=   _tmpImpSp.GTD         ;
+         ATC_SpStep_Atr.PROTOKOL    :=   _tmpImpSp.PROTOKOL    ;
+         ATC_SpStep_Atr.ZV          :=   _tmpImpSp.ZV          ;
+         ATC_SpStep_Atr.SERT        :=   _tmpImpSp.SERT        ;
+         ATC_SpStep_Atr.NAKL_NUM    :=   _tmpImpSp.NAKL_NUM    ;
+         ATC_SpStep_Atr.NAKL_DATE   :=   _tmpImpSp.NAKL_DATE   ;
+         ATC_SpStep_Atr.DATE_OPL    :=   _tmpImpSp.DATE_OPL    ;
+         ATC_SpStep_Atr.SUM_W_NDS   :=   _tmpImpSp.SUM_W_NDS   ;
+         ATC_SpStep_Atr.SUMMA_NDS   :=   _tmpImpSp.SUMMA_NDS   ;
+         ATC_SpStep_Atr.NAKL_PRIH   :=   _tmpImpSp.NAKL_PRIH   ;
+         ATC_SpStep_Atr.SUM_ROSN_B  :=   _tmpImpSp.SUM_ROSN_B  ;
+         ATC_SpStep_Atr.ROSN_NDS_B  :=   _tmpImpSp.ROSN_NDS_B  ;
+         ATC_SpStep_Atr.POST        :=   _tmpImpSp.POST        ;
+         ATC_SpStep_Atr.NAME        :=   _tmpImpSp.NAME        ;
+         ATC_SpStep_Atr.SCAN_CODE   :=   _tmpImpSp.SCAN_CODE   ;
+         ATC_SpStep_Atr.PR_WO_NDS   :=   _tmpImpSp.PR_WO_NDS   ;
+         ATC_SpStep_Atr.SUM_B_NDS   :=   _tmpImpSp.SUM_B_NDS   ;
+         ATC_SpStep_Atr.ID_TOV      :=   _tmpImpSp.ID_TOV      ;
+         ATC_SpStep_Atr.ID_MAK      :=   _tmpImpSp.ID_MAK      ;
+         ATC_SpStep_Atr.SF_NUM      :=   _tmpImpSp.SF_NUM      ;
+         ATC_SpStep_Atr.SF_DATE     :=   _tmpImpSp.SF_DATE     ;
+         ATC_SpStep_Atr.COUNTRY     :=   _tmpImpSp.COUNTRY     ;
+         ATC_SpStep_Atr.PRODUCER    :=   _tmpImpSp.PRODUCER    ;
+         ATC_SpStep_Atr.ID_GR       :=   _tmpImpSp.ID_GR       ;
+         ATC_SpStep_Atr.NAME_GR     :=   _tmpImpSp.NAME_GR     ;
+         ATC_SpStep_Atr.ID_MNN      :=   _tmpImpSp.ID_MNN      ;
+         ATC_SpStep_Atr.BRN_IDOPT   :=   _tmpImpSp.BRN_IDOPT   ;
+         ATC_SpStep_Atr.IS_MARK     :=   _tmpImpSp.IS_MARK     ;
+         ATC_SpStep_Atr.BACKACCEPT  :=   _tmpImpSp.BACKACCEPT  ;
+         ATC_SpStep_Atr.GTIN        :=   _tmpImpSp.GTIN        ;
+         ATC_SpStep_Atr.NAME_MNN    :=   _tmpImpSp.NAME_MNN    ;
+         ATC_SpStep_Atr.D_manuf     :=   _tmpImpSp.D_manuf     ;
+         ATC_SpStep_Atr.D_Sale      :=   _tmpImpSp.D_Sale      ;
+         ATC_SpStep_Atr.D_PariceZV  :=   _tmpImpSp.D_PariceZV  ;
+         insert current ATC_SpStep_Atr;
+
+         _tmpImpSp.cSpStep := SpStep.nRec;
+         update current _tmpImpSp;
+
+         if Getfirst KatMC where (( SpStep.cMcUsl == KatMC.nRec )) = tsOk and  KatMC.nRec <> _nRec_NotMC
+            {
+              var _Param_KUT:word = wGetTune('Rozn.NeedMakeKUT');
+
+              var _kodp : string = GetLastNumD(60);
+              var _cparty: comp = GetNextNrec(#KatParty,0);
+              ClearBuffer(tnKatParty);
+              KatParty.NREC           := _cparty;
+              KatParty.KOD            := _kodp;
+              KatParty.NAME           := '5-'+_kodp+'_'+replace(SubStr(KatMC.name,1,55),'|','')+'|_'+ATC_SpStep_Atr.SERIA;
+              KatParty.CMC            := KatMC.nRec;
+              KatParty.CORGPAR        := BaseDoc.cOrg;
+              KatParty.NSERTIF        := ATC_SpStep_Atr.SERT;
+              KatParty.MAXON          := ATC_SpStep_Atr.PR_MAK;
+              KatParty.CENAZAV        := ATC_SpStep_Atr.PR_REE;
+              KatParty.WhoSertif      := ATC_SpStep_Atr.GTD;
+              KatParty.GODENDATETIME  := ATC_SpStep_Atr.DATE_GOD;
+              KatParty.DGODN          := ATC_SpStep_Atr.DATE_GOD;
+              KatParty.CreateDateTime := _curDateTime;
+              // новое условие Формировать КУТ при оприходовании в розницу = Да
+              if _Param_KUT = 0
+                 {
+                   if ATC_SpStep_Atr.PR_MAK <> 0
+                      {
+                        SET KatParty.CENAZAV  := ATC_SpStep_Atr.PR_MAK;
+                        SET KatParty.MAXON    := 0;
+                        var _f1 :double = ((ATC_SpStep_Atr.Summa/ATC_SpStep_Atr.KOL_VO) - (ATC_SpStep_Atr.SUM_NDS/ATC_SpStep_Atr.KOL_VO));
+                        SET KatParty.VHODON   := Round((_f1 - ATC_SpStep_Atr.PR_MAK) / ATC_SpStep_Atr.PR_MAK*100,4);
+                      }
+                 }
+              if insert current KatParty = tsOk
+                 {
+                   // Дата реализации производителем          = D_SALE
+                   // Дата изготовления                       = D_MANUF
+                   // Фактическая цена производителя без НДС  = PR_MAK
+                   // Фактическая цена производителя с НДС    = PR_MAK_NDS
+                   if NOT Ex.dSetAttrEx (
+                      word(1430),                             // _wTable  : Word;
+                      KatParty.NREC,                          // _cRec    : Comp;
+                      'Дата реализации производителем',       // _Name    : String;
+                      ATC_SpStep_Atr.D_SALE,                  // _Val
+                      true                                    // bRealTbl : Boolean
+                    ) message('Не удалось добавить атрибут "Дата реализации производителем"');
+
+                   if NOT Ex.dSetAttrEx (
+                      word(1430),                             // _wTable  : Word;
+                      KatParty.NREC,                          // _cRec    : Comp;
+                      'Дата изготовления',                    // _Name    : String;
+                      ATC_SpStep_Atr.D_MANUF,                 // _Val
+                      true                                    // bRealTbl : Boolean
+                    ) message('Не удалось добавить атрибут "Дата изготовления"');
+
+                   if NOT Ex.doSetAttrEx (
+                      word(1430),                               // _wTable  : Word;
+                      KatParty.NREC,                            // _cRec    : Comp;
+                      'Фактическая цена производителя без НДС', // _Name    : String;
+                      ATC_SpStep_Atr.PR_MAK,                    // _Val
+                      true                                      // bRealTbl : Boolean
+                    ) message('Не удалось добавить атрибут "Фактическая цена производителя без НДС"');
+
+                   if NOT Ex.doSetAttrEx (
+                      word(1430),                             // _wTable  : Word;
+                      KatParty.NREC,                          // _cRec    : Comp;
+                      'Фактическая цена производителя с НДС', // _Name    : String;
+                      ATC_SpStep_Atr.PR_MAK_NDS,              // _Val
+                      true                                    // bRealTbl : Boolean
+                    ) message('Не удалось добавить атрибут "Фактическая цена производителя с НДС"');
+
+                   var _nalog : double = (ATC_SpStep_Atr.PR_REE * (1+ATC_SpStep_Atr.PROC_NDS/100)) - ATC_SpStep_Atr.PR_REE;
+                   if NOT Ex.doSetAttrEx (
+                      word(1430),                             // _wTable  : Word;
+                      KatParty.NREC,                          // _cRec    : Comp;
+                      'НАЛОГИ',                               // _Name    : String;
+                      _nalog,                                 // _Val
+                      true                                    // bRealTbl : Boolean
+                    ) message('Не удалось добавить атрибут "НАЛОГИ"');
+
+                    SpStep.cParty := KatParty.nRec;
+                    update current SpStep;
+                 }
+            }
+       }
+  }
+  var pVschet: VSchet;
+  pVschet.GetTotalSkidEx2(nRec_BaseDoc,false);
+
+  StopVisual('',0);
+  CloseInterface(cmDefault);
+}
+
+cmMarkDelete:{
+  Abort;
+  if curTable = #ATC_ExImpOrg and pMarker.Count <> 0
+     {
+       if (message('Вы уверены, что хотите удалить помеченные записи (' + pMarker.Count +')?',YesNo)<>Yes)
+           {
+             abort; exit;
+           }
+       var i:word;
+       var _nRec:comp=0;
+       marker:=InitMarker('iPpick', 8, 100, 10);
+       pMarker.ExportTo(marker);
+       for(i:=0;i<GetmarkerCount(marker);inc(i))
+       {
+         GetMarker(marker, i, _nRec);
+         delete ATC_ExImpOrg_gf where (( _nRec == ATC_ExImpOrg_gf.nRec));
+       }
+       ReReadRecord(#ATC_ExImpOrg);
+       pMarker.UnSelectAll;
+       DoneMarker(Marker,'iPpick');
+     }
+}
+
+end; //HandleEvent
+end. //Interface
+
+mnu_winNastrExcelCol Menu {
+   - 'Установить поля по умолчанию',            cmValue1, '', hcNoContext, ''  ,, sci1Esc;
+}

@@ -1,0 +1,427 @@
+Interface iATC_ScaleNac 'Шкала наценок', cyan;
+Show at (,,140,25);
+
+create view
+var
+  xCol_Code        :word;
+  xCol_dBeg        :word;
+  xCol_dEnd        :word;
+  xCol_CenaFrom    :word;
+  xCol_CenaTo      :word;
+  xCol_GrNal_1     :word;
+  xCol_ProcNac1    :word;
+  xCol_GrNal_2     :word;
+  xCol_ProcNac2    :word;
+  xCol_ProcOpt     :word;
+  _ParamRow        :word;
+  _UserRowBeg      :word;
+  _UserRowEnd      :word;
+
+  name_file        :string;
+
+as select *
+from
+  ATC_ScaleNac
+ ,ATC_ScaleNac ATC_ScaleNac_gf
+ ,GrNal GrNal_1
+ ,GrNal GrNal_2
+ ,GrNal
+
+where ((
+    ATC_ScaleNac.cGrNal1  ==  GrNal_1.nRec
+and ATC_ScaleNac.cGrNal2  ==  GrNal_2.nRec
+
+));
+
+
+Procedure _SaveDSK;
+{
+  SaveMyDsk(xCol_Code    , 'iATC_ScaleNac_xCol_Code');
+  SaveMyDsk(xCol_dBeg    , 'iATC_ScaleNac_xCol_dBeg');
+  SaveMyDsk(xCol_dEnd    , 'iATC_ScaleNac_xCol_dEnd');
+  SaveMyDsk(xCol_CenaFrom, 'iATC_ScaleNac_xCol_CenaFrom');
+  SaveMyDsk(xCol_CenaTo  , 'iATC_ScaleNac_xCol_CenaTo');
+  SaveMyDsk(xCol_GrNal_1 , 'iATC_ScaleNac_xCol_GrNal_1');
+  SaveMyDsk(xCol_ProcNac1, 'iATC_ScaleNac_xCol_ProcNac1');
+  SaveMyDsk(xCol_GrNal_2 , 'iATC_ScaleNac_xCol_GrNal_2');
+  SaveMyDsk(xCol_ProcNac2, 'iATC_ScaleNac_xCol_ProcNac2');
+  SaveMyDsk(xCol_ProcOpt , 'iATC_ScaleNac_xCol_ProcOpt');
+  SaveMyDsk(_ParamRow    , 'iATC_ScaleNac_ParamRow');
+  SaveMyDsk(_UserRowBeg  , 'iATC_ScaleNac_UserRowBeg');
+  SaveMyDsk(_UserRowEnd  , 'iATC_ScaleNac_UserRowEnd');
+}
+
+Procedure _ReadDSK;
+{
+  ReadMyDsk(xCol_Code    , 'iATC_ScaleNac_xCol_Code    ', true);
+  ReadMyDsk(xCol_dBeg    , 'iATC_ScaleNac_xCol_dBeg    ', true);
+  ReadMyDsk(xCol_dEnd    , 'iATC_ScaleNac_xCol_dEnd    ', true);
+  ReadMyDsk(xCol_CenaFrom, 'iATC_ScaleNac_xCol_CenaFrom', true);
+  ReadMyDsk(xCol_CenaTo  , 'iATC_ScaleNac_xCol_CenaTo  ', true);
+  ReadMyDsk(xCol_GrNal_1 , 'iATC_ScaleNac_xCol_GrNal_1 ', true);
+  ReadMyDsk(xCol_ProcNac1, 'iATC_ScaleNac_xCol_ProcNac1', true);
+  ReadMyDsk(xCol_GrNal_2 , 'iATC_ScaleNac_xCol_GrNal_2 ', true);
+  ReadMyDsk(xCol_ProcNac2, 'iATC_ScaleNac_xCol_ProcNac2', true);
+  ReadMyDsk(xCol_ProcOpt , 'iATC_ScaleNac_xCol_ProcOpt ', true);
+  ReadMyDsk(_ParamRow    , 'iATC_ScaleNac_ParamRow'     , true);
+  ReadMyDsk(_UserRowBeg  , 'iATC_ScaleNac_UserRowBeg'   , true);
+  ReadMyDsk(_UserRowEnd  , 'iATC_ScaleNac_UserRowEnd'   , true);
+
+  if  xCol_Code     = 0 SET xCol_Code     := 3;
+  if  xCol_dBeg     = 0 SET xCol_dBeg     := 1;
+  if  xCol_dEnd     = 0 SET xCol_dEnd     := 2;
+  if  xCol_CenaFrom = 0 SET xCol_CenaFrom := 4;
+  if  xCol_CenaTo   = 0 SET xCol_CenaTo   := 5;
+  if  xCol_GrNal_1  = 0 SET xCol_GrNal_1  := 6;
+  if  xCol_ProcNac1 = 0 SET xCol_ProcNac1 := 7;
+  if  xCol_GrNal_2  = 0 SET xCol_GrNal_2  := 8;
+  if  xCol_ProcNac2 = 0 SET xCol_ProcNac2 := 9;
+  if  xCol_ProcOpt  = 0 SET xCol_ProcOpt  := 10;
+
+  if  _UserRowBeg   = 0  SET _UserRowBeg  := 1;
+  if  _UserRowEnd   = 0  SET _UserRowEnd  := 100;
+
+}
+
+Procedure _SetDefaultColumns;
+{
+  SET xCol_Code     := 3;
+  SET xCol_dBeg     := 1;
+  SET xCol_dEnd     := 2;
+  SET xCol_CenaFrom := 4;
+  SET xCol_CenaTo   := 5;
+  SET xCol_GrNal_1  := 6;
+  SET xCol_ProcNac1 := 7;
+  SET xCol_GrNal_2  := 8;
+  SET xCol_ProcNac2 := 9;
+  SET xCol_ProcOpt  := 10;
+}
+
+
+Procedure CloseWorkBookAndKillExcel;
+var s: string;
+{
+  xlGetActiveWorkBookName(s);
+  xlCloseWorkBookByName(s);
+  xlKillExcel;
+}
+
+Function _LoadFromEx :boolean;
+{
+  StartNewVisual (vtRotateVisual, vfTimer, 'Обработано позиций: ', 1 );
+
+  xlKillExcel;
+  if not xlOpenNewExcel(false)
+     {
+       Message('Ошибка открытия Excel (xlOpenExcel)!', Warning);
+       xlKillExcel;
+       _LoadFromEx:=false;
+       StopVisual('',0);
+       Abort; Exit;
+     }
+  if not xlOpenWorkBook(name_file)
+     {
+       Message('Ошибка открытия '+name_file, Warning);
+       xlKillExcel;
+       _LoadFromEx:=false;
+       StopVisual('',0);
+       Abort; Exit;
+     }
+
+  xlSetActiveSheet(1);
+
+  var _rowBeg,_rowEnd :longint;
+  var _colBeg,_colEnd :longint;
+
+  if _ParamRow = 0
+     {
+       XLGETUSEDRANGE(_rowBeg, _colBeg, _rowEnd, _colEnd);
+     } else
+     {
+        SET _rowBeg := _UserRowBeg;
+        SET _rowEnd := _UserRowEnd;
+     }
+
+  var i :longint = _rowBeg;
+  var _npp :longint =0;
+  var _nppErr :longint =0;
+  while(true)
+  {
+
+    SetVisualHeader ('Обработка файла'+chr(13)+
+                     'Обработано строк '+ i + ' из '+  _rowEnd
+                    );
+    NextVisual;
+
+    var _xdBeg       :string='';
+    var _xdEnd       :string='';
+    var _xCenaFrom   :string='';
+    var _xCenaTo     :string='';
+    var _xGrNal_1    :string='';
+    var _xProcNac1   :string='';
+    var _xGrNal_2    :string='';
+    var _xProcNac2   :string='';
+    var _xProcOpt    :string='';
+
+    ClearBuffer(#ATC_ScaleNac);
+    ATC_ScaleNac.nRec  := GetNextNRec(#ATC_ScaleNac,0);
+    xlGetCellValue(i,xCol_Code      , ATC_ScaleNac.Code);
+    xlGetCellValue(i,xCol_dBeg      , _xdBeg);
+    xlGetCellValue(i,xCol_dEnd      , _xdEnd);
+    SET ATC_ScaleNac.dBeg := StrToDate(_xdBeg,'DD.MM.YYYY');
+    SET ATC_ScaleNac.dEnd := StrToDate(_xdEnd,'DD.MM.YYYY');
+    xlGetCellValue(i,xCol_CenaFrom , _xCenaFrom);
+    xlGetCellValue(i,xCol_CenaTo   , _xCenaTo);
+    ATC_ScaleNac.CenaFrom := double(Replace(_xCenaFrom,',','.'));
+    ATC_ScaleNac.CenaTo   := double(Replace(_xCenaTo,',','.'));
+    xlGetCellValue(i,xCol_GrNal_1   , _xGrNal_1);
+    xlGetCellValue(i,xCol_ProcNac1  , _xProcNac1);
+    xlGetCellValue(i,xCol_GrNal_2   , _xGrNal_2);
+    xlGetCellValue(i,xCol_ProcNac2  , _xProcNac2);
+    xlGetCellValue(i,xCol_ProcOpt   , _xProcOpt);
+
+    ATC_ScaleNac.ProcNac1 := double(Replace(_xProcNac1,',','.'));
+    ATC_ScaleNac.ProcNac2 := double(Replace(_xProcNac2,',','.'));
+    ATC_ScaleNac.ProcOpt  := double(Replace(_xProcOpt,',','.'));
+
+    if GetFirst GrNal where ((_xGrNal_1  == GrNal.Kod)) = tsOk
+       {
+         ATC_ScaleNac.cGrNal1  := GrNal.nRec;
+       }
+
+    if GetFirst GrNal where ((_xGrNal_2  == GrNal.Kod)) = tsOk
+       {
+         ATC_ScaleNac.cGrNal2  := GrNal.nRec;
+       }
+
+    if i > _rowEnd break;
+
+    if ATC_ScaleNac.Code <> 0 insert current ATC_ScaleNac;
+    i++;
+  }
+
+  StopVisual('',0);
+  CloseWorkBookAndKillExcel;
+}
+
+
+Window winNastrExcelCol 'Настройка колонок для импорта из Excel' EscClose;
+Show at (,,50,17);
+panel pMy
+Screen sc3 (, , sci1Esc);
+Fields
+//------------------------------------------------------------------------------
+  xCol_Code         :NoProtect;
+  xCol_dBeg         :NoProtect;
+  xCol_dEnd         :NoProtect;
+  xCol_CenaFrom     :NoProtect;
+  xCol_CenaTo       :NoProtect;
+  xCol_GrNal_1      :NoProtect;
+  xCol_ProcNac1     :NoProtect;
+  xCol_GrNal_2      :NoProtect;
+  xCol_ProcNac2     :NoProtect;
+  xCol_ProcOpt      :NoProtect;
+  _ParamRow         :NoProtect;
+  _UserRowBeg       :NoProtect;
+  _UserRowEnd       :NoProtect;
+//------------------------------------------------------------------------------
+Buttons
+  cmSetDefCol,,,  'Установить номера колонок по умолчанию', , sci1Esc;
+  cmYes,Default,, 'Сохранить', , sci1Esc;
+  cmCancel,,,     'Отмена', , sci1Esc;
+<<
+&` Номера колонок:`
+&` Код наценки`                .@@@@
+&` Период применения наценки c`.@@@@ `по`.@@@@
+&` Ценовой диапазон от`        .@@@@ `до`.@@@@
+&` Код группы налогов (1) `    .@@@@
+&` Процент наценки (1)       ` .@@@@
+&` Код группы налогов (2) `    .@@@@
+&` Процент наценки (2)       ` .@@@@
+&` Процент оптовой наценки   ` .@@@@
+&` Обрабатываемый диапазон строк Excel:`
+   (.) определять автоматически`
+   (.) заданный диапазон с`    .@@@@ `по`.@@@@
+
+  <.  По умолчанию  .>
+
+  <.   Сохранить    .>       <.   Отмена   .>
+>>
+end; // screen
+end; // panel pmy
+
+HandleEvent
+cmYes:{
+  _SaveDSK;
+  CloseWindowEx(winNastrExcelCol, cmDefault);
+}
+cmCancel:{
+  _ReadDSK;
+  CloseWindowEx(winNastrExcelCol, cmCancel);
+}
+cmSetDefCol:{
+  if (message('Вы уверены, что хотите установить значения номеров колонок по умолчанию?',YesNo)<>Yes)
+     {
+       Abort; Exit;
+     }
+  _SetDefaultColumns;
+}
+end; // HandleEvent
+end; // Window winImportExcel
+
+
+Window winEdit_ScaleNac 'Редактирование шкалы наценок';
+Show at (,,51,8);
+Screen scEdit (, , sci134Esc);
+Table ATC_ScaleNac;
+Fields
+//------------------------------------------------------------------------------
+  ATC_ScaleNac.Code            ('Код наценки',,)                                        : NoProtect, NoPickButton;
+  ATC_ScaleNac.dBeg            ('Начальная дата применения наценки "с"',,)              : ['DD/MM/YYYY'], Centered;
+  ATC_ScaleNac.dEnd            ('Конечная дата применения наценки "по"',,)              : ['DD/MM/YYYY'], Centered;
+  ATC_ScaleNac.CenaFrom        ('Ценовой диапазон "от"',,)                              : ['\2P[|-]3666`666`666`666.88'], NoProtect,right,lessnull,noPickButton;
+  ATC_ScaleNac.CenaTo          ('Ценовой диапазон "до"',,)                              : ['\2P[|-]3666`666`666`666.88'], NoProtect,right,lessnull,noPickButton;
+  GrNal_1.Name                 ('Группа налогов (1)',,)                                 : Protect, PickButton;
+  ATC_ScaleNac.ProcNac1        ('Процент наценки (1)',,)                                : ['\2P[|-]3666`666`666`666.88'], NoProtect,right,lessnull,noPickButton;
+  GrNal_2.Name                 ('Группа налогов (2)',,)                                 : Protect, PickButton;
+  ATC_ScaleNac.ProcNac2        ('Процент наценки (2)',,)                                : ['\2P[|-]3666`666`666`666.88'], NoProtect,right,lessnull,noPickButton;
+  ATC_ScaleNac.ProcOpt         ('Процент оптовой наценки',,)                            : ['\2P[|-]3666`666`666`666.88'], NoProtect,right,lessnull,noPickButton;
+//------------------------------------------------------------------------------
+<<
+ `Код наценки`        .@@@@@@@@@@
+ `Применять наценку c`.@@@@@@@@@@ `по`.@@@@@@@@@@
+ `Ценовой диапазон от`.@@@@@@@@@@ `до`.@@@@@@@@@@
+ `Группа налогов (1)`                 `Наценка(1)`
+  .@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ .@@@@@@@@@@%
+ `Группа налогов (2)`                 `Наценки(2)`
+  .@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ .@@@@@@@@@@%
+ `Применяемый процент оптовой наценки`.@@@@@@@@@@%
+>>
+end;
+
+HandleEvent
+end; //HandleEvent
+end; //window
+
+
+Browse brATC_ScaleNac 'Шкала наценок' ('Шкала наценок',  ,  sci13478Esc);
+table ATC_ScaleNac;
+Fields
+  ATC_ScaleNac.Code                  'Код'                                  : [4],  protect,noPickButton;
+  ATC_ScaleNac.dBeg                  'Дата','c'                             : [10, 'DD/MM/YYYY'], protect, noPickButton;
+  ATC_ScaleNac.dEnd                  'Дата','по'                            : [10, 'DD/MM/YYYY'], protect, noPickButton;
+  ATC_ScaleNac.CenaFrom              'Ценовой','диапазон','от'              : [15,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_ScaleNac.CenaTo                'Ценовой','диапазон','до'              : [15,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  GrNal_1.Name                       'Группа','налогов','(1)'               : [15], protect,NoPickButton;
+  ATC_ScaleNac.ProcNac1              'Процент','наценки','(1)'              : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  GrNal_2.Name                       'Группа','налогов','(2)'               : [15], protect,NoPickButton;
+  ATC_ScaleNac.ProcNac2              'Процент','наценки','(2)'              : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_ScaleNac.ProcOpt               'Процент','наценки','(опт)'            : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+end;
+
+
+HandleEvent
+cmInit:{
+  _ReadDSK;
+}
+
+cmInsert:{
+  ClearBuffer(#ATC_ScaleNac);
+  ATC_ScaleNac.nRec  := GetNextNRec(#ATC_ScaleNac,0);
+  ATC_ScaleNac.dBeg  := Cur_Date();
+  insert current ATC_ScaleNac;
+  if (RunWindowModal(winEdit_ScaleNac)=cmDefault)
+     {
+     }
+}
+
+cmEdit:{
+  PutCommand(cmDefault);
+}
+
+cmDefault:{
+  if (RunWindowModal(winEdit_ScaleNac)=cmDefault)
+     {
+     }
+}
+
+cmSetDefault:{
+  if GetFirst ATC_ScaleNac_gf = tsOk
+     {
+       Abort; Exit;
+     }
+}
+
+cmDelete:{
+  if curTable = #ATC_ScaleNac
+      {
+        if (message('Вы уверены, что хотите удалить текущую запись?',YesNo)<>Yes)
+           {
+             Abort; Exit;
+           }
+
+        Delete current ATC_ScaleNac;
+      }
+}
+
+cmCheckField:{
+  if curTable = #ATC_ScaleNac
+     {
+       update current ATC_ScaleNac;
+     }
+}
+
+cmPick:{
+  if curField = #GrNal_1.Name
+     {
+       if (RunInterface('L_NALOG::GetGrNal', ATC_ScaleNac.cGrNal1, 0) = cmDefault)
+          {
+            update current ATC_ScaleNac;
+            if GetFirst GrNal_1 = tsOk RescanPanel(#ATC_ScaleNac);
+          }
+     }
+  if curField = #GrNal_2.Name
+     {
+       if (RunInterface('L_NALOG::GetGrNal', ATC_ScaleNac.cGrNal2, 0) = cmDefault)
+          {
+            update current ATC_ScaleNac;
+            if GetFirst GrNal_2 = tsOk RescanPanel(#ATC_ScaleNac);
+          }
+     }
+}
+
+cmHotKeys:{
+  if curTable = #ATC_ScaleNac
+     {
+       PutHotCommand(RunMenu('mnu_ATC_ScaleNac'));
+     }
+}
+
+cmValue1:{
+  if (RunWindowModal(winNastrExcelCol)<>cmDefault)
+     {
+       abort; exit;
+     }
+}
+
+cmValue2:{
+  if curTable = #ATC_ScaleNac
+     {
+       var s:string;
+       s:=GetFileName ('*.csv;*.xls;*.xlsx;*.xlsm;','Выберите файл');
+       if s <> ''
+          {
+            SET name_file:=s;
+            if _LoadFromEx {};
+            if GetLast ATC_ScaleNac = tsOk ReReadRecord(#ATC_ScaleNac);
+          }
+     }
+}
+
+end; //HandleEvent
+end. //Interface
+
+mnu_ATC_ScaleNac Menu {
+   - 'Настройка импорта',                       cmValue1, '', hcNoContext, ''  ,, sci1Esc;
+   - 'Импорт данных из Excel',                  cmValue2, '', hcNoContext, ''  ,, sci1Esc;
+}

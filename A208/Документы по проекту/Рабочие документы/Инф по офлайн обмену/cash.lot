@@ -1,0 +1,42 @@
+select
+cash_out.articul (FIELDNAME=Loc),
+listgood.cmc (FIELDNAME=GalLocal),
+listgood.price (FIELDNAME=Price),
+cash_out.count (FIELDNAME=CC),
+listgood.price*cash_out.count (FIELDNAME=SUMMA),
+katmc.name (FIELDNAME=Nam),
+groupmc.name (FIELDNAME=group)
+from cash_out,listgood,katmc,groupmc,articul
+where ((cash_out.clistgood/==listgood.nrec and cash_out.articul==articul.articul and listgood.cmc==katmc.nrec and katmc.cgroupmc==groupmc.nrec))
+to dbf c:\out\cash_SUM;
+
+
+select
+cash_out.articul (FIELDNAME=Loc),
+listgood.cmc (FIELDNAME=GalLocal),
+listgood.barcode (FIELDNAME=BarKod),
+listgood.price (FIELDNAME=Price),
+cash_out.count (FIELDNAME=Count),
+katmc.name (FIELDNAME=Nam),
+articul.diskret (FIELDNAME=Ves),
+listgood.nameed (FIELDNAME=Ed),
+articul.edmsg (FIELDNAME=EDMSG),
+articul.tax (FIELDNAME=Dep),
+articul.koef (FIELDNAME=Koef),
+katmc.sale (FIELDNAME=Sale),
+katmc.cenamc (FIELDNAME=FPrice),
+groupmc.name (FIELDNAME=group),
+katmc.zapasmin (FIELDNAME=min),
+katmc.zapasmax (FIELDNAME=max),
+katmc.remmc (FIELDNAME=remmc),
+katmc.nrec (FIELDNAME=nrec),
+katmc.volume (FIELDNAME=zakup),
+katmc.maxorn (FIELDNAME=PLANVOL),
+katmc.tnved (FIELDNAME=TNVED),
+katmc.okdp (FIELDNAME=OKDP)
+from cash_out,listgood,articul,katmc,groupmc
+where ((cash_out.clistgood/==listgood.nrec and cash_out.articul/==articul.articul and listgood.cmc==katmc.nrec and katmc.cgroupmc==groupmc.nrec))
+
+to dbf c:\out\cash;
+
+delete all from cash_out;

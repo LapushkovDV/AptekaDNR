@@ -1,0 +1,41 @@
+#component "ATC_A208"
+#include CreateTune.vih
+
+Handler with replace ATC_CreateTune208 on extensionPoint
+  epCreateTuneComponent (TR: ObjCreateTuneEx) [250]
+Action
+{
+  Result := true;
+  //----------------------------------------------------------------------------
+  // Обязательно установить  имя компонента                            `
+  TR.SetComponent('#__COMPONENT__');
+  //----------------------------------------------------------------------------
+
+//  TR.SetNextNumberTune(31000); //
+
+  TR.SetParent('GALCOMMON')
+  TR.AddPartS('GALCOMMON.PARTNER2', 'Параметры торговых залов', '');
+!========================================================
+  TR.SetParent('GALCOMMON.PARTNER2')
+  TR.AddPartS('GALCOMMON.PARTNER2.a208PosTermExch', 'Параметры офлайн обмена данными с БД ПосТерминалов', '');
+  TR.SetParent('GALCOMMON.PARTNER2.a208PosTermExch')
+  TR.AddTuneS('GALCOMMON.PARTNER2.a208PosTermExch.PosTermOffline','Выполнять обмен в формате',ftList,'0','','');
+     TR.AddList(0,'DBF');
+     TR.AddList(1,'JSON');
+
+  TR.SetParent('GALCOMMON.PARTNER2')
+  TR.AddPartS('GALCOMMON.PARTNER2.RascenPrihod', 'Расценка прихода', '');
+  TR.SetParent('GALCOMMON.PARTNER2.RascenPrihod')
+  TR.AddTuneU('GALCOMMON.PARTNER2.RascenPrihod.Rascen_round','Кол-во знаков при округлении',ftWord,'0','','');
+
+  TR.SetParent('GALCOMMON.PARTNER2.RascenPrihod')
+
+  TR.AddTuneS('GALCOMMON.PARTNER2.RascenPrihod.A208Price_1','Прайсовые цены',ftComp,'0','','');
+    TR.AddIntr('PRICEL');
+
+  TR.SetParent('GALCOMMON.PARTNER2.RascenPrihod')
+  TR.AddTuneS('GALCOMMON.PARTNER2.RascenPrihod.A208Price_2','Розничные цены',ftComp,'0','','');
+    TR.AddIntr('PRICEL');
+
+!========================================================
+}

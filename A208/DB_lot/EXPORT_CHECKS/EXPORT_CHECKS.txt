@@ -1,0 +1,36 @@
+USE [new]
+GO
+
+/****** Object:  Table [dbo].[USERS1]    Script Date: 26.01.2017 11:46:13 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+-------------------------------------------------------------------------------------------
+
+DECLARE @Result int ;
+DECLARE @Cmd nvarchar(255) ;  --вызов пакетной выгрузки
+
+-- Таблица чеков
+
+SET @Cmd = N'BCP NEW.dbo.CHECKS out "C:\OUT\Аптека_208\CHECKS.xml" -T -k -c -CUTF-8'
+	
+EXEC @Result = MASTER..XP_CMDSHELL @Cmd	  --выполнение пакетной выгрузки
+IF @Result <> 0								-- если завершилось с ошибкой
+	raiserror (N'Не удалось создать импортировать таблицу CHECKS', 16,-1)
+
+GO
+
+-- Таблица содержимого чеков
+DECLARE @Result int ;
+DECLARE @Cmd nvarchar(255) ;  --вызов пакетной выгрузки
+
+
+SET @Cmd = N'BCP NEW.dbo.CHECK_ITEMS out "C:\OUT\Аптека_208\CHECK_ITEMS.xml" -T -k -c -CUTF-8'
+	
+EXEC @Result = MASTER..XP_CMDSHELL @Cmd	  --выполнение пакетной выгрузки
+IF @Result <> 0								-- если завершилось с ошибкой
+	raiserror (N'Не удалось создать импортировать таблицу CHECK_ITEMS', 16,-1)
+

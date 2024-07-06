@@ -1,0 +1,16 @@
+! загрузка CREDCARD
+import CREDCARD from dbf d:\credcar.dbf n f s r;
+
+! загрузка GrNal
+! спачала чистим
+delete from GrNal where nRec > 0 ;
+select * from GrNal;
+!и загружаем 
+import GrNal from dbf d:\GrNal.dbf n f s r;
+!после импорта выполнить очистку журнала (в support)
+
+//загрузка контрагента для б.нал накл. на реализ
+//import katorg from dbf d:\katorg.dbf n f s r;
+
+//!!!! для KatParty нужно загрузить CreateDateTime из KatParty.dbf
+// згружаем через Галактику, интерфейс import_date_party

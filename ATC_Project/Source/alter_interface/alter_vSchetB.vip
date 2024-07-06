@@ -1,0 +1,272 @@
+#component "L_BASEDOC"
+
+alter Interface vSchetB;
+
+create view
+as select *
+
+from
+  ATC_SpStep_Atr
+ ,ATC_KatParty_Atr
+ ,KatNotes KN_owner
+// ,GroupMC GroupMC_my
+ ,(select count(*) (fieldname=_KolPos)
+  from SpStep _sp
+  where ((StepDoc.nRec == _sp.cStepDoc))
+ )
+ ,(select count(*) (fieldname=_KolParty)
+  from SpStep _sp, KatParty _part
+  where ((    StepDoc.nRec  == _sp.cStepDoc
+           and _sp.cParty  /== _part.nRec
+        ))
+ )
+ ,(select count(*) (fieldname=_JVLP)
+  from ATC_SpStep_Atr _a
+  where ((    BaseDoc.nRec  == _a.cBaseDoc
+        )) and _a.PR_REE > 0
+ )
+
+ ; // end create view
+
+sql query sql_Del_ATC_SpStep_Atr =
+delete ATC_SpStep_Atr where ATC_SpStep_Atr.cSpStep not in (Select SpStep.nRec from SpStep);
+; // end sql
+
+Procedure _Del_ATC_SpStep_Atr;
+{
+  var qq: IQuery;
+  qq := queryManager.createQuery(sql_Del_ATC_SpStep_Atr);
+  qq.setParam('nRec_GRPOC', ATC_GRPOC.nRec );
+  qq.execute;
+}
+
+Procedure _CheckButtons;
+{
+  if GetFirst SpStep = tsOk and GetFirst ATC_SpStep_Atr where ((SpStep.nRec == ATC_SpStep_Atr.cSpStep )) = tsOk
+     {
+       cfsSetProp('b_SCVSCHET_Анализ_спецификации', cfpVisible, true);
+       cfsSetProp('b_SCVSCHET_Загрузка_протокола', cfpVisible, true);
+       cfsSetProp('b_SCVSCHET_Просмотр_протокола', cfpVisible, true);
+
+       var _mastChangePrim:boolean = false;
+       if KatNotes.cOwner = 0 and KatNotes.Name = 'оформляемый' SET _mastChangePrim := true;
+       if GetFirst KN_owner where ((KatNotes.cOwner == KN_owner.nRec)) = tsOk
+           {
+             if KN_owner.Name = 'оформляемый' SET _mastChangePrim := true;
+           }
+
+       if _KolParty <>  _KolPos
+          {
+            if _mastChangePrim
+               {
+                 SET BaseDoc.Name := 'ЖВЛП:(' + _JVLP +  ') Не привязано партий '+ (_KolPos -_KolParty) + ' (всего позиций ' + _KolPos + ')';
+                 update current BaseDoc
+               }
+          } else
+          {
+            if _mastChangePrim
+               {
+                 SET BaseDoc.Name := 'ЖВЛП:(' + _JVLP+')';
+                 update current BaseDoc
+               }
+          }
+     } else
+     {
+       cfsSetProp('b_SCVSCHET_Анализ_спецификации', cfpVisible, false);
+       cfsSetProp('b_SCVSCHET_Загрузка_протокола', cfpVisible, false);
+       cfsSetProp('b_SCVSCHET_Просмотр_протокола', cfpVisible, false);
+     }
+}
+
+ExtendFormats scVSchet;
+Window wVSchet;
+Screen scVSchet;
+  Table BaseDoc;
+Buttons
+  cmLoadFromExcel  , , ,   'Загрузка спецификации документа из Excel',,;
+  cmAnalizSP       , , ,   'Анализ спецификации',,;
+  cmLoadProtocol   , , ,   'Загрузка протокола',,;
+  cmShowProtocol   , , ,   'Просмотр протокола',,;
+<<
+
+
+                                                                                                                                  <.Загрузка позиций из Excel .>
+
+                                                                                                                                  <.    Анализ спецификации   .>
+
+                                                                                                                                  <.    Загрузка протокола    .>
+
+                                                                                                                                  <.    Просмотр протокола    .>
+>>
+end; // Screen
+
+ExtendFormats brSpSchet;
+Browse brSpSchet ('Расширенная информация - <Ctrl><Enter>', hcKouDocISpecSell, ); // спецификация документа
+  Table SpStep;
+Fields
+    GroupMC.Name  'Производитель'   ('Производитель',,sci13478Esc)  : [15], protect, noPickButton;
+end;
+
+TableEvent table SpStep;
+/*
+cmPick:{
+  if curField = #NOMENKL or curField = #NAMTOVAR
+     {
+       if GetFirst ATC_SpStep_Atr where ((SpStep.nRec == ATC_SpStep_Atr.cSpStep )) = tsOk
+          {
+            message('Внимание! Для импортированных документов из Excel и DBF')
+          }
+     }
+}
+*/
+
+cmMarkDelete:{
+  Abort;
+  if (Inherited::HandleEvent(cmMarkDelete) = heOk)
+     {
+       _Del_ATC_SpStep_Atr;
+       _CheckButtons;
+       Abort;
+     } else
+     {
+       _Del_ATC_SpStep_Atr;
+       _CheckButtons;
+       Abort;
+     }
+}
+
+cmDeleteRecord:{
+  Stop;
+  if (Inherited::HandleEvent(cmDeleteRecord) = heOk)
+      {
+        _Del_ATC_SpStep_Atr;
+        _CheckButtons;
+      }
+}
+
+end; //TableEvent table SpStep;
+
+
+
+HandleEvent
+cmInit:{
+  if (Inherited::HandleEvent(cmInit) = heOk)
+     {
+       _CheckButtons;
+     }
+
+}
+cmLoadFromExcel:{
+  if GetFirst SpStep = tsOk
+     {
+       message('В ДО уже есть спецификация!');
+       Abort; Exit;
+     }
+  if GetFirst KatOrg <> tsOk
+     {
+       message('Вначале требуется выбрать контрагента в ДО');
+       Abort; Exit;
+     }
+  RunInterface('ATC::iATC_Import_SpStep', BaseDoc.nRec);
+  Verify(TotalSummaTov);
+  Verify(_KolParty);
+  ReReadRecord(#BaseDoc);
+  ReReadRecord(#SpStep);
+  _CheckButtons;
+}
+
+cmAnalizSP:{
+  if GetFirst SpStep <> tsOk
+     {
+       message('В ДО отсутствует спецификация, нечего анализировать.');
+       Abort; Exit;
+     }
+
+  if GetFirst SpStep = tsOk and GetFirst ATC_SpStep_Atr where ((SpStep.nRec == ATC_SpStep_Atr.cSpStep )) <> tsOk
+     {
+       message('Отсутствует информация из первичного документа. Возможно документ был создан вручную.');
+       Abort; Exit;
+     }
+
+  RunInterface('ATC::iATC_Analiz_SpStep', BaseDoc.nRec);
+  Verify(TotalSummaTov);
+  Verify(_KolParty);
+  ReReadRecord(#BaseDoc);
+  ReReadRecord(#SpStep);
+  _CheckButtons;
+}
+
+cmLoadProtocol:{
+
+  if GetFirst SpStep = tsOk and GetFirst ATC_SpStep_Atr where ((SpStep.nRec == ATC_SpStep_Atr.cSpStep )) <> tsOk
+     {
+       message('Отсутствует информация из первичного документа. Возможно документ был создан вручную.');
+       Abort; Exit;
+     }
+
+  RunInterface('ATC::iATC_Import_Protocol', BaseDoc.nRec);
+  Verify(TotalSummaTov);
+  Verify(_KolParty);
+  ReReadRecord(#BaseDoc);
+  ReReadRecord(#SpStep);
+  _CheckButtons;
+}
+
+cmShowProtocol:{
+  if GetFirst SpStep = tsOk and GetFirst ATC_SpStep_Atr where ((SpStep.nRec == ATC_SpStep_Atr.cSpStep )) <> tsOk
+     {
+       message('Отсутствует информация из первичного документа. Возможно документ был создан вручную.');
+       Abort; Exit;
+     }
+
+  RunInterface('ATC::iATC_Show_Protocol', BaseDoc.nRec);
+  Verify(TotalSummaTov);
+  Verify(_KolParty);
+  ReReadRecord(#BaseDoc);
+  ReReadRecord(#SpStep);
+  _CheckButtons;
+}
+
+end; //HandleEvent
+end; //Window WVSCHET;
+
+
+ExtendFormats brVSchet;
+Browse brVSchet ('перейдите к нужной записи и нажмите <Enter>',, sci1478EnIns);
+Fields
+  KatNazna.Name  'Назн.'      ('Назначение',,sci13478Esc)  : [10], skip, protect;
+  BaseDoc.Name   'Прим.'      ('Примечание',,sci13478Esc)  : [15], skip, protect;
+end;
+
+//HandleEvent
+TableEvent Table BaseDoc
+cmDeleteRecord:{
+  Stop;
+  if (Inherited::HandleEvent(cmDeleteRecord) = heOk)
+      {
+        _Del_ATC_SpStep_Atr;
+        _CheckButtons;
+      }
+}
+
+cmMarkDelete:{
+  Abort;
+  if (Inherited::HandleEvent(cmMarkDelete) = heOk)
+     {
+       _Del_ATC_SpStep_Atr;
+       _CheckButtons;
+       Abort;
+     } else
+     {
+       _Del_ATC_SpStep_Atr;
+       _CheckButtons;
+       Abort;
+     }
+}
+
+cmPositionChanged:{
+  _CheckButtons;
+}
+
+end;
+end.

@@ -1,0 +1,46 @@
+#component "L_Kassa"
+interface ATC_exch_log 'Журнал обмена данными', cyan;
+Show at (,,145,25);
+create view
+as select
+  if (ATC_exch_log.LOG_TYPE = 1, 'in','out') (fieldname = str_type)
+ ,if (ATC_exch_log.STATUS = 0, 'ok',if(ATC_exch_log.STATUS = 65000,'warning', 'Err') ) (fieldname = str_status)
+ ,*
+from
+  ATC_exch_log (ATC_exch_log_01)
+ ,X$USERS
+//where ((
+//    ATC_exch_log.cUser         ==  X$USERS.ATL_NREC
+//))
+;
+
+
+Browse br_ATC_exch_log 'Журнал обмена данными' ('Журнал обмена данными',  ,  sci1EscIns);
+Show at (,,,16);
+table ATC_exch_log;
+Fields
+  str_type                             'Тип'                                       : [3], protect, NoPickButton;
+  str_status                           'Статус'                                    : [6], protect, NoPickButton;
+  ATC_exch_log.ProcName                'Процедура'                                 : [90], protect, NoPickButton;
+  ATC_exch_log.DT_START                'Дата','начала'                             : [18, 'DD/MM/YY HH:NN:SS'], Centered, NoPickButton;
+  ATC_exch_log.DT_END                  'Дата','окончания'                          : [18, 'DD/MM/YY HH:NN:SS'], Centered, NoPickButton;
+  ATC_exch_log.Username                'Пользователь'                              : [17], protect, NoPickButton;
+end;
+
+Panel paBrouseTextRField
+  Show at (,17,,);
+Table ATC_exch_log;
+  Text ATC_exch_log.SMEMO : Protect;
+end; // Panel
+
+HandleEvent
+cmInit:{
+//  message('IF OBJECT_ID('tempdb ..#xx$locks')IS NOT NULL drop table #xx$locks create table #xx$locks (TableNRec binary(8))');
+  if GetLast ATC_exch_log= tsOk
+     {
+       RescanPanel(#ATC_exch_log);
+     }
+}
+end;
+
+end.

@@ -1,0 +1,769 @@
+object 'L_MCU::GETSOMEMC_KATMC' : InterfaceWindow {
+  ScriptFontSize = 9;
+  ScriptFontFace = 'Calibri';
+  Title = 'Выбор МЦ. (всего: 82240)';
+  EmbName = 'L_MCU::GETSOMEMC->';
+  object TRVPRKAT : TreeBrowser {
+    object 'c_TRVPRKAT_KATMC.BARKOD2' : TreeColumn {
+      Title = 'Дополнительный код';
+      HelpLine = 'Дополнительный код матценности';
+    } // c_TRVPRKAT_KATMC.BARKOD2 : TreeColumn
+    object 'c_TRVPRKAT_SALDOMCKOL_Наличие_по_виду' : TreeColumn {
+      Visible = False;
+    } // c_TRVPRKAT_SALDOMCKOL_Наличие_по_виду : TreeColumn
+    object 'c_TRVPRKAT_KATED.ABBR_УчЕд' : TreeColumn {
+      Visible = False;
+    } // c_TRVPRKAT_KATED.ABBR_УчЕд : TreeColumn
+  } // TRVPRKAT : TreeBrowser
+  object KATMCNAM : Browser {
+    ViewFlags = 6;
+    RowColorDark = 5;
+    VerDelimiterWidth = 1;
+    object c_KATMCNAM : Column {
+      NoAutoSize = True;
+    } // c_KATMCNAM : Column
+    object 'c_KATMCNAM_MCALTNAME_Альтернативное_наименование_МЦ' : Column {
+      Visible = False;
+    } // c_KATMCNAM_MCALTNAME_Альтернативное_наименование_МЦ : Column
+    object 'c_KATMCNAM_KATMC.BARKOD2' : Column {
+      Title = 'Дополнительный код';
+      HelpLine = 'Дополнительный код матценности';
+    } // c_KATMCNAM_KATMC.BARKOD2 : Column
+    object 'c_KATMCNAM_KATMC.OBOZN_Конструкт._обозначение' : Column {
+      Visible = False;
+    } // c_KATMCNAM_KATMC.OBOZN_Конструкт._обозначение : Column
+    object 'c_KATMCNAM_SALDOMCKOL_Наличие_по_виду' : Column {
+      Visible = False;
+    } // c_KATMCNAM_SALDOMCKOL_Наличие_по_виду : Column
+    object 'c_KATMCNAM_KATED.ABBR_УчЕд' : Column {
+      Visible = False;
+    } // c_KATMCNAM_KATED.ABBR_УчЕд : Column
+  } // KATMCNAM : Browser
+  object WINSEARCH1 : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+  } // WINSEARCH1 : InterfaceWindow
+  object WINSEARCH2 : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+  } // WINSEARCH2 : InterfaceWindow
+  object WNALTNAMESEARCH : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+  } // WNALTNAMESEARCH : InterfaceWindow
+  object WNDMCFILTER : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+  } // WNDMCFILTER : InterfaceWindow
+  object WFINDPOS : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+  } // WFINDPOS : InterfaceWindow
+  object WNALLPICK : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+    object M_KATMCNAM : Browser {
+      object 'c_M_KATMCNAM_M_TMPGTSU.KOD2' : Column {
+        Title = 'Дополнительный код';
+        HelpLine = 'Дополнительный код матценности';
+      } // c_M_KATMCNAM_M_TMPGTSU.KOD2 : Column
+      object 'c_M_KATMCNAM_M_KATMC.OBOZN_Конструкт.обозначение' : Column {
+        Visible = False;
+      } // c_M_KATMCNAM_M_KATMC.OBOZN_Конструкт.обозначение : Column
+    } // M_KATMCNAM : Browser
+  } // WNALLPICK : InterfaceWindow
+  object WINGETPICKKOL : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+    Centered = True;
+    object SCRGETPICKKOL1 : Screen {
+      object i_SCRGETPICKKOL1_SBARKOD2 : PanelInputLine {
+        HelpLine = 'Дополнительный код матценности';
+      } // i_SCRGETPICKKOL1_SBARKOD2 : PanelInputLine
+      object 'i_SCRGETPICKKOL1_KATMC.BARKOD2' : PanelInputLine {
+        HelpLine = 'Дополнительный код матценности';
+      } // i_SCRGETPICKKOL1_KATMC.BARKOD2 : PanelInputLine
+      object 'i_SCRGETPICKKOL1_KATMC.CENAMC' : PanelInputLine {
+        Protect = False;
+        Skip = False;
+      } // i_SCRGETPICKKOL1_KATMC.CENAMC : PanelInputLine
+    } // SCRGETPICKKOL1 : Screen
+  } // WINGETPICKKOL : InterfaceWindow
+  object WISELECTONTNVED : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+  } // WISELECTONTNVED : InterfaceWindow
+} // L_MCU::GETSOMEMC_KATMC : InterfaceWindow
+//-----------------------------------------------------------------------------
+object 'L_MCU::KATMC' : InterfaceWindow {
+  ScriptFontSize = 9;
+  ScriptFontFace = 'Calibri';
+  Title = 'Каталог МЦ Фильтр по: рабочим МЦ';
+  Centered = True;
+  object BRMC1 : Browser {
+    ViewFlags = 6;
+    RowColorDark = 5;
+    VerDelimiterWidth = 1;
+    object c_BRMC1 : Column {
+      NoAutoSize = True;
+    } // c_BRMC1 : Column
+    // Информация: объект "'Field: KATMC.PRICEPU'" типа Column не найден в базовой конфигурации!
+    object 'Field: KATMC.PRICEPU' : Column {
+      Original = False;
+      Visible = True;
+      Hidden = False;
+      Protect = True;
+      Skip = True;
+      UpCase = False;
+      Password = False;
+      NoValidCheck = True;
+      StatusCtx = 16;
+      Title = 'Гр менеджера';
+      HelpLine = '';
+      FieldName = 'Field: KATMC.PRICEPU';
+      DefaultValue = '';
+      Strings = ( // Список строк
+      )
+      StringsNull = 0;
+      Index = 1;
+      DefaultWidth = 7;
+      TextAlign = 0;
+      ButtonType = 0;
+      DefaultPickButton = False;
+      SpinInc = 0.0;
+      SpinMin = 0.0;
+      SpinMax = 0.0;
+      NoAutoSize = False;
+      EnumValues = ( // Список целых
+      )
+      PassiveFormat = '';
+      Points = 0;
+      MaxLen = 22;
+      PrecisionVarName = '';
+      HistoryID = 0;
+      DropTarget = False;
+      DropSource = False;
+      FontBold = 'Значение не определено или не известно.';
+      FontItalic = 'Значение не определено или не известно.';
+      FontUnderline = 'Значение не определено или не известно.';
+      FontStrikeout = 'Значение не определено или не известно.';
+      FontColor = 'Значение не определено или не известно.';
+      FontBackColor = 'Значение не определено или не известно.';
+      InputMask = 'Значение не определено или не известно.';
+      FixedState = 0;
+      EditButton = False;
+      Hyperlink = False;
+      Urllink = '';
+      LessValue = False;
+      HeaderImageName = '';
+      CurRowFontBold = 'Значение не определено или не известно.';
+      CurRowFontItalic = 'Значение не определено или не известно.';
+      CurRowFontUnderline = 'Значение не определено или не известно.';
+      CurRowFontStrikeout = 'Значение не определено или не известно.';
+      CurRowFontColor = 'Значение не определено или не известно.';
+      CurRowFontBackColor = 'Значение не определено или не известно.';
+      HeaderAlign = 3;
+    } // Field: KATMC.PRICEPU : Column
+    // Информация: объект "'Field: KATMC.OKDP'" типа Column не найден в базовой конфигурации!
+    object 'Field: KATMC.OKDP' : Column {
+      Original = False;
+      Visible = True;
+      Hidden = False;
+      Protect = True;
+      Skip = True;
+      UpCase = False;
+      Password = False;
+      NoValidCheck = True;
+      StatusCtx = 16;
+      Title = 'Замена';
+      HelpLine = '';
+      FieldName = 'Field: KATMC.OKDP';
+      DefaultValue = '';
+      Strings = ( // Список строк
+      )
+      StringsNull = 0;
+      Index = 2;
+      DefaultWidth = 5;
+      TextAlign = 0;
+      ButtonType = 0;
+      DefaultPickButton = False;
+      SpinInc = 0.0;
+      SpinMin = 0.0;
+      SpinMax = 0.0;
+      NoAutoSize = False;
+      EnumValues = ( // Список целых
+      )
+      PassiveFormat = '';
+      Points = 0;
+      MaxLen = 20;
+      PrecisionVarName = '';
+      HistoryID = 0;
+      DropTarget = False;
+      DropSource = False;
+      FontBold = 'Значение не определено или не известно.';
+      FontItalic = 'Значение не определено или не известно.';
+      FontUnderline = 'Значение не определено или не известно.';
+      FontStrikeout = 'Значение не определено или не известно.';
+      FontColor = 'Значение не определено или не известно.';
+      FontBackColor = 'Значение не определено или не известно.';
+      InputMask = 'Значение не определено или не известно.';
+      FixedState = 0;
+      EditButton = False;
+      Hyperlink = False;
+      Urllink = '';
+      LessValue = False;
+      HeaderImageName = '';
+      CurRowFontBold = 'Значение не определено или не известно.';
+      CurRowFontItalic = 'Значение не определено или не известно.';
+      CurRowFontUnderline = 'Значение не определено или не известно.';
+      CurRowFontStrikeout = 'Значение не определено или не известно.';
+      CurRowFontColor = 'Значение не определено или не известно.';
+      CurRowFontBackColor = 'Значение не определено или не известно.';
+      HeaderAlign = 3;
+    } // Field: KATMC.OKDP : Column
+    object 'c_BRMC1_MCALTNAME_Альтернативное_наименование_МЦ' : Column {
+      Visible = False;
+      Index = 3;
+    } // c_BRMC1_MCALTNAME_Альтернативное_наименование_МЦ : Column
+    object 'c_BRMC1_KATMC.NAME_Наименование_матценности' : Column {
+      Index = 4;
+      DefaultWidth = 55;
+    } // c_BRMC1_KATMC.NAME_Наименование_матценности : Column
+    // Информация: объект "'Field: GROUPMC.NAME'" типа Column не найден в базовой конфигурации!
+    object 'Field: GROUPMC.NAME' : Column {
+      Original = False;
+      Visible = True;
+      Hidden = False;
+      Protect = True;
+      Skip = False;
+      UpCase = False;
+      Password = False;
+      NoValidCheck = True;
+      StatusCtx = 16;
+      Title = 'Производитель';
+      HelpLine = '';
+      FieldName = 'Field: GROUPMC.NAME';
+      DefaultValue = '';
+      Strings = ( // Список строк
+      )
+      StringsNull = 0;
+      Index = 5;
+      DefaultWidth = 15;
+      TextAlign = 0;
+      ButtonType = 0;
+      DefaultPickButton = False;
+      SpinInc = 0.0;
+      SpinMin = 0.0;
+      SpinMax = 0.0;
+      NoAutoSize = False;
+      EnumValues = ( // Список целых
+      )
+      PassiveFormat = '';
+      Points = 0;
+      MaxLen = 220;
+      PrecisionVarName = '';
+      HistoryID = 0;
+      DropTarget = False;
+      DropSource = False;
+      FontBold = 'Значение не определено или не известно.';
+      FontItalic = 'Значение не определено или не известно.';
+      FontUnderline = 'Значение не определено или не известно.';
+      FontStrikeout = 'Значение не определено или не известно.';
+      FontColor = 'Значение не определено или не известно.';
+      FontBackColor = 'Значение не определено или не известно.';
+      InputMask = 'Значение не определено или не известно.';
+      FixedState = 0;
+      EditButton = False;
+      Hyperlink = False;
+      Urllink = '';
+      LessValue = False;
+      HeaderImageName = '';
+      CurRowFontBold = 'Значение не определено или не известно.';
+      CurRowFontItalic = 'Значение не определено или не известно.';
+      CurRowFontUnderline = 'Значение не определено или не известно.';
+      CurRowFontStrikeout = 'Значение не определено или не известно.';
+      CurRowFontColor = 'Значение не определено или не известно.';
+      CurRowFontBackColor = 'Значение не определено или не известно.';
+      HeaderAlign = 3;
+    } // Field: GROUPMC.NAME : Column
+    object 'c_BRMC1_KATMC.OBOZN_Конструкт._обозначение' : Column {
+      Visible = False;
+      Index = 6;
+    } // c_BRMC1_KATMC.OBOZN_Конструкт._обозначение : Column
+    // Информация: объект "'Field: KATMC.POLZAK'" типа Column не найден в базовой конфигурации!
+    object 'Field: KATMC.POLZAK' : Column {
+      Original = False;
+      Visible = True;
+      Hidden = False;
+      Protect = True;
+      Skip = True;
+      UpCase = False;
+      Password = False;
+      NoValidCheck = True;
+      StatusCtx = 16;
+      Title = 'ЦК';
+      HelpLine = '';
+      FieldName = 'Field: KATMC.POLZAK';
+      DefaultValue = '';
+      Strings = ( // Список строк
+      )
+      StringsNull = 0;
+      Index = 7;
+      DefaultWidth = 3;
+      TextAlign = 0;
+      ButtonType = 0;
+      DefaultPickButton = False;
+      SpinInc = 0.0;
+      SpinMin = 0.0;
+      SpinMax = 0.0;
+      NoAutoSize = False;
+      EnumValues = ( // Список целых
+      )
+      PassiveFormat = '';
+      Points = 0;
+      MaxLen = 5;
+      PrecisionVarName = '';
+      HistoryID = 0;
+      DropTarget = False;
+      DropSource = False;
+      FontBold = 'Значение не определено или не известно.';
+      FontItalic = 'Значение не определено или не известно.';
+      FontUnderline = 'Значение не определено или не известно.';
+      FontStrikeout = 'Значение не определено или не известно.';
+      FontColor = 'Значение не определено или не известно.';
+      FontBackColor = 'Значение не определено или не известно.';
+      InputMask = 'Значение не определено или не известно.';
+      FixedState = 0;
+      EditButton = False;
+      Hyperlink = False;
+      Urllink = '';
+      LessValue = False;
+      HeaderImageName = '';
+      CurRowFontBold = 'Значение не определено или не известно.';
+      CurRowFontItalic = 'Значение не определено или не известно.';
+      CurRowFontUnderline = 'Значение не определено или не известно.';
+      CurRowFontStrikeout = 'Значение не определено или не известно.';
+      CurRowFontColor = 'Значение не определено или не известно.';
+      CurRowFontBackColor = 'Значение не определено или не известно.';
+      HeaderAlign = 3;
+    } // Field: KATMC.POLZAK : Column
+    object 'c_BRMC1_KATMC.BARKOD_Номенклат._номер' : Column {
+      Index = 8;
+    } // c_BRMC1_KATMC.BARKOD_Номенклат._номер : Column
+    object 'c_BRMC1_KATMC.BARKOD2' : Column {
+      Title = 'Дополнительный код';
+      HelpLine = 'Дополнительный код матценности';
+      Index = 9;
+    } // c_BRMC1_KATMC.BARKOD2 : Column
+    object 'c_BRMC1_TEKMCKA_Наличие' : Column {
+      Index = 10;
+    } // c_BRMC1_TEKMCKA_Наличие : Column
+    object 'c_BRMC1_TEKMCRESERVE_Резерв' : Column {
+      Index = 11;
+    } // c_BRMC1_TEKMCRESERVE_Резерв : Column
+    object 'c_BRMC1_Активная_EдИзм' : Column {
+      Index = 12;
+    } // c_BRMC1_Активная_EдИзм : Column
+    object 'c_BRMC1_ISKOMPL_К' : Column {
+      Index = 13;
+    } // c_BRMC1_ISKOMPL_К : Column
+    object 'c_BRMC1_ISARHIV_А' : Column {
+      Index = 14;
+    } // c_BRMC1_ISARHIV_А : Column
+    object 'c_BRMC1_DRAGMETKOL_ДМ' : Column {
+      Index = 15;
+    } // c_BRMC1_DRAGMETKOL_ДМ : Column
+  } // BRMC1 : Browser
+  object BRMC2 : Browser {
+    object 'c_BRMC2_MCALTNAME_Альтернативное_наименование_МЦ' : Column {
+      Visible = False;
+    } // c_BRMC2_MCALTNAME_Альтернативное_наименование_МЦ : Column
+    object 'c_BRMC2_KATMC.OBOZN_Конструкт._обозначение' : Column {
+      Visible = False;
+    } // c_BRMC2_KATMC.OBOZN_Конструкт._обозначение : Column
+    object 'c_BRMC2_KATMC.BARKOD2' : Column {
+      Title = 'Дополнительный код';
+      HelpLine = 'Дополнительный код матценности';
+    } // c_BRMC2_KATMC.BARKOD2 : Column
+  } // BRMC2 : Browser
+  object WNALTNAMESEARCH : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+  } // WNALTNAMESEARCH : InterfaceWindow
+  object WNDMCFILTER : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+  } // WNDMCFILTER : InterfaceWindow
+  object WISETSOMECOPYREC : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+  } // WISETSOMECOPYREC : InterfaceWindow
+  object WKATMC : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+    Centered = True;
+    object SCR000 : Screen {
+      object 'i_SCR000_KATMC.BARKOD2' : PanelInputLine {
+        HelpLine = 'Дополнительный код матценности';
+      } // i_SCR000_KATMC.BARKOD2 : PanelInputLine
+    } // SCR000 : Screen
+    object SCKATMC : Screen {
+      object 'cb_SCKATMC_KATMC.KOMPLEKT' : PanelCheckBox {
+        Skip = True;
+      } // cb_SCKATMC_KATMC.KOMPLEKT : PanelCheckBox
+      object 'cb_SCKATMC_KATMC.WSERIALREG' : PanelCheckBox {
+        Skip = True;
+      } // cb_SCKATMC_KATMC.WSERIALREG : PanelCheckBox
+      object 'i_SCKATMC_KATMC.DBEGPROS' : PanelInputLine {
+        StatusCtx = 6902;
+        DefaultPickButton = True;
+      } // i_SCKATMC_KATMC.DBEGPROS : PanelInputLine
+      object 'i_SCKATMC_KATMC.DENDPROS' : PanelInputLine {
+        StatusCtx = 6902;
+        DefaultPickButton = True;
+      } // i_SCKATMC_KATMC.DENDPROS : PanelInputLine
+      object cb_SCKATMC_REM_KOEF_RS : PanelCheckBox {
+        Visible = False;
+      } // cb_SCKATMC_REM_KOEF_RS : PanelCheckBox
+      object cb_SCKATMC_REM_KOEF_DRK : PanelCheckBox {
+        Visible = False;
+      } // cb_SCKATMC_REM_KOEF_DRK : PanelCheckBox
+      // Информация: объект "'Field: KATMC.POLZAK#1'" типа PanelInputLine не найден в базовой конфигурации!
+      object 'Field: KATMC.POLZAK#1' : PanelInputLine {
+        Original = False;
+        Visible = True;
+        Hidden = False;
+        Protect = False;
+        Skip = False;
+        UpCase = False;
+        Password = False;
+        NoValidCheck = True;
+        LessNull = False;
+        StatusCtx = 16;
+        Strings = ( // Список строк
+        )
+        StringsNull = 0;
+        HelpLine = '';
+        FieldName = 'Field: KATMC.POLZAK';
+        DefaultValue = '';
+        Origin_X = 38;
+        Origin_Y = 130;
+        Size_X = 31;
+        Size_Y = 14;
+        TextAlign = 0;
+        ButtonType = 0;
+        DefaultPickButton = False;
+        SpinInc = 0.0;
+        SpinMin = 0.0;
+        SpinMax = 0.0;
+        NoStatic = False;
+        EnumValues = ( // Список целых
+        )
+        PassiveFormat = '';
+        Points = 0;
+        MaxLen = 5;
+        PrecisionVarName = '';
+        HistoryID = 0;
+        DropTarget = False;
+        DropSource = False;
+        FontBold = 'Значение не определено или не известно.';
+        FontItalic = 'Значение не определено или не известно.';
+        FontUnderline = 'Значение не определено или не известно.';
+        FontStrikeout = 'Значение не определено или не известно.';
+        FontColor = 'Значение не определено или не известно.';
+        FontBackColor = 'Значение не определено или не известно.';
+        InputMask = 'Значение не определено или не известно.';
+        EditButton = False;
+        Hyperlink = False;
+        Urllink = '';
+        LessValue = False;
+        AnchorLeft = True;
+        AnchorTop = True;
+        AnchorRight = False;
+        AnchorBottom = False;
+      } // Field: KATMC.POLZAK#1 : PanelInputLine
+      // Информация: объект "'LbField: KATMC.POLZAK#1'" типа Label не найден в базовой конфигурации!
+      object 'LbField: KATMC.POLZAK#1' : Label {
+        Original = False;
+        Title = 'ЦК';
+        Visible = True;
+        Hidden = False;
+        HelpLine = '';
+        Origin_X = 7;
+        Origin_Y = 129;
+        Size_X = 15;
+        Size_Y = 14;
+        AnchorLeft = True;
+        AnchorTop = True;
+        AnchorRight = False;
+        AnchorBottom = False;
+      } // LbField: KATMC.POLZAK#1 : Label
+    } // SCKATMC : Screen
+    object SCKATMC_SKLAD : Screen {
+      object 'i_SCKATMC_SKLAD_KATMC.MASSA' : PanelInputLine {
+        StatusCtx = 6911;
+      } // i_SCKATMC_SKLAD_KATMC.MASSA : PanelInputLine
+      object 'i_SCKATMC_SKLAD_KATMC.MTARA' : PanelInputLine {
+        StatusCtx = 6911;
+      } // i_SCKATMC_SKLAD_KATMC.MTARA : PanelInputLine
+      object i_SCKATMC_SKLAD_FBRUTTO : PanelInputLine {
+        StatusCtx = 6911;
+      } // i_SCKATMC_SKLAD_FBRUTTO : PanelInputLine
+    } // SCKATMC_SKLAD : Screen
+    object SCKATMC_TORG : Screen {
+      object 'i_SCKATMC_TORG_KATMC.BONUS_PR' : PanelInputLine {
+        Skip = True;
+      } // i_SCKATMC_TORG_KATMC.BONUS_PR : PanelInputLine
+      object 'i_SCKATMC_TORG_KATMC.NORMUB' : PanelInputLine {
+        StatusCtx = 6901;
+      } // i_SCKATMC_TORG_KATMC.NORMUB : PanelInputLine
+    } // SCKATMC_TORG : Screen
+    object SCKATMC_MANUF : Screen {
+      object 'i_SCKATMC_MANUF_KATOTPED2.NAME' : PanelInputLine {
+        Visible = False;
+      } // i_SCKATMC_MANUF_KATOTPED2.NAME : PanelInputLine
+    } // SCKATMC_MANUF : Screen
+    object SCKATMC_SFO : Screen {
+      StatusCtx = 6901;
+      object 'i_SCKATMC_SFO_GROUPSFO.KOD' : PanelInputLine {
+        StatusCtx = 6902;
+      } // i_SCKATMC_SFO_GROUPSFO.KOD : PanelInputLine
+      object 'i_SCKATMC_SFO_GROUPSFO.NAME' : PanelInputLine {
+        StatusCtx = 6902;
+      } // i_SCKATMC_SFO_GROUPSFO.NAME : PanelInputLine
+      object 'i_SCKATMC_SFO_KATMC.SIZES[1]' : PanelInputLine {
+        DefaultPickButton = False;
+      } // i_SCKATMC_SFO_KATMC.SIZES[1] : PanelInputLine
+      object 'i_SCKATMC_SFO_KATMC.SIZES[15]' : PanelInputLine {
+        StatusCtx = 6902;
+      } // i_SCKATMC_SFO_KATMC.SIZES[15] : PanelInputLine
+      object 'i_SCKATMC_SFO_KATMC.SIZES[2]' : PanelInputLine {
+        DefaultPickButton = False;
+      } // i_SCKATMC_SFO_KATMC.SIZES[2] : PanelInputLine
+      object 'i_SCKATMC_SFO_KATMC.SIZES[3]' : PanelInputLine {
+        HelpLine = 'Размер одежды 2';
+        DefaultPickButton = False;
+      } // i_SCKATMC_SFO_KATMC.SIZES[3] : PanelInputLine
+      object 'i_SCKATMC_SFO_KATMC.SIZES[4]' : PanelInputLine {
+        DefaultPickButton = False;
+      } // i_SCKATMC_SFO_KATMC.SIZES[4] : PanelInputLine
+      object 'i_SCKATMC_SFO_KATMC.SIZES[9]' : PanelInputLine {
+        HelpLine = 'Размер обуви 2';
+        DefaultPickButton = False;
+      } // i_SCKATMC_SFO_KATMC.SIZES[9] : PanelInputLine
+      object 'i_SCKATMC_SFO_KATMC.SIZES[5]' : PanelInputLine {
+        DefaultPickButton = False;
+      } // i_SCKATMC_SFO_KATMC.SIZES[5] : PanelInputLine
+      object 'i_SCKATMC_SFO_KATMC.SIZES[11]' : PanelInputLine {
+        HelpLine = 'Климатический пояс';
+        DefaultPickButton = False;
+      } // i_SCKATMC_SFO_KATMC.SIZES[11] : PanelInputLine
+      object 'i_SCKATMC_SFO_KATMC.SIZES[6]' : PanelInputLine {
+        DefaultPickButton = False;
+      } // i_SCKATMC_SFO_KATMC.SIZES[6] : PanelInputLine
+      object 'i_SCKATMC_SFO_KATMC.SIZES[12]' : PanelInputLine {
+        HelpLine = 'Категория работников';
+        DefaultPickButton = False;
+      } // i_SCKATMC_SFO_KATMC.SIZES[12] : PanelInputLine
+      object 'i_SCKATMC_SFO_KATMC.SIZES[7]' : PanelInputLine {
+        DefaultPickButton = False;
+      } // i_SCKATMC_SFO_KATMC.SIZES[7] : PanelInputLine
+      object 'i_SCKATMC_SFO_KATMC.SIZES[13]' : PanelInputLine {
+        HelpLine = 'Класс защитных свойств';
+        DefaultPickButton = False;
+      } // i_SCKATMC_SFO_KATMC.SIZES[13] : PanelInputLine
+      object 'i_SCKATMC_SFO_KATMC.SIZES[8]' : PanelInputLine {
+        Visible = False;
+        DefaultPickButton = False;
+      } // i_SCKATMC_SFO_KATMC.SIZES[8] : PanelInputLine
+    } // SCKATMC_SFO : Screen
+  } // WKATMC : InterfaceWindow
+} // L_MCU::KATMC : InterfaceWindow
+//-----------------------------------------------------------------------------
+object 'L_PRICES::PRICELS' : InterfaceWindow {
+  ScriptFontSize = 9;
+  ScriptFontFace = 'Calibri';
+  cfgName = 'A208';
+  object BRPRICELS1 : Browser {
+    object 'c_BRPRICELS1_PRICES.PRAVT_Корр_цены' : Column {
+      DefaultPickButton = True;
+    } // c_BRPRICELS1_PRICES.PRAVT_Корр_цены : Column
+    object 'Field: PRICES.DFORM' : Column {
+    // Ошибка: Не могу взять значение свойства ButtonType объекта в базовой конфигурации
+      ButtonType = 256;
+    } // Field: PRICES.DFORM : Column
+    object 'Field: PRICES.DFORM#1' : Column {
+    // Ошибка: Не могу взять значение свойства ButtonType объекта в базовой конфигурации
+      ButtonType = 256;
+    } // Field: PRICES.DFORM#1 : Column
+  } // BRPRICELS1 : Browser
+  object WINALOGPOZPRLS : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+  } // WINALOGPOZPRLS : InterfaceWindow
+  object WIPRICEPOZPRLS : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+  } // WIPRICEPOZPRLS : InterfaceWindow
+  object FORMNEWPRICELIST : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+  } // FORMNEWPRICELIST : InterfaceWindow
+  object WINGETRECALCONBASE : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+  } // WINGETRECALCONBASE : InterfaceWindow
+  object WINHANDLEPRICES : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+  } // WINHANDLEPRICES : InterfaceWindow
+  object WNDSORTDETAIL : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+  } // WNDSORTDETAIL : InterfaceWindow
+  object WIEDPRLS : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+  } // WIEDPRLS : InterfaceWindow
+} // L_PRICES::PRICELS : InterfaceWindow
+//-----------------------------------------------------------------------------
+object 'L_PRICES::HISTPRICE' : InterfaceWindow {
+  ScriptFontSize = 9;
+  ScriptFontFace = 'Calibri';
+  EmbName = 'L_PRICES::PRICELS->';
+  cfgName = 'A208';
+  object WINEWHISTPRICE : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+  } // WINEWHISTPRICE : InterfaceWindow
+} // L_PRICES::HISTPRICE : InterfaceWindow
+//-----------------------------------------------------------------------------
+object 'L_PRICES::PRICELS' : InterfaceWindow {
+  ScriptFontSize = 9;
+  ScriptFontFace = 'Calibri';
+  Title = 'Прайс-лист: Розн торговля (Цены для POS-терминалов)';
+  cfgName = 'производитель';
+  object BRPRICELS1 : Browser {
+    object 'c_BRPRICELS1_PRICES.NAME_Наименование' : Column {
+      DefaultWidth = 19;
+    } // c_BRPRICELS1_PRICES.NAME_Наименование : Column
+    object 'Field: GROUPMC.NAME' : Column {
+      Protect = False;
+      Skip = False;
+      Title = '';
+      Index = 4;
+      DefaultWidth = 26;
+    } // Field: GROUPMC.NAME : Column
+    object 'c_BRPRICELS1_OTPEDNAME_Отп._ЕдИзм' : Column {
+      Index = 8;
+    } // c_BRPRICELS1_OTPEDNAME_Отп._ЕдИзм : Column
+    object 'c_BRPRICELS1_PRICES.SUMVAL_Цена_в_валюте' : Column {
+      Index = 9;
+    } // c_BRPRICELS1_PRICES.SUMVAL_Цена_в_валюте : Column
+    object 'c_BRPRICELS1_SIM_V_Вал' : Column {
+      Index = 10;
+    } // c_BRPRICELS1_SIM_V_Вал : Column
+    object 'c_BRPRICELS1_PRICES.PRICE_Цена_в_НДЕ' : Column {
+      Index = 11;
+    } // c_BRPRICELS1_PRICES.PRICE_Цена_в_НДЕ : Column
+    object 'c_BRPRICELS1_ATTRVAL.VDATE_Дата_расчета' : Column {
+      Index = 12;
+    } // c_BRPRICELS1_ATTRVAL.VDATE_Дата_расчета : Column
+    object 'Field: KATMC.POLZAK' : Column {
+      Index = 13;
+    } // Field: KATMC.POLZAK : Column
+    object 'c_BRPRICELS1_PRICES.PRAVT_Корр_цены' : Column {
+      Index = 14;
+    } // c_BRPRICELS1_PRICES.PRAVT_Корр_цены : Column
+    object 'c_BRPRICELS1_PRICES.CALCKOEF_Коэфф._пересчета' : Column {
+      Index = 15;
+    } // c_BRPRICELS1_PRICES.CALCKOEF_Коэфф._пересчета : Column
+    object 'c_BRPRICELS1_VKOLKPN_Кол.КПН' : Column {
+      Index = 16;
+    } // c_BRPRICELS1_VKOLKPN_Кол.КПН : Column
+    object 'Field: PRICES.DFORM' : Column {
+      Index = 17;
+    // Ошибка: Не могу взять значение свойства "ButtonType"
+    } // Field: PRICES.DFORM : Column
+    object 'c_BRPRICELS1_VEDIZMKPN_ЕдИзм_КПН' : Column {
+      Index = 18;
+    } // c_BRPRICELS1_VEDIZMKPN_ЕдИзм_КПН : Column
+    object 'c_BRPRICELS1_DOGUSLFUNCS_CURR_Базовый_учебный_план' : Column {
+      Index = 19;
+    } // c_BRPRICELS1_DOGUSLFUNCS_CURR_Базовый_учебный_план : Column
+    object 'Field: PRICES.DFORM#1' : Column {
+      Index = 20;
+    // Ошибка: Не могу взять значение свойства "ButtonType"
+    } // Field: PRICES.DFORM#1 : Column
+  } // BRPRICELS1 : Browser
+  object WINALOGPOZPRLS : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+  } // WINALOGPOZPRLS : InterfaceWindow
+  object WIPRICEPOZPRLS : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+  } // WIPRICEPOZPRLS : InterfaceWindow
+  object FORMNEWPRICELIST : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+  } // FORMNEWPRICELIST : InterfaceWindow
+  object WINGETRECALCONBASE : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+  } // WINGETRECALCONBASE : InterfaceWindow
+  object WINHANDLEPRICES : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+  } // WINHANDLEPRICES : InterfaceWindow
+  object WNDSORTDETAIL : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+  } // WNDSORTDETAIL : InterfaceWindow
+  object WIEDPRLS : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+  } // WIEDPRLS : InterfaceWindow
+} // L_PRICES::PRICELS : InterfaceWindow
+//-----------------------------------------------------------------------------
+object 'L_PRICES::HISTPRICE' : InterfaceWindow {
+  ScriptFontSize = 9;
+  ScriptFontFace = 'Calibri';
+  EmbName = 'L_PRICES::PRICELS->';
+  cfgName = 'производитель';
+  object WINEWHISTPRICE : InterfaceWindow {
+    ScriptFontSize = 9;
+    ScriptFontFace = 'Calibri';
+  } // WINEWHISTPRICE : InterfaceWindow
+} // L_PRICES::HISTPRICE : InterfaceWindow
+//-----------------------------------------------------------------------------
+object 'EICKEEPER L_MCU::GETSOMEMC_KATMC' : EmbIntConfKeeper {
+  object 'L_MCU::GETSOMEMC->L_MCU::GETSOMEMC_KATMC' : EmbIntConfKeeperItem {
+    Link = 'L_MCU::GETSOMEMC->L_MCU::GETSOMEMC_KATMC';
+  } // L_MCU::GETSOMEMC->L_MCU::GETSOMEMC_KATMC : EmbIntConfKeeperItem
+} // EICKEEPER L_MCU::GETSOMEMC_KATMC : EmbIntConfKeeper
+//-----------------------------------------------------------------------------
+object 'EICKEEPER L_MCU::KATMC' : EmbIntConfKeeper {
+  object 'L_MCU::KATMC' : EmbIntConfKeeperItem {
+    Link = 'L_MCU::KATMC';
+  } // L_MCU::KATMC : EmbIntConfKeeperItem
+} // EICKEEPER L_MCU::KATMC : EmbIntConfKeeper
+//-----------------------------------------------------------------------------
+object 'EICKEEPER L_PRICES::HISTPRICE' : EmbIntConfKeeper {
+  object '[производитель]L_PRICES::PRICELS->L_PRICES::HISTPRICE' : EmbIntConfKeeperItem {
+    Link = '[производитель]L_PRICES::PRICELS->L_PRICES::HISTPRICE';
+  } // [производитель]L_PRICES::PRICELS->L_PRICES::HISTPRICE : EmbIntConfKeeperItem
+  object '[A208]L_PRICES::PRICELS->L_PRICES::HISTPRICE' : EmbIntConfKeeperItem {
+    Link = '[A208]L_PRICES::PRICELS->L_PRICES::HISTPRICE';
+  } // [A208]L_PRICES::PRICELS->L_PRICES::HISTPRICE : EmbIntConfKeeperItem
+} // EICKEEPER L_PRICES::HISTPRICE : EmbIntConfKeeper
+//-----------------------------------------------------------------------------
+object 'EICKEEPER L_PRICES::PRICELS' : EmbIntConfKeeper {
+  object '[производитель]L_PRICES::PRICELS' : EmbIntConfKeeperItem {
+    Link = '[производитель]L_PRICES::PRICELS';
+  } // [производитель]L_PRICES::PRICELS : EmbIntConfKeeperItem
+  object '[A208]L_PRICES::PRICELS' : EmbIntConfKeeperItem {
+    Link = '[A208]L_PRICES::PRICELS';
+  } // [A208]L_PRICES::PRICELS : EmbIntConfKeeperItem
+} // EICKEEPER L_PRICES::PRICELS : EmbIntConfKeeper
+//-----------------------------------------------------------------------------

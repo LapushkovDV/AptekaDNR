@@ -1,0 +1,1191 @@
+#include FRRecordDefinition.vih
+#include ObjMC.vih         // Функции МЦ
+#include GTekOst.vih
+interface iATC_GRPOC 'Гос. реестр предельных отпускных цен', cyan;
+Show at (,,120,25);
+
+table struct local _tmpUpdList
+(
+  DateBeg     :date,
+  nRecMC      :comp,
+  MNN         :string,
+  NameMC      :string,
+  BarKod      :string[30],
+  BarKod2     :string[30],
+  CenaMC      :double,
+  MaxPrice    :double
+)
+with index
+(
+  by_nRecMC    = nRecMC
+);
+
+
+table struct local _tmpAnaliz
+(
+  Npp            :longint,
+  MNN            :string,
+  K_MNN          :string,
+  ATX_CODE       :string,
+  K_ATX_CODE     :string,
+  RU_NUMBER      :string,
+  K_RU_NUMBER    :string,
+  NameMC         :string,
+  BarKod         :string[30],
+  ARTICLE        :string,
+  CenaMC         :double,
+  MaxPrice       :double,
+  DateBeg        :date,
+  K_DateBeg      :date,
+  nRecMC         :comp,
+  Prikaz         :string,
+  TorgName       :string,
+  PharmForme     :string,
+  INFO           :string,
+  KolInPack      :double,
+
+  Status_MNN     :word,
+  Status_ATX     :word,
+  Status_RU_NUMBER :word,
+  Status_Price   :word,
+  Status_Date    :word,
+  Status         :word,
+  nRec_ATC_GRPOCSP :comp,
+  DateBeg_max    :date,
+  nRec_mm        :comp
+)
+with index
+(
+  by_Npp       = npp,
+  by_nRecMC    = nRecMC,
+  by_nRecSP    = nRec_ATC_GRPOCSP,
+  by_DateBeg_max = DateBeg_max,
+  by_nRec_mm   = nRec_mm
+);
+
+create view
+var ex               :iExtAttr;
+
+    name_file        :string;
+    xCol_MNN         :word;
+    xCol_Name        :word;
+    xCol_PharmForme  :word;
+    xCol_info        :word;
+    xCol_ATX_code    :word;
+    xCol_KolInPack   :word;
+    xCol_MaxPrice    :word;
+    xCol_firstPrice  :word;
+    xCol_RU_number   :word;
+    xCol_DDoc_NoDoc  :word;
+    xCol_article     :word;
+    xCol_Date        :word;
+
+    _ParamRow        :word;
+    _UserRowBeg      :word;
+    _UserRowEnd      :word;
+
+    fObjMC           :oObjMC;
+    GetTekOstPar     :iGetTekOstParBase;
+as select
+  if(ATC_GRPOC.isActive,'V','' ) (FieldName _active)
+ ,if(isValid(tnATC_GRPOC),'Государственный реестр предельных отпускных цен','')  (FieldName _ReestrName)
+ ,if(_tmpAnaliz.Status <> 0,'X','') (FieldName _Status)
+ ,*
+from
+  ATC_GRPOC
+ ,ATC_GRPOC ATC_GRPOC_gf
+ ,ATC_GRPOCSP (ATC_GRPOCSP_05)
+ ,ATC_GRPOCSP ATC_GRPOCSP_gf
+ ,KatMC
+ ,KatMC KatMC_Analiz
+ ,KatMC KatMC_gf
+ ,_tmpUpdList
+ ,_tmpAnaliz
+ ,OBJECTSHISTORY
+ ,GroupMC
+ ,GroupMC GroupMC_Analiz
+where ((
+    ATC_GRPOC.nRec         ==  ATC_GRPOCSP.cGRPOC
+and ATC_GRPOCSP.cMC        ==  KatMC.nRec
+and KatMC.cGroupMC         ==  GroupMC.nRec
+
+and _tmpAnaliz.nRecMC      ==  KatMC_Analiz.nRec
+and KatMC_Analiz.cGroupMC  ==  GroupMC_Analiz.nRec
+));
+
+
+//Стрим для FR-отчета
+datastream StreamGRPOC
+(
+  [CFH] CommonFormHeader;
+  Table _tmpUpdList(
+        [DateBeg]    _tmpUpdList.DateBeg;
+        [nRecMC]     _tmpUpdList.nRecMC;
+        [MNN]        _tmpUpdList.MNN;
+        [NameMC]     _tmpUpdList.NameMC;
+        [BarKod]     _tmpUpdList.BarKod;
+        [BarKod2]    _tmpUpdList.BarKod2;
+        [CenaMC]     _tmpUpdList.CenaMC;
+        [MaxPrice]   _tmpUpdList.MaxPrice;
+  );
+)
+end;
+
+sql query sql_GetUpdatingList =
+  Select
+    ATC_GRPOCSP.DateBeg       as DateBeg
+   ,KatMC.nRec                as nRecMC
+   ,ATC_GRPOCSP.MNN           as MNN
+   ,KatMC.Name                as NameMC
+   ,KatMC.BarKod              as BarKod
+   ,KatMC.BarKod2             as BarKod2
+   ,KatMC.CenaMC              as CenaMC
+   ,ATC_GRPOCSP.MaxPrice      as MaxPrice
+  from ATC_GRPOCSP
+  left join KatMC on KatMC.nRec = ATC_GRPOCSP.cMC
+  outer apply (
+                select top 1  mm.nRec as nRec_mm, mm.DateBeg as DateBeg
+                from ATC_GRPOCSP mm
+                where mm.CGRPOC = :nRec_GRPOC
+//                where mm.CGRPOC = #comp(281474976710669)
+                and mm.ARTICLE = ATC_GRPOCSP.ARTICLE
+                Order By mm.DateBeg DESC
+              ) as mx
+
+
+  where ATC_GRPOCSP.CGRPOC = :nRec_GRPOC
+//  where ATC_GRPOCSP.CGRPOC = #comp(281474976710669)
+  and ATC_GRPOCSP.nRec = mx.nRec_mm
+  and KatMC.nRec <> #comp(0)
+  and KatMC.CenaMC <> ATC_GRPOCSP.MaxPrice
+; // end sql
+
+sql query sql_GetAnalizList_1 =
+  Select
+    ATC_GRPOCSP.NPP           as Npp
+   ,ATC_GRPOCSP.MNN           as MNN
+   ,TRIM(Replace(ES_MNN.Name,ES_MNN.Value,'')) as K_MNN
+   ,ATC_GRPOCSP.ATX_CODE      as ATX_CODE
+   ,ES_MNN.Value              as K_ATX_CODE
+   ,ATC_GRPOCSP.RU_NUMBER     as RU_NUMBER
+   ,AV.vString                as K_RU_NUMBER
+   ,KatMC.Name                as NameMC
+   ,KatMC.BarKod              as BarKod
+   ,ATC_GRPOCSP.ARTICLE       as ARTICLE
+   ,KatMC.CenaMC              as CenaMC
+   ,ATC_GRPOCSP.MaxPrice      as MaxPrice
+   ,ATC_GRPOCSP.DateBeg       as DateBeg
+   ,AV_D.vDate                as K_DateBeg
+   ,KatMC.nRec                as nRecMC
+   ,ATC_GRPOCSP.nRec          as nRec_ATC_GRPOCSP
+   ,PRIK.NoPrik               as Prikaz
+   ,ATC_GRPOCSP.NAME          as TorgName
+   ,ATC_GRPOCSP.PHARMFORME    as PHARMFORME
+   ,ATC_GRPOCSP.INFO          as INFO
+   ,ATC_GRPOCSP.KOLINPACK     as KOLINPACK
+   ,mx.DateBeg                as DateBeg_max
+   ,null                      as nRec_mm
+  from ATC_GRPOCSP
+  left join KatMC on KatMC.nRec = ATC_GRPOCSP.cMC
+  left join ExClassName EN_MNN on EN_MNN.wTable = 1411 and EN_MNN.Name = 'Категории ассортмента'
+  left join ExClassVal EV_MNN on EV_MNN.wTable = 1411 and EV_MNN.CLASSCODE = EN_MNN.CLASSCODE and EV_MNN.cRec = KatMC.nRec
+  left join ExClassSeg ES_MNN on ES_MNN.nRec = EV_MNN.cClassSeg
+  left join AttrNam AN on AN.wTable = 1411 and AN.Name = 'RU - регистрационный номер'
+  left join AttrVal AV on AV.wTable = AN.wTable and AV.cRec = KatMC.nRec and AV.cAttrNam = AN.nRec
+  left join AttrNam AN_D on AN_D.wTable = 1411 and AN_D.Name = 'ЖВНЛП дата вступления в силу'
+  left join AttrVal AV_D on AV_D.wTable = AN_D.wTable and AV_D.cRec = KatMC.nRec and AV_D.cAttrNam = AN_D.nRec
+
+  outer apply (select top 1 ES_PRIK.Value as NoPrik
+               from ExClassName EN_PRIK
+               left join ExClassVal EV_PRIK on EV_PRIK.wTable = 1411 and EV_PRIK.CLASSCODE = EN_PRIK.CLASSCODE and EV_PRIK.cRec = KatMC.nRec
+               left join ExClassSeg ES_PRIK on ES_PRIK.nRec = EV_PRIK.cClassSeg
+               where EN_PRIK.wTable = 1411 and EN_PRIK.Name = 'ПРИКАЗЫ'
+               and ES_PRIK.Value = '865'
+               ) as PRIK
+  outer apply (
+                Select max(mx.DateBeg) as DateBeg from ATC_GRPOCSP mx
+                where mx.ARTICLE = ATC_GRPOCSP.ARTICLE
+              ) as mx
+
+  where ATC_GRPOCSP.CGRPOC = :nRec_GRPOC
+//  where ATC_GRPOCSP.CGRPOC = #comp(281474976710668)
+  Order by ATC_GRPOCSP.NPP
+; // end sql
+
+
+sql query sql_GetAnalizList_2 =
+  Select
+    ATC_GRPOCSP.NPP           as Npp
+   ,ATC_GRPOCSP.MNN           as MNN
+   ,TRIM(Replace(ES_MNN.Name,ES_MNN.Value,'')) as K_MNN
+   ,ATC_GRPOCSP.ATX_CODE      as ATX_CODE
+   ,ES_MNN.Value              as K_ATX_CODE
+   ,ATC_GRPOCSP.RU_NUMBER     as RU_NUMBER
+   ,AV.vString                as K_RU_NUMBER
+   ,KatMC.Name                as NameMC
+   ,KatMC.BarKod              as BarKod
+   ,ATC_GRPOCSP.ARTICLE       as ARTICLE
+   ,KatMC.CenaMC              as CenaMC
+   ,ATC_GRPOCSP.MaxPrice      as MaxPrice
+   ,ATC_GRPOCSP.DateBeg       as DateBeg
+   ,AV_D.vDate                as K_DateBeg
+   ,KatMC.nRec                as nRecMC
+   ,ATC_GRPOCSP.nRec          as nRec_ATC_GRPOCSP
+   ,PRIK.NoPrik               as Prikaz
+   ,ATC_GRPOCSP.NAME          as TorgName
+   ,ATC_GRPOCSP.PHARMFORME    as PHARMFORME
+   ,ATC_GRPOCSP.INFO          as INFO
+   ,ATC_GRPOCSP.KOLINPACK     as KOLINPACK
+   ,mx.DateBeg                as DateBeg_max
+   ,mx.nRec_mm                as nRec_mm
+  from ATC_GRPOCSP
+  left join KatMC on KatMC.nRec = ATC_GRPOCSP.cMC
+  left join ExClassName EN_MNN on EN_MNN.wTable = 1411 and EN_MNN.Name = 'Категории ассортмента'
+  left join ExClassVal EV_MNN on EV_MNN.wTable = 1411 and EV_MNN.CLASSCODE = EN_MNN.CLASSCODE and EV_MNN.cRec = KatMC.nRec
+  left join ExClassSeg ES_MNN on ES_MNN.nRec = EV_MNN.cClassSeg
+  left join AttrNam AN on AN.wTable = 1411 and AN.Name = 'RU - регистрационный номер'
+  left join AttrVal AV on AV.wTable = AN.wTable and AV.cRec = KatMC.nRec and AV.cAttrNam = AN.nRec
+  left join AttrNam AN_D on AN_D.wTable = 1411 and AN_D.Name = 'ЖВНЛП дата вступления в силу'
+  left join AttrVal AV_D on AV_D.wTable = AN_D.wTable and AV_D.cRec = KatMC.nRec and AV_D.cAttrNam = AN_D.nRec
+
+  outer apply (select top 1 ES_PRIK.Value as NoPrik
+               from ExClassName EN_PRIK
+               left join ExClassVal EV_PRIK on EV_PRIK.wTable = 1411 and EV_PRIK.CLASSCODE = EN_PRIK.CLASSCODE and EV_PRIK.cRec = KatMC.nRec
+               left join ExClassSeg ES_PRIK on ES_PRIK.nRec = EV_PRIK.cClassSeg
+               where EN_PRIK.wTable = 1411 and EN_PRIK.Name = 'ПРИКАЗЫ'
+               and ES_PRIK.Value = '865'
+               ) as PRIK
+  outer apply (
+                select top 1  mm.nRec as nRec_mm, mm.DateBeg as DateBeg
+                from ATC_GRPOCSP mm
+                where mm.CGRPOC = :nRec_GRPOC
+                //where mm.CGRPOC = #comp(281474976710668)
+                and mm.ARTICLE = ATC_GRPOCSP.ARTICLE
+                Order By mm.DateBeg DESC
+              ) as mx
+
+  where ATC_GRPOCSP.CGRPOC = :nRec_GRPOC
+//  where ATC_GRPOCSP.CGRPOC = #comp(281474976710668)
+  Order by ATC_GRPOCSP.NPP
+; // end sql
+
+
+sql query sql_UpdateValidMC =
+UPDATE ATC_GRPOCSP
+SET
+ATC_GRPOCSP.cMC=KatMC.nRec
+FROM ATC_GRPOCSP
+INNER JOIN
+KatMC
+ON KatMC.BARKOD2 = ATC_GRPOCSP.ARTICLE
+where ATC_GRPOCSP.CGRPOC = :nRec_GRPOC
+; // end sql
+
+Procedure DoAnaliz;
+{
+  var _collor :word = 13;
+  Update _tmpAnaliz where ((0 << _tmpAnaliz.nRecMC)) and _tmpAnaliz.MNN       <> _tmpAnaliz.K_MNN         SET Status_MNN       := _collor, Status :=  _collor;
+  Update _tmpAnaliz where ((0 << _tmpAnaliz.nRecMC)) and _tmpAnaliz.ATX_CODE  <> _tmpAnaliz.K_ATX_CODE    SET Status_ATX       := _collor, Status :=  _collor;
+  Update _tmpAnaliz where ((0 << _tmpAnaliz.nRecMC)) and _tmpAnaliz.RU_NUMBER <> _tmpAnaliz.K_RU_NUMBER   SET Status_RU_NUMBER := _collor, Status :=  _collor;
+  Update _tmpAnaliz where ((0 << _tmpAnaliz.nRecMC)) and _tmpAnaliz.CenaMC    <> _tmpAnaliz.MaxPrice      SET Status_Price     := _collor, Status :=  _collor;
+  Update _tmpAnaliz where ((0 << _tmpAnaliz.nRecMC)) and _tmpAnaliz.DateBeg   <> _tmpAnaliz.K_DateBeg     SET Status_Date      := _collor, Status :=  _collor;
+}
+/*
+Procedure DoAnaliz_cur;
+{
+  var _collor :word = 13;
+   if GetFirst KatMC_Analiz = tsOk
+      {
+        if _tmpAnaliz.MNN       <> _tmpAnaliz.K_MNN
+            {
+              SET _tmpAnaliz.Status_MNN  := _collor;
+              SET _tmpAnaliz.Status      := _collor;
+            }
+        if _tmpAnaliz.ATX_CODE  <> _tmpAnaliz.K_ATX_CODE
+            {
+              SET _tmpAnaliz.Status_ATX  := _collor;
+              SET _tmpAnaliz.Status      := _collor;
+            }
+        if _tmpAnaliz.RU_NUMBER <> _tmpAnaliz.K_RU_NUMBER
+            {
+              SET _tmpAnaliz.Status_RU_NUMBER  := _collor;
+              SET _tmpAnaliz.Status            := _collor;
+            }
+        if _tmpAnaliz.CenaMC    <> _tmpAnaliz.MaxPrice
+            {
+              SET _tmpAnaliz.Status_Price      := _collor;
+              SET _tmpAnaliz.Status            := _collor;
+            }
+        if _tmpAnaliz.DateBeg   <> _tmpAnaliz.K_DateBeg
+            {
+              SET _tmpAnaliz.Status_Date       := _collor;
+              SET _tmpAnaliz.Status            := _collor;
+            }
+
+        update current _tmpAnaliz;
+      }
+
+}
+*/
+
+Procedure _makeReport(_mode:word);
+{
+  var qq2: IQuery;
+  if _mode = 1 qq2 := queryManager.createQuery(sql_GetAnalizList_1);
+  if _mode = 2 qq2 := queryManager.createQuery(sql_GetAnalizList_2);
+  qq2.setParam('nRec_GRPOC', ATC_GRPOC.nRec );
+  qq2.execute;
+  var ResultSet:IResultSet;
+  ResultSet:=qq2.GetResultSet;
+  if (qq2.errorCode=0)
+     {
+       Delete all _tmpAnaliz;
+       sqlCopyInto(ResultSet,#_tmpAnaliz,true);
+       if _mode = 2
+          {
+            Delete _tmpAnaliz where _tmpAnaliz.nRecMC = 0;
+            Delete _tmpAnaliz where _tmpAnaliz.nRec_mm <> _tmpAnaliz.nRec_ATC_GRPOCSP;
+          }
+     }
+
+  //подсветка расхождений
+  DoAnaliz;
+}
+
+Procedure _SaveDSK;
+{
+  SaveMyDsk(xCol_MNN       , 'iATC_GRPOC_xCol_MNN');
+  SaveMyDsk(xCol_Name      , 'iATC_GRPOC_xCol_Name');
+  SaveMyDsk(xCol_PharmForme, 'iATC_GRPOC_xCol_PharmForme');
+  SaveMyDsk(xCol_info      , 'iATC_GRPOC_xCol_info');
+  SaveMyDsk(xCol_ATX_code  , 'iATC_GRPOC_xCol_ATX_code');
+  SaveMyDsk(xCol_KolInPack , 'iATC_GRPOC_xCol_KolInPack' );
+  SaveMyDsk(xCol_MaxPrice  , 'iATC_GRPOC_xCol_MaxPrice');
+  SaveMyDsk(xCol_firstPrice, 'iATC_GRPOC_xCol_firstPrice');
+  SaveMyDsk(xCol_RU_number , 'iATC_GRPOC_xCol_RU_number');
+  SaveMyDsk(xCol_DDoc_NoDoc, 'iATC_GRPOC_xCol_DDoc_NoDoc');
+  SaveMyDsk(xCol_article   , 'iATC_GRPOC_xCol_article');
+  SaveMyDsk(xCol_Date      , 'iATC_GRPOC_xCol_Date');
+
+
+  SaveMyDsk(_ParamRow      , 'iATC_GRPOC__ParamRow');
+  SaveMyDsk(_UserRowBeg    , 'iATC_GRPOC__UserRowBeg');
+  SaveMyDsk(_UserRowEnd    , 'iATC_GRPOC__UserRowEnd');
+}
+
+Procedure _ReadDSK;
+{
+  ReadMyDsk(xCol_MNN       , 'iATC_GRPOC_xCol_MNN', true);
+  ReadMyDsk(xCol_Name      , 'iATC_GRPOC_xCol_Name', true);
+  ReadMyDsk(xCol_PharmForme, 'iATC_GRPOC_xCol_PharmForme', true);
+  ReadMyDsk(xCol_info      , 'iATC_GRPOC_xCol_info', true);
+  ReadMyDsk(xCol_ATX_code  , 'iATC_GRPOC_xCol_ATX_code', true);
+  ReadMyDsk(xCol_KolInPack , 'iATC_GRPOC_xCol_KolInPack', true);
+  ReadMyDsk(xCol_MaxPrice  , 'iATC_GRPOC_xCol_MaxPrice', true);
+  ReadMyDsk(xCol_firstPrice, 'iATC_GRPOC_xCol_firstPrice', true);
+  ReadMyDsk(xCol_RU_number , 'iATC_GRPOC_xCol_RU_number', true);
+  ReadMyDsk(xCol_DDoc_NoDoc, 'iATC_GRPOC_xCol_DDoc_NoDoc', true);
+  ReadMyDsk(xCol_article   , 'iATC_GRPOC_xCol_article', true);
+  ReadMyDsk(xCol_Date      , 'iATC_GRPOC_xCol_Date', true);
+
+  ReadMyDsk(_ParamRow      , 'iATC_GRPOC__ParamRow', true);
+  ReadMyDsk(_UserRowBeg    , 'iATC_GRPOC__UserRowBeg', true);
+  ReadMyDsk(_UserRowEnd    , 'iATC_GRPOC__UserRowEnd', true);
+
+
+  if  xCol_MNN        = 0  SET  xCol_MNN         := 1;
+  if  xCol_Name       = 0  SET  xCol_Name        := 2;
+  if  xCol_PharmForme = 0  SET  xCol_PharmForme  := 3;
+  if  xCol_info       = 0  SET  xCol_info        := 4;
+  if  xCol_ATX_code   = 0  SET  xCol_ATX_code    := 5;
+  if  xCol_KolInPack  = 0  SET  xCol_KolInPack   := 6;
+  if  xCol_MaxPrice   = 0  SET  xCol_MaxPrice    := 7;
+  if  xCol_firstPrice = 0  SET  xCol_firstPrice  := 8;
+  if  xCol_RU_number  = 0  SET  xCol_RU_number   := 9;
+  if  xCol_DDoc_NoDoc = 0  SET  xCol_DDoc_NoDoc  := 10;
+  if  xCol_article    = 0  SET  xCol_article     := 11;
+  if  xCol_Date       = 0  SET  xCol_Date        := 12;
+
+  if  _UserRowBeg     = 0  SET _UserRowBeg       := 1;
+  if  _UserRowEnd     = 0  SET _UserRowEnd       := 100;
+}
+
+Procedure _SetDefaultColumns;
+{
+  SET xCol_MNN        := 1;
+  SET xCol_Name       := 2;
+  SET xCol_PharmForme := 3;
+  SET xCol_info       := 4;
+  SET xCol_ATX_code   := 5;
+  SET xCol_KolInPack  := 6;
+  SET xCol_MaxPrice   := 7;
+  SET xCol_firstPrice := 8;
+  SET xCol_RU_number  := 9;
+  SET xCol_DDoc_NoDoc := 10;
+  SET xCol_article    := 11;
+  SET xCol_Date       := 12;
+}
+
+Procedure CloseWorkBookAndKillExcel;
+var s: string;
+{
+  xlGetActiveWorkBookName(s);
+  xlCloseWorkBookByName(s);
+  xlKillExcel;
+}
+
+Function _LoadFromEx (_NRec:comp):boolean;
+{
+  StartNewVisual (vtRotateVisual, vfTimer, 'Обработано позиций: ', 1 );
+
+  xlKillExcel;
+  if not xlOpenNewExcel(false)
+     {
+       Message('Ошибка открытия Excel (xlOpenExcel)!', Warning);
+       xlKillExcel;
+       _LoadFromEx:=false;
+       StopVisual('',0);
+       Abort; Exit;
+     }
+  if not xlOpenWorkBook(name_file)
+     {
+       Message('Ошибка открытия '+name_file, Warning);
+       xlKillExcel;
+       _LoadFromEx:=false;
+       StopVisual('',0);
+       Abort; Exit;
+     }
+
+  xlSetActiveSheet(1);
+
+  var _rowBeg,_rowEnd :longint;
+  var _colBeg,_colEnd :longint;
+
+  if _ParamRow = 0
+     {
+       XLGETUSEDRANGE(_rowBeg, _colBeg, _rowEnd, _colEnd);
+     } else
+     {
+        SET _rowBeg := _UserRowBeg;
+        SET _rowEnd := _UserRowEnd;
+     }
+
+  var i :longint = _rowBeg;
+  var _npp :longint =0;
+  var _nppErr :longint =0;
+  DeleteFile('Протокол_ГРПОЦ.txt');
+  while(true)
+  {
+
+    SetVisualHeader ('Обработка файла'+chr(13)+
+                     'Обработано строк '+ i + ' из '+  _rowEnd
+                    );
+    NextVisual;
+    var _ReestrDate :date = date(0,0,0);
+
+    //в первой строке цикла определим дату реестра
+    //ключ '(по состоянию на '
+    //но если поменяют, то работать перестанет
+    if i = _rowBeg
+    {
+      var _xStr:string;
+      xlGetCellValue(i,1, _xStr);
+      var _strKey:string = '(по состоянию на ';
+      var _x:word = inStr(_strKey,_xStr);
+      if _x <> 0 _xStr := SubStr(_xStr,_x+length(_strKey), length(_xStr));
+      _xStr := Trim(Replace(_xStr,')',''));
+      _ReestrDate := StrToDate(_xStr,'DD.MM.YYYY');
+      ATC_GRPOC.ReestrDate := _ReestrDate;
+      update current ATC_GRPOC;
+    }
+
+    var _xDate       :string='';
+    var _xKolInPack  :string='';
+    var _xMaxPrice   :string='';
+    var _xfirstPrice :string='';
+
+    ClearBuffer(#ATC_GRPOCSP);
+    xlGetCellValue(i,xCol_MNN       , ATC_GRPOCSP.MNN);
+    xlGetCellValue(i,xCol_Name      , ATC_GRPOCSP.Name);
+    xlGetCellValue(i,xCol_PharmForme, ATC_GRPOCSP.PharmForme);
+    xlGetCellValue(i,xCol_info      , ATC_GRPOCSP.info);
+    xlGetCellValue(i,xCol_ATX_code  , ATC_GRPOCSP.ATX_code);
+    xlGetCellValue(i,xCol_KolInPack , _xKolInPack  );
+    xlGetCellValue(i,xCol_MaxPrice  , _xMaxPrice   );
+    xlGetCellValue(i,xCol_firstPrice, _xfirstPrice );
+    xlGetCellValue(i,xCol_RU_number , ATC_GRPOCSP.RU_number);
+    xlGetCellValue(i,xCol_DDoc_NoDoc, ATC_GRPOCSP.DDoc_NoDoc);
+    xlGetCellValue(i,xCol_article   , ATC_GRPOCSP.article);
+    xlGetCellValue(i,xCol_Date      , _xDate);
+    SET ATC_GRPOCSP.DateBeg := StrToDate(_xDate,'DD.MM.YYYY')
+
+    ATC_GRPOCSP.KolInPack   := double(Replace(_xKolInPack,',','.'));
+    ATC_GRPOCSP.maxPrice    := double(Replace(_xMaxPrice,',','.'));
+    ATC_GRPOCSP.firstPrice  := double(Replace(_xfirstPrice,',','.'));
+    ATC_GRPOCSP.article     := trim(ATC_GRPOCSP.article);
+
+    if i > _rowEnd break;
+//    if i > 20 break;
+
+    if (    ATC_GRPOCSP.article  <> ''
+        and ATC_GRPOCSP.DateBeg  <> date(0,0,0)
+        and ATC_GRPOCSP.maxPrice <> 0
+//        and ATC_GRPOCSP.maxPrice <> 0
+//        and length(ATC_GRPOCSP.article) = 13
+       )
+       {
+         _npp++;
+         ATC_GRPOCSP.npp        := _npp;
+         ATC_GRPOCSP.ReestrDate := _ReestrDate;
+         ATC_GRPOCSP.cGRPOC     := _NRec;
+         if GetFirst FastFirstRow KatMC_gf where ((ATC_GRPOCSP.article == KatMC_gf.BARKOD2)) = tsOk
+            {
+              ATC_GRPOCSP.cMC   := KatMC_gf.nRec;
+            }
+         insert current ATC_GRPOCSP;
+       } else
+       {
+         _nppErr++;
+         var st:string= _nppErr + '  не загружена позиция!!! № строки в Excel:  '+ i;
+         LogStrToFile('Протокол_ГРПОЦ.txt', st);
+         st:='Код (EAN13):            ' + ATC_GRPOCSP.article;
+         LogStrToFile('Протокол_ГРПОЦ.txt', st);
+         st:='Наименование:           ' + ATC_GRPOCSP.Name;
+         LogStrToFile('Протокол_ГРПОЦ.txt', st);
+         st:='Макс.Цена:              ' + ATC_GRPOCSP.maxPrice;
+         LogStrToFile('Протокол_ГРПОЦ.txt', st);
+         st:='Дата вступления в силу: ' +ATC_GRPOCSP.DateBeg;
+         LogStrToFile('Протокол_ГРПОЦ.txt', st);
+         st:='//=====================================================================================================================================';
+         LogStrToFile('Протокол_ГРПОЦ.txt', st);
+       }
+    i++;
+  }
+
+  StopVisual('',0);
+  CloseWorkBookAndKillExcel;
+
+  if ExistFile('Протокол_ГРПОЦ.txt')
+     {
+       ImportFileToMemoAZM(ATC_GRPOC.SMEMO,'Протокол_ГРПОЦ.txt',true);
+       Update current ATC_GRPOC;
+       ProcessText('Протокол_ГРПОЦ.txt',vfDefault,'Протокол импорта Гос. реестра предельных отпускных цен');
+     }
+
+}
+
+
+Window winNastrExcelCol 'Настройка колонок для импорта из Excel' EscClose;
+Show at (,,60,19);
+panel pMy
+Screen sc3 (, , sci1Esc);
+Fields
+//------------------------------------------------------------------------------
+  xCol_MNN          :NoProtect;
+  xCol_Name         :NoProtect;
+  xCol_PharmForme   :NoProtect;
+  xCol_info         :NoProtect;
+  xCol_ATX_code     :NoProtect;
+  xCol_KolInPack    :NoProtect;
+  xCol_MaxPrice     :NoProtect;
+  xCol_firstPrice   :NoProtect;
+  xCol_RU_number    :NoProtect;
+  xCol_DDoc_NoDoc   :NoProtect;
+  xCol_article      :NoProtect;
+  xCol_Date         :NoProtect;
+  _ParamRow         :NoProtect;
+  _UserRowBeg       :NoProtect;
+  _UserRowEnd       :NoProtect;
+//------------------------------------------------------------------------------
+Buttons
+  cmSetDefCol,,,  'Установить номера колонок по умолчанию', , sci1Esc;
+  cmYes,Default,, 'Сохранить', , sci1Esc;
+  cmCancel,,,     'Отмена', , sci1Esc;
+<<
+&` Номера колонок:`
+&` МНН                                              ` .@@@@
+&` Торговое наименование лекарственного препарата   ` .@@@@
+&` Лекарственная форма, дозировка, упаковка (полная)` .@@@@
+&` Владелец РУ/произв./упаков./Выпускающий контроль ` .@@@@
+&` Код АТХ                                          ` .@@@@
+&` Количество в потребительской упаковке            ` .@@@@
+&` Предельная цена руб. без НДС                     ` .@@@@
+&` Цена указана для первич. упаковки                ` .@@@@
+&` № РУ                                             ` .@@@@
+&` Дата регистрации цены(№ решения)                 ` .@@@@
+&` Штрих-код (EAN13)                                ` .@@@@
+&` Дата вступления в силу                           ` .@@@@
+&` Обрабатываемый диапазон строк Excel:`
+   (.) определять автоматически`
+   (.) заданный диапазон`                  с .@@@@ по .@@@@
+
+
+ <.  По умолчанию  .>   <.   Сохранить    .>  <.   Отмена   .>
+>>
+end; // screen
+end; // panel pmy
+
+HandleEvent
+cmYes:{
+  _SaveDSK;
+  CloseWindowEx(winNastrExcelCol, cmDefault);
+}
+cmCancel:{
+  _ReadDSK;
+  CloseWindowEx(winNastrExcelCol, cmCancel);
+}
+cmSetDefCol:{
+  if (message('Вы уверены, что хотите установить значения номеров колонок по умолчанию?',YesNo)<>Yes)
+     {
+       Abort; Exit;
+     }
+  _SetDefaultColumns;
+}
+end; // HandleEvent
+end; // Window winImportExcel
+
+
+
+Window winEditGRPOC 'Список лекарственных средств';
+Show at (,,220,25);
+Browse brATC_GRPOCSP 'Список лекарственных средств' ('Список лекарственных средств',  ,  sci13478EscIns);
+table ATC_GRPOCSP;
+Fields
+  ATC_GRPOCSP.npp                    '№','п.п.'                             : [4],  protect,noPickButton;
+  GroupMC.Name                       'Производитель','каталог'              : [20], protect,noPickButton;
+  KatMC.Name                         'Каталог','МЦ'                         : [20], protect,noPickButton;
+  KatMC.BarKod                       'Каталог','МЦ','баркод'                : [10], protect,noPickButton;
+  ATC_GRPOCSP.MNN                    'МНН'                                  : [20], protect,noPickButton;
+  ATC_GRPOCSP.Name                   'Торговое','наименование'              : [20], protect,noPickButton;
+  ATC_GRPOCSP.PharmForme             'Лекарственная форма,','дозировка, упаковка','(полная)'          : [30], protect,noPickButton;
+  ATC_GRPOCSP.info                   'Владелец РУ','/производитель/упаковщик','Выпускающий контроль'  : [40], protect,noPickButton;
+  ATC_GRPOCSP.ATX_code               'Код АТХ'                              : [10], protect,noPickButton;
+  ATC_GRPOCSP.KolInPack              'Кол-во в','потреб.','упаковке'        : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_GRPOCSP.maxPrice               'Предельная','цена руб.','без НДС'     : [12,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_GRPOCSP.firstPrice             'Цена','для первич.','упаковки'        : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  ATC_GRPOCSP.RU_number              'Номер РУ'                             : [10], protect,noPickButton;
+  ATC_GRPOCSP.DDoc_NoDoc             'Дата регистрации','цены','(№ решения)': [30], protect,noPickButton;
+  ATC_GRPOCSP.article                'Штрих-код','(EAN13)'                  : [14], protect,noPickButton;
+  ATC_GRPOCSP.DateBeg                'Дата вступ-','ления в силу'           : [10, 'DD/MM/YYYY'], protect, noPickButton;
+end;
+
+HandleEvent
+cmSaveDoc:{
+  if GetFirst KatMC = tsOk
+     {
+       RunInterface('L_OSTATKI::GTekOst', KatMC.nRec, comp(0), comp(0), comp(0), comp(0), comp(0), GetTekOstPar);
+     }
+}
+
+cmHotKeys:{
+  if curTable = #ATC_GRPOCSP
+     {
+       PutHotCommand(RunMenu('mnu_ATC_GRPOCSP'));
+     }
+}
+
+/*
+cmEdit:{
+  if CurTable = #ATC_GRPOCSP
+     {
+       if GetFirst KatMC = tsOk
+          {
+            if (RunInterface('L_MCU::KATMC', ATC_GRPOCSP.cMC, 0) = CmDefault)
+               {
+               }
+          }
+     }
+}
+
+cmPick:{
+  if CurField = #KatMC.Name
+     {
+       if (RunInterface('L_MCU::GetMC', ATC_GRPOCSP.cMC, 0) = cmDefault)
+          {
+            update current ATC_GRPOCSP;
+            if GetFirst KatMC = tsOk
+               {
+                 SET KatMC.Barkod2 := ATC_GRPOCSP.article;
+                 update current KatMC;
+               }
+          }
+     }
+}
+*/
+end; //HandleEvent
+
+end; //window
+
+
+Window winAnaliz_GRPOCSP 'Анализ соответствия данных';
+Show at (,,220,25);
+Browse brATC_GRPOCSP 'Анализ соответствия данных' ('Анализ соответствия данных',  ,  sci13478EscIns);
+table _tmpAnaliz;
+Fields
+  _Status                            '*'                                    : [4],  protect,noPickButton,
+      {Font = {Color = _tmpAnaliz.Status; Bold = if(_tmpAnaliz.Status<>0,true,false) }};
+  _tmpAnaliz.npp                     '№','п.п.'                             : [4],  protect,noPickButton;
+  GroupMC_Analiz.Name                'Производитель','каталог'              : [20], protect,noPickButton;
+  KatMC_Analiz.Name                  'Каталог','МЦ'                         : [20], protect,noPickButton;
+  _tmpAnaliz.BarKod                  'Каталог','МЦ','баркод'                : [10], protect,noPickButton;
+  _tmpAnaliz.ARTICLE                 'Штрих-код','(EAN13)'                  : [14], protect,noPickButton;
+  _tmpAnaliz.MNN                     'МНН'                                  : [20], protect,noPickButton;
+  _tmpAnaliz.K_MNN                   'МНН','каталог'                        : [20], protect,noPickButton,
+      {Font = {Color = _tmpAnaliz.Status_MNN; Bold = if(_tmpAnaliz.Status_MNN<>0,true,false); backColor =if(_tmpAnaliz.Status_MNN<>0,17,0) }};
+  _tmpAnaliz.ATX_code                'Код АТХ'                              : [10], protect,noPickButton;
+  _tmpAnaliz.K_ATX_code              'Код АТХ','каталог'                    : [10], protect,noPickButton,
+      {Font = {Color = _tmpAnaliz.Status_ATX; Bold = if(_tmpAnaliz.Status_ATX<>0,true,false); backColor =if(_tmpAnaliz.Status_ATX<>0,17,0) }};
+  _tmpAnaliz.RU_number               'Номер РУ'                             : [10], protect,noPickButton;
+  _tmpAnaliz.K_RU_number             'Номер РУ','каталог'                   : [10], protect,noPickButton,
+      {Font = {Color = _tmpAnaliz.Status_RU_NUMBER; Bold = if(_tmpAnaliz.Status_RU_NUMBER<>0,true,false); backColor =if(_tmpAnaliz.Status_RU_NUMBER<>0,17,0) }};
+  _tmpAnaliz.maxPrice                'Предельная','цена руб.'               : [12,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+  _tmpAnaliz.CenaMC                  'Предельная','цена руб.','каталог'     : [12,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton,
+      {Font = {Color = _tmpAnaliz.Status_Price; Bold = if(_tmpAnaliz.Status_Price<>0,true,false); backColor =if(_tmpAnaliz.Status_Price<>0,17,0) }};
+  _tmpAnaliz.DateBeg                 'Дата вступ-','ления в силу'           : [10, 'DD/MM/YYYY'], protect, noPickButton;
+  _tmpAnaliz.K_DateBeg               'Дата вступ-','ления в силу','каталог' : [10, 'DD/MM/YYYY'], protect, noPickButton,
+      {Font = {Color = _tmpAnaliz.Status_Date; Bold = if(_tmpAnaliz.Status_Date<>0,true,false); backColor =if(_tmpAnaliz.Status_Date<>0,17,0) }};
+  _tmpAnaliz.Prikaz                  'Приказ'                               : [10], protect,noPickButton;
+  _tmpAnaliz.TorgName                'Торговое','наименование'              : [20], protect,noPickButton;
+  _tmpAnaliz.PharmForme              'Лекарственная форма,','дозировка, упаковка','(полная)'          : [30], protect,noPickButton;
+  _tmpAnaliz.INFO                    'Владелец РУ','/производитель/упаковщик','Выпускающий контроль'  : [40], protect,noPickButton;
+  _tmpAnaliz.KolInPack               'Кол-во в','потреб.','упаковке'        : [10,'\2P[|-]3666`666`666`666.88'] ,protect,right,lessnull,noPickButton;
+end;
+
+HandleEvent
+cmSaveDoc:{
+  if GetFirst KatMC_Analiz = tsOk
+     {
+       RunInterface('L_OSTATKI::GTekOst', KatMC_Analiz.nRec, comp(0), comp(0), comp(0), comp(0), comp(0), GetTekOstPar);
+     }
+}
+
+cmHotKeys:{
+  if curTable = #_tmpAnaliz
+     {
+       PutHotCommand(RunMenu('mnu_ATC_Analiz'));
+     }
+
+}
+
+/*
+cmEdit:{
+  var _curPos :comp = _tmpAnaliz.nRec_ATC_GRPOCSP;
+  if CurTable = #_tmpAnaliz
+     {
+       if GetFirst KatMC_Analiz = tsOk
+          {
+            if (RunInterface('L_MCU::KATMC', _tmpAnaliz.nRecMC, 0) = cmDefault)
+               {
+                 DoAnaliz;
+               }
+          }
+     }
+  _MakeReport;
+  if GetFirst _tmpAnaliz where ((_curPos == _tmpAnaliz.nRec_ATC_GRPOCSP)) = tsOk {};
+  RescanPanel(#_tmpAnaliz);
+}
+*/
+/*
+cmPick:{
+  if CurField = #KatMC_Analiz.Name
+     {
+       if (RunInterface('L_MCU::GetMC', _tmpAnaliz.nRecMC, 0) = cmDefault)
+          {
+            var _curPos :comp = _tmpAnaliz.nRec_ATC_GRPOCSP;
+            update current _tmpAnaliz;
+            if GetFirst ATC_GRPOCSP_gf where ((_tmpAnaliz.nRec_ATC_GRPOCSP ==  ATC_GRPOCSP_gf.nRec)) = tsOk
+               {
+                 SET ATC_GRPOCSP_gf.cMC := _tmpAnaliz.nRecMC;
+                 update current ATC_GRPOCSP_gf;
+                 if GetFirst KatMC_gf where ((ATC_GRPOCSP_gf.cMC == KatMC_gf.nRec)) = tsOk
+                    {
+                      SET KatMC_gf.Barkod2 := ATC_GRPOCSP_gf.article;
+                      update current KatMC_gf;
+                    }
+               }
+           _MakeReport;
+           if GetFirst _tmpAnaliz where ((_curPos == _tmpAnaliz.nRec_ATC_GRPOCSP)) = tsOk {};
+           RescanPanel(#_tmpAnaliz);
+          }
+     }
+}
+*/
+
+end; //HandleEvent
+end; //window
+
+
+Browse br_ATC_GRPOC 'Список документов' ('Список документов',  , sci13478EscIns );
+  Show at (,,,15);
+table ATC_GRPOC
+Fields
+  {Font={Bold = if(ATC_GRPOC.isActive,true,false)}};
+  _active                     'А'                                        : [2], protect, noPickButton;
+  ATC_GRPOC.REESTRDATE        'Дата реестра'                             : [10, 'DD/MM/YYYY'], protect, noPickButton;
+  _ReestrName                 'Наименование'                             : [60], protect, noPickButton;
+  ATC_GRPOC.UserLoaded        'Загрузил','пользователь'                  : [15], protect, noPickButton;
+  ATC_GRPOC.DateLoaded        'Дата загрузки'                            : [18, 'DD/MM/YY HH:NN:SS'], Centered, NoPickButton;
+end;
+
+Panel paBrouseTextRField
+Table ATC_GRPOC;
+  Text ATC_GRPOC.SMEMO : Protect;
+  Show at (,16,,)  Fixed_Y;
+end; // Panel
+
+
+HandleEvent
+cmInit:{
+  _ReadDSK;
+  if GetFirst ATC_GRPOC where ((true == ATC_GRPOC.isActive)) = tsOk
+     {
+       RescanPanel(#ATC_GRPOC);
+     } else
+     {
+       if GetLast ATC_GRPOC = tsOk RescanPanel(#ATC_GRPOC);
+     }
+}
+
+cmInsert:{
+  if curTable = #ATC_GRPOC
+     {
+       var s:string;
+       s:=GetFileName ('*.csv;*.xls;*.xlsx;*.xlsm;','Выберите файл');
+       if s <> ''
+          {
+            SET name_file:=s
+            ClearBuffer(#ATC_GRPOC);
+            var _newNRec :comp = GetNextNRec(#ATC_GRPOC, 0);
+            ATC_GRPOC.nRec := _newNRec;
+            ImportFileToMemoAZM(ATC_GRPOC.SMEMO,name_file,true);
+            /*
+            if GetFirst ATC_GRPOC_gf where ((true == ATC_GRPOC_gf.isActive)) <> tsOk
+               {
+                 ATC_GRPOC.isActive := true;
+               }
+            */
+            ATC_GRPOC.UserLoaded := UserName();
+            ATC_GRPOC.DateLoaded := _CurDateTime;
+            insert current ATC_GRPOC;
+
+             if _LoadFromEx(_newNRec) {};
+            if GetFirst ATC_GRPOC where ((_newNRec == ATC_GRPOC.nRec)) = tsOk ReReadRecord(#ATC_GRPOC);
+          }
+     }
+}
+
+cmSetDefault:{
+  if curTable = #ATC_GRPOC
+     {
+       if GetFirst ATC_GRPOC_gf = tsOk
+          {
+            Abort; Exit;
+          }
+     }
+}
+
+cmDelete:{
+  if curTable = #ATC_GRPOC
+     {
+       if GetFirst X$USERS where((userID() == X$USERS.ATL_NREC)) = tsOk and  X$USERS.XU$TYPE <> 1
+          {
+             message('Удаление Гос.Реестра может выполнить только администратор!');
+             Abort; Exit;
+          }
+
+       if ATC_GRPOC.IsActive = true
+          {
+            message('Удаление активного реестра ЗАПРЕЩЕНО!');
+            Abort; Exit;
+          }
+
+       if (message('Вы уверены, что хотите удалить этот реестр?',YesNo)<>Yes)
+           {
+             Abort; Exit;
+           }
+       if delete ATC_GRPOCSP where ((ATC_GRPOC.nRec == ATC_GRPOCSP.cGRPOC)) = tsOk
+          {
+            delete current ATC_GRPOC;
+          }
+     }
+}
+
+cmPick:{
+  if NOT isValid(#ATC_GRPOC)
+     {
+       Abort; Exit;
+     }
+  if curTable = #ATC_GRPOC
+     {
+       if ATC_GRPOC.isActive = true
+          {
+            Abort; Exit;
+          }
+       if (message('Вы уверены, что хотите СДЕЛАТЬ АКТИВНЫМ этот реестр?'+chr(13)+
+                   'Данная операция влечет модификацию Каталога МЦ (заводская цена без налогов)'+chr(13)+
+                   'Продолжить?',YesNo)<>Yes)
+           {
+             Abort; Exit;
+           }
+
+       StartNewVisual (vtRotateVisual, vfTimer, 'Обработано позиций: ', 1 );
+
+       var qq: IQuery;
+       qq := queryManager.createQuery(sql_GetUpdatingList);
+       qq.setParam('nRec_GRPOC', ATC_GRPOC.nRec );
+       qq.execute;
+       var ResultSet:IResultSet;
+       ResultSet:=qq.GetResultSet;
+       var i :longint = 0;
+       var ii:longint = ResultSet.Count;
+       if (qq.errorCode=0)
+          {
+            Delete all _tmpUpdList;
+            sqlCopyInto(ResultSet,#_tmpUpdList,true);
+          }
+
+       if GetFirst _tmpUpdList = tsOk
+          {
+            _loop _tmpUpdList
+            {
+              i++;
+              SetVisualHeader ('Обработка файла'+chr(13)+
+                               'Обработано строк '+ i + ' из '+  ii
+                              );
+              NextVisual;
+
+              if GetFirst KatMC_gf where ((_tmpUpdList.nRecMC == KatMC_gf.nRec)) = tsOk
+                 {
+                   SET KatMC_gf.CenaMC := _tmpUpdList.MaxPrice;
+                   if Update current KatMC_gf = tsOk
+                      {
+                        //пересчет налогов
+                        fObjMC.KatMC_SetFPrice(KatMC_gf.NRec, 201, KatMC_gf.CenaMC, False);
+                        if NOT Ex.dSetAttrEx (
+                                word(1411),                     // _wTable  : Word;
+                                KatMC_gf.NRec,                  // _cRec    : Comp;
+                                'ЖВНЛП дата вступления в силу', // _Name    : String;
+                                _tmpUpdList.DateBeg,            // _Val
+                                true                            // bRealTbl : Boolean
+                              ) message('Не удалось добавить в атрибут "ЖВНЛП дата вступления в силу"');
+
+                        //Добавление записи в историю изменения МЦ
+                        ClearBuffer(#OBJECTSHISTORY);
+                        OBJECTSHISTORY.nRec        := GetNextNRec(#OBJECTSHISTORY, 0);
+                        OBJECTSHISTORY.WMASTERTBL  := word(1411);
+                        OBJECTSHISTORY.CMASTERREC  := _tmpUpdList.nRecMC;
+                        OBJECTSHISTORY.STARTDATE   := _CurDateTime;
+                        OBJECTSHISTORY.ACTUALDATE  := _CurDateTime;
+                        OBJECTSHISTORY.CUSER       := UserID();
+                        OBJECTSHISTORY.TYPEOPER    := 2;
+                        OBJECTSHISTORY.FLDNAME     := 'CenaMC';
+                        OBJECTSHISTORY.SPREVVAL    := _tmpUpdList.CenaMC;
+                        OBJECTSHISTORY.SCURVAL     := _tmpUpdList.MaxPrice;
+                        insert current OBJECTSHISTORY;
+                      }
+                 }
+            }
+
+//          формирование отчета
+//            RunFReport(StreamGRPOC, '', true);
+
+            var _rep_Path : string = GetStringParameter('Files', 'OutputFilesDirectory', 0);
+            _rep_Path := _rep_Path  +'\Протокол изменения цен'+ '_' + DateToStr(cur_date,'YYYYMMDD')+'_'+timetostr(cur_time,'HHMMSS') + '.xlsx';
+            _rep_Path := replace(_rep_Path,'\\','\');
+            var _fr :boolean = false;
+            var FReport: TPtr =  FrCreate(StreamGRPOC);
+            if FReport <> 0
+               {
+                 if FROpenReport(FReport,'Протокол изменения цен')
+                    {
+                      if FRSetParameters(FReport, frExportXLSX, 'OpenAfterExport=false')
+                         {
+                           if FRExportReport(FReport, frExportXLSX, _rep_Path)
+                              {
+                                _fr := true;
+                              }
+                         }
+                    }
+               } else
+               {
+                 _fr := false;
+                 message('Отчеты FastReport не найдены');
+               }
+
+            ImportFileToMemoAZM(ATC_GRPOC.SMEMO,_rep_Path,true);
+
+            update ATC_GRPOC_gf where ((true == ATC_GRPOC_gf.isActive )) and ATC_GRPOC_gf.nRec <> ATC_GRPOC.nRec set ATC_GRPOC_gf.isActive := false;
+            SET ATC_GRPOC.isActive := true;
+            update current ATC_GRPOC;
+
+          } else
+          {
+            message('Все цены соответствуют Гос. реестру. Нечего обновлять.');
+          }
+
+
+       StopVisual('',0);
+
+       RescanPanel(#ATC_GRPOC);
+     }
+}
+
+cmHotKeys:{
+  if curTable = #ATC_GRPOC
+     {
+       PutHotCommand(RunMenu('mnu_ATC_GRPOC'));
+     }
+
+}
+
+cmEdit:{
+  if curTable = #ATC_GRPOC
+     {
+       if (RunWindowModal(winEditGRPOC)<>cmDefault)
+          {
+            abort; exit;
+          }
+     }
+}
+
+cmDefault:{
+  if curTable = #ATC_GRPOC
+     {
+       PutCommand(cmEdit);
+     }
+}
+
+cmClose:{
+  _SaveDSK;
+}
+
+cmCancel:{
+  _SaveDSK;
+}
+
+cmValue1:{
+  if (RunWindowModal(winNastrExcelCol)<>cmDefault)
+     {
+       abort; exit;
+     }
+}
+
+cmValue2:{
+  _MakeReport(1);
+  if GetFirst _tmpAnaliz = tsOk {};
+  if (RunWindowModal(winAnaliz_GRPOCSP)<>cmDefault)
+     {
+       abort; exit;
+     }
+}
+
+cmValue4:{
+  _MakeReport(2);
+  if GetFirst _tmpAnaliz = tsOk {};
+  if (RunWindowModal(winAnaliz_GRPOCSP)<>cmDefault)
+     {
+       abort; exit;
+     }
+}
+
+/*
+cmDelOnProtect:{
+  if curField = #KatMC_Analiz.Name and GetFirst KatMC_Analiz = tsOk
+     {
+       if (message('Вы уверены, что хотите отвязать МЦ? При этом в Каталоге МЦ будут очищено поле Баркод2',YesNo)<>Yes)
+          {
+            Abort; Exit;
+          }
+       var _curPos :comp = _tmpAnaliz.nRec_ATC_GRPOCSP;
+
+       if GetFirst ATC_GRPOCSP_gf where ((_tmpAnaliz.nRec_ATC_GRPOCSP ==  ATC_GRPOCSP_gf.nRec)) = tsOk
+          {
+            if GetFirst KatMC_gf where ((ATC_GRPOCSP_gf.cMC == KatMC_gf.nRec)) = tsOk
+               {
+                 SET KatMC_gf.Barkod2 := '';
+                 update current KatMC_gf;
+               }
+            SET ATC_GRPOCSP_gf.cMC := 0;
+            update current ATC_GRPOCSP_gf;
+
+          }
+
+       _MakeReport;
+       if GetFirst _tmpAnaliz where ((_curPos == _tmpAnaliz.nRec_ATC_GRPOCSP)) = tsOk {};
+       RescanPanel(#_tmpAnaliz);
+
+     }
+  if curField = #KatMC.Name and GetFirst KatMC = tsOk
+     {
+       if (message('Вы уверены, что хотите отвязать МЦ? При этом в Каталоге МЦ будут очищено поле Баркод2',YesNo)<>Yes)
+          {
+            Abort; Exit;
+          }
+
+       if GetFirst KatMC = tsOk
+          {
+            SET KatMC.Barkod2 := '';
+            update current KatMC
+          }
+            SET ATC_GRPOCSP.cMC := 0;
+            update current ATC_GRPOCSP;
+       RescanPanel(#_tmpAnaliz);
+     }
+}
+*/
+
+cmValue3:{
+  if ATC_GRPOC.IsActive = true
+     {
+       message('Операция перепривязки МЦ к активному реестру ЗАПРЕЩЕНА!');
+       Abort; Exit;
+     }
+
+  var _dActiveRee :_datetime;
+  if GetFirst ATC_GRPOC_gf where ((true == ATC_GRPOC_gf.isActive)) = tsOk
+     {
+       SET _dActiveRee := ATC_GRPOC_gf.DateLoaded;
+     }
+  if _dActiveRee > ATC_GRPOC.DateLoaded
+     {
+       message('Операция перепривязки МЦ к СТАРОМУ реестру ЗАПРЕЩЕНА!');
+       Abort; Exit;
+     }
+  if (message('Вы уверены, что хотите обновить связь МЦ с реестром?',YesNo)<>Yes)
+     {
+       Abort; Exit;
+     }
+  Update ATC_GRPOCSP  where ((ATC_GRPOC.nRec == ATC_GRPOCSP.CGRPOC)) SET ATC_GRPOCSP.cMC := 0;
+
+  var qq: IQuery;
+  qq := queryManager.createQuery(sql_UpdateValidMC);
+  qq.setParam('nRec_GRPOC', ATC_GRPOC.nRec );
+  qq.execute;
+  if (qq.errorCode=0) message('Обновление привязки выполнено!') else message('Запрос вернул ошибку');
+}
+end;//HandleEvent
+
+end. //interface
+
+mnu_ATC_GRPOC Menu {
+   - 'Загрузить новый реестр',                  cmInsert, '', hcNoContext, 'F7',, sci1Esc;
+   - 'Сделать активным',                        cmPick,   '', hcNoContext, 'F3',, sci1Esc;
+------------;
+   - 'Анализ соответствия (полный)',            cmValue2, '', hcNoContext, ''  ,, sci1Esc;
+   - 'Анализ соответствия (по последней дате)', cmValue4, '', hcNoContext, ''  ,, sci1Esc;
+   - 'Настройка импорта',                       cmValue1, '', hcNoContext, ''  ,, sci1Esc;
+------------;
+   - 'Обновить связку МЦ с реестром',     cmValue3, '', hcNoContext, ''  ,, sci1Esc;
+}
+
+mnu_ATC_Analiz Menu {
+   - 'Просмотр текущих остатков матценности', cmSaveDoc, 'Просмотр текущих остатков матценности', hciGtekOst, 'Ctrl+F2', kbCtrlF2, sci1Esc;
+}
+
+mnu_ATC_Analiz2 Menu {
+   - 'Просмотр текущих остатков матценности', cmSaveDoc, 'Просмотр текущих остатков матценности', hciGtekOst, 'Ctrl+F2', kbCtrlF2, sci1Esc;
+}
+
+mnu_ATC_GRPOCSP Menu {
+   - 'Просмотр текущих остатков матценности', cmSaveDoc, 'Просмотр текущих остатков матценности', hciGtekOst, 'Ctrl+F2', kbCtrlF2, sci1Esc;
+}

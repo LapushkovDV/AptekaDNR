@@ -1,0 +1,83 @@
+//========================================================
+// выгрузка товаров в БД терминалов
+//========================================================
+//Удаление хранимой процедуры
+//sql drop procedure SendTovar_To_TorgZal;
+
+//Добавление хранимой процедуры
+sql procedure SendTovar_To_TorgZal(
+ARTCODE   :string[8];
+MNAME     :string[255];
+PACK      :double;
+PNAME     :string[255];
+PUNU      :string[8];
+PTAX      :string[2];
+PNREC     :string[30];
+MIN_k     :longint;
+MAX_k     :longint;
+REMMC     :string[255];
+PRICE     :double;
+QTY       :longint;
+QTYU      :double;
+KOEF      :double;
+OKDP      :string[50];
+TNVED     :string[50];
+Srv_Name  :string[255];
+DB_Name   :string[255];
+MODE      :word
+);
+{};
+
+//========================================================
+// выгрузка прайс-листа в БД терминалов
+//========================================================
+//Удаление хранимой процедуры
+//sql drop procedure SendPrice_To_TorgZal;
+
+//Добавление хранимой процедуры
+sql procedure SendPrice_To_TorgZal(
+CKLPRICE :string[30]  //nRec прайс-листа
+);
+{};
+
+
+//========================================================
+// Журнал обмена 
+//========================================================
+
+//Удаление хранимой процедуры
+//sql drop procedure ADD_ATC_exch_log;
+
+//Добавление хранимой процедуры
+sql procedure ADD_ATC_exch_log (
+p_LOG_TYPE :word;           // тип 1-прием, 2-выгрузка
+p_PROCNAME :string[255];    // выполняемая операция
+p_DT_START :datetime;       // дата_время начала операции
+P_Status   :word            // результат выполнения 0-ok
+);
+{
+};
+
+//========================================================
+// полная выгрузка KatMC в БД терминалов
+//========================================================
+//Удаление хранимой процедуры
+//sql drop procedure Send_Full_KATMC_To_TorgZal;
+
+//Добавление хранимой процедуры
+sql procedure Send_Full_KATMC_To_TorgZal
+{};
+
+
+//========================================================
+// Получение данных о продажах из терминалов
+//========================================================
+//Удаление хранимой процедуры
+//sql drop procedure Get_ResultProd_From_TorgZal;
+
+//Добавление хранимой процедуры
+sql procedure Get_ResultProd_From_TorgZal(
+DateProd     :date;      // Дата продаж
+isOffLine    :boolean    // режим (true - offline, false - online
+);
+{};        
