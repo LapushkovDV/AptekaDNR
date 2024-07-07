@@ -13,12 +13,12 @@ Action
 
 //  TR.SetNextNumberTune(31000); //
 
-  TR.SetParent('GALCOMMON')
+  TR.SetParent('GALCOMMON');
   TR.AddPartS('GALCOMMON.PARTNER', 'Партнерские настройки', '');
 !========================================================
-  TR.SetParent('GALCOMMON.PARTNER')
+  TR.SetParent('GALCOMMON.PARTNER');
   TR.AddPartS('GALCOMMON.PARTNER.ImpSpStep_Atr', 'Импорт спецификации ДО', '');
-  TR.SetParent('GALCOMMON.PARTNER.ImpSpStep_Atr')
+  TR.SetParent('GALCOMMON.PARTNER.ImpSpStep_Atr');
   TR.AddTuneS('GALCOMMON.PARTNER.ImpSpStep_Atr.WhenNotMC','Установить МЦ при отсутствии соответствия',ftComp,'0','','');
      TR.AddIntr('GetMC');
 !========================================================

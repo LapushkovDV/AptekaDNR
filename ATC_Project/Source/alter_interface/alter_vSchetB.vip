@@ -6,8 +6,9 @@ create view
 as select *
 
 from
-  ATC_SpStep_Atr
- ,ATC_KatParty_Atr
+   ATC_SpStep_Atr
+ , ATC_KatParty_Atr
+ , ATC_GRPOC
  ,KatNotes KN_owner
 // ,GroupMC GroupMC_my
  ,(select count(*) (fieldname=_KolPos)
@@ -239,7 +240,7 @@ Fields
 end;
 
 //HandleEvent
-TableEvent Table BaseDoc
+TableEvent Table BaseDoc;
 cmDeleteRecord:{
   Stop;
   if (Inherited::HandleEvent(cmDeleteRecord) = heOk)

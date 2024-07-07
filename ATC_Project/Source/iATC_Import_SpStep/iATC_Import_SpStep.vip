@@ -1055,10 +1055,12 @@ cmSaveSP:{
                     ) message('Не удалось добавить атрибут "Фактическая цена производителя с НДС"');
 
                    var _nalog : double;
+
                    if _Param_KUT = 0 and ATC_SpStep_Atr.PR_MAK <> 0
-	                _nalog := (ATC_SpStep_Atr.PR_MAK * (1+ATC_SpStep_Atr.PROC_NDS/100)) - ATC_SpStep_Atr.PR_MAK;
-	           else
-                        _nalog := (ATC_SpStep_Atr.PR_REE * (1+ATC_SpStep_Atr.PROC_NDS/100)) - ATC_SpStep_Atr.PR_REE;
+	                       then
+                             _nalog := (ATC_SpStep_Atr.PR_MAK * (1+ATC_SpStep_Atr.PROC_NDS/100)) - ATC_SpStep_Atr.PR_MAK;
+             	           else
+                             _nalog := (ATC_SpStep_Atr.PR_REE * (1+ATC_SpStep_Atr.PROC_NDS/100)) - ATC_SpStep_Atr.PR_REE;
  
                   if NOT Ex.doSetAttrEx (
                       word(1430),                             // _wTable  : Word;

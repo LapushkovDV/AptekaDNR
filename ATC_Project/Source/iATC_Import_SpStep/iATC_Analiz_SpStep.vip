@@ -244,8 +244,14 @@ Procedure Create_Party;
                                 ATC_SpStep_Atr.PR_MAK_NDS,              // _Val
                                 true                                    // bRealTbl : Boolean
                               ) message('Не удалось добавить атрибут "Фактическая цена производителя с НДС"');
+                             var _nalog : double = 0;
+                             //var _nalog : double = (ATC_SpStep_Atr.PR_REE * (1+ATC_SpStep_Atr.PROC_NDS/100)) - ATC_SpStep_Atr.PR_REE;
+                             if _Param_KUT = 0 and ATC_SpStep_Atr.PR_MAK <> 0
+          	                       then
+                                       _nalog := (ATC_SpStep_Atr.PR_MAK * (1+ATC_SpStep_Atr.PROC_NDS/100)) - ATC_SpStep_Atr.PR_MAK;
+                       	           else
+                                       _nalog := (ATC_SpStep_Atr.PR_REE * (1+ATC_SpStep_Atr.PROC_NDS/100)) - ATC_SpStep_Atr.PR_REE;
 
-                             var _nalog : double = (ATC_SpStep_Atr.PR_REE * (1+ATC_SpStep_Atr.PROC_NDS/100)) - ATC_SpStep_Atr.PR_REE;
                              if NOT Ex.doSetAttrEx (
                                 word(1430),                             // _wTable  : Word;
                                 KatParty.NREC,                          // _cRec    : Comp;
