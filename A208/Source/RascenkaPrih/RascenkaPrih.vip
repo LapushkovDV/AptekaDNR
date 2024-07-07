@@ -4,6 +4,8 @@ const
   _ColorFldInput2  = 69;
 end;
 
+#component "ATC_A208"
+
 interface iATC_RascenkaPrih 'Расценка полученных МЦ';
 Show at (,,180,22);
 
@@ -43,19 +45,33 @@ var _nRecSopr          :comp;
 create view
 as select *
 , ex.sGetAttr(word(1411),KatMC.nRec,'БлокСкидки') (fieldName = _SK)
-, if(KatSopr.VhodNal = 1, (SpSopr.Price - (SpSopr.SumNDS/SpSopr.KolFact)), SpSopr.Price) (fieldName = _Price)
+, if(  KatSopr.VhodNal = 1
+     , SpSopr.Price - (SpSopr.SumNDS/SpSopr.KolFact)
+     , SpSopr.Price
+    ) (fieldName = _Price)
 , if(KatSopr.VhodNal = 1, SpSopr.Price, SpSopr.Price+(SpSopr.SumNDS/SpSopr.KolFact)) (fieldName = _Price_s_NDS)
 , if(KatSopr.VhodNal = 1, SpSopr.Price*SpSopr.KolFact,SpSopr.Price*SpSopr.KolFact+SpSopr.SumNDS ) (fieldName = _Summa)
 , if(isValid(tn_tmpNac)
       ,if(_tmpNac.dbl = 1,'Ok',if(_tmpNac.dbl = 0,'-','Err.'))
       ,'-'
     )(fieldName = _SN_Status)
-, if(KatMC.Polzak = 11,if((_Price-ATC_KatParty_Atr.OTPPRICE)/ATC_KatParty_Atr.OTPPRICE*100 > 0,(_Price-ATC_KatParty_Atr.OTPPRICE)/ATC_KatParty_Atr.OTPPRICE*100,0),0) (fieldName = _ProcNacOpt_F)
+, if( KatMC.Polzak = 11
+     ,if(  (_Price-ATC_KatParty_Atr.OTPPRICE)/ATC_KatParty_Atr.OTPPRICE*100 > 0
+         , (_Price-ATC_KatParty_Atr.OTPPRICE)/ATC_KatParty_Atr.OTPPRICE*100
+         , 0
+        )
+     ,0
+    ) (fieldName = _ProcNacOpt_F)
 , if(_tmpNac.ProcNac-_ProcNacOpt_F > 0,_tmpNac.ProcNac,_tmpNac.ProcNac+(_tmpNac.ProcNac-_ProcNacOpt_F)) (fieldName = _ProcNacRozn_F)
 , if(KatMC.Polzak = 11
-      ,if(ATC_KatParty_Atr.OTPPRICE>_Price,_Price*_ProcNacRozn_F/100+_Price,ATC_KatParty_Atr.OTPPRICE*_ProcNacRozn_F/100+ATC_KatParty_Atr.OTPPRICE)
-      ,(_Price*_ProcNacRozn_F/100+_Price)
+      , if(   ATC_KatParty_Atr.OTPPRICE>_Price
+           , _Price*_ProcNacRozn_F/100+_Price
+           //, ATC_KatParty_Atr.OTPPRICE*_ProcNacRozn_F/100+ATC_KatParty_Atr.OTPPRICE
+           , ATC_KatParty_Atr.OTPPRICE*_ProcNacRozn_F/100+_Price
+          )
+      , (_Price*_ProcNacRozn_F/100+_Price)
     ) (fieldName = _rPriceUpack_NotNDS)
+
 , _rPriceUpack_NotNDS+_rPriceUpack_NotNDS/100*SpGrNal.Nalog (fieldName = _rPriceUpack_s_NDS)
 , if(isValid(tnKatOtpEdMin), KatOtpEdMin.koef, 1) (fieldName = OEKoefDel)
 //=====================================================================================
@@ -436,103 +452,110 @@ cmSavePrices:{
   StartNewVisual (vtRotateVisual, vfTimer, 'Сохранение цен...', 1 );
   _loop SpSopr
   {
-    if GetFirst Prices_1 = tsOk
-       {
-         Prices_1.SrPrice  := _tmpPrice.Price_1;
-         Update current Prices_1;
-/*
-         if NOT Ex.doSetAttrEx (
-              word(1114),                  // _wTable  : Word;
-              Prices_1.NREC,               // _cRec    : Comp;
-              'Наценка %',                 // _Name    : String;
-              _tmpPrices_1.ProcNacRozn,    // _Val
-              true                         // bRealTbl : Boolean
-            ) {};
-*/
-       } else
-       {
-         var _npp_sp: word = 0;
-         if GetLast Prices_gf(Prices_104) where ((_nRecKlPrice_Price == Prices_gf.CKLPRICE)) = tsOk _npp_sp := Prices_gf.npp;
-         if GetFirst KatMC_gf where ((SpSopr.cMcUsl == KatMC_gf.nRec)) = tsOk
-            {
-              ClearBuffer(#Prices_1);
-              Prices_1.NREC       :=  GetNextNRec(#Prices_1, 0);
-              Prices_1.CKLPRICE   :=  _nRecKlPrice_Price;
-              Prices_1.NPP        :=  _npp_sp+1;
-              Prices_1.CTHING     :=  KatMC_gf.nRec;
-              Prices_1.TIP        :=  0;
-              Prices_1.NAME       :=  KatMC_gf.NAME;
-              Prices_1.BARKOD     :=  KatMC_gf.BARKOD;
-              if GetFirst GroupMC_gf where ((KatMC_gf.CGROUPMC == GroupMC_gf.nRec )) = tsOk
-                 {
-                   Prices_1.KOD   :=  GroupMC_gf.KOD;
-                 }
-              Prices_1.DISKRET    :=  KatOtpEd.DISKRET;
-              Prices_1.PRICE      :=  _tmpPrice.Price_1;
-//              Prices_1.SrPrice    :=  _tmpPrices_1.SpSopr_Price;
-              Prices_1.COTPED     :=  SpSopr.cOtpEd;
-              insert current Prices_1;
-/*
-              if NOT Ex.doSetAttrEx (
-                   word(1114),                  // _wTable  : Word;
-                   Prices_1.NREC,               // _cRec    : Comp;
-                   'Наценка %',                 // _Name    : String;
-                   _tmpPrices_1.ProcNacRozn,    // _Val
-                   true                         // bRealTbl : Boolean
-                 ) {};
-*/
+
+    if _tmpPrice.Price_1 <> Prices_1.Price {
+        if GetFirst Prices_1 = tsOk
+           {
+             Prices_1.SrPrice  := _tmpPrice.Price_1;
+             Update current Prices_1;
+    /*
+             if NOT Ex.doSetAttrEx (
+                  word(1114),                  // _wTable  : Word;
+                  Prices_1.NREC,               // _cRec    : Comp;
+                  'Наценка %',                 // _Name    : String;
+                  _tmpPrices_1.ProcNacRozn,    // _Val
+                  true                         // bRealTbl : Boolean
+                ) {};
+    */
+           } else
+           {
+             if _tmpPrice.Price_1 <> 0 { // если вообще что то пользователь записал 0 считаем, что не пишет для новой
+                   var _npp_sp: word = 0;
+                   if GetLast Prices_gf(Prices_104) where ((_nRecKlPrice_Price == Prices_gf.CKLPRICE)) = tsOk _npp_sp := Prices_gf.npp;
+                   if GetFirst KatMC_gf where ((SpSopr.cMcUsl == KatMC_gf.nRec)) = tsOk
+                      {
+                        ClearBuffer(#Prices_1);
+                        Prices_1.NREC       :=  GetNextNRec(#Prices_1, 0);
+                        Prices_1.CKLPRICE   :=  _nRecKlPrice_Price;
+                        Prices_1.NPP        :=  _npp_sp+1;
+                        Prices_1.CTHING     :=  KatMC_gf.nRec;
+                        Prices_1.TIP        :=  0;
+                        Prices_1.NAME       :=  KatMC_gf.NAME;
+                        Prices_1.BARKOD     :=  KatMC_gf.BARKOD;
+                        if GetFirst GroupMC_gf where ((KatMC_gf.CGROUPMC == GroupMC_gf.nRec )) = tsOk
+                           {
+                             Prices_1.KOD   :=  GroupMC_gf.KOD;
+                           }
+                        Prices_1.DISKRET    :=  KatOtpEd.DISKRET;
+                        Prices_1.PRICE      :=  _tmpPrice.Price_1;
+          //              Prices_1.SrPrice    :=  _tmpPrices_1.SpSopr_Price;
+                        Prices_1.COTPED     :=  SpSopr.cOtpEd;
+                        insert current Prices_1;
+          /*
+                        if NOT Ex.doSetAttrEx (
+                             word(1114),                  // _wTable  : Word;
+                             Prices_1.NREC,               // _cRec    : Comp;
+                             'Наценка %',                 // _Name    : String;
+                             _tmpPrices_1.ProcNacRozn,    // _Val
+                             true                         // bRealTbl : Boolean
+                           ) {};
+          */
+                      }
             }
+           }
+      }
 
-       }
-
-    if GetFirst Prices_2 = tsOk
-       {
-         Prices_2.SrPrice  := _tmpPrice.Price_1;
-         Update current Prices_2;
-/*
-         if NOT Ex.doSetAttrEx (
-              word(1114),                  // _wTable  : Word;
-              Prices_2.NREC,               // _cRec    : Comp;
-              'Наценка %',                 // _Name    : String;
-              _tmpPrices_2.ProcNacRozn,    // _Val
-              true                         // bRealTbl : Boolean
-            ) {};
-*/
-       } else
-       {
-         var _npp_sp: word = 0;
-         if GetLast Prices_gf(Prices_204) where ((_nRecKlPrice_Rozn == Prices_gf.CKLPRICE)) = tsOk _npp_sp := Prices_gf.npp;
-         if GetFirst KatMC_gf where ((SpSopr.cMcUsl == KatMC_gf.nRec)) = tsOk
-            {
-              ClearBuffer(#Prices_2);
-              Prices_2.NREC       :=  GetNextNRec(#Prices_2, 0);
-              Prices_2.CKLPRICE   :=  _nRecKlPrice_Rozn;
-              Prices_2.NPP        :=  _npp_sp+1;
-              Prices_2.CTHING     :=  KatMC_gf.nRec;
-              Prices_2.TIP        :=  0;
-              Prices_2.NAME       :=  KatMC_gf.NAME;
-              Prices_2.BARKOD     :=  KatMC_gf.BARKOD;
-              if GetFirst GroupMC_gf where ((KatMC_gf.CGROUPMC == GroupMC_gf.nRec )) = tsOk
-                 {
-                   Prices_2.KOD   :=  GroupMC_gf.KOD;
+    if  _tmpPrice.Price_2 <> Prices_2.Price {
+        if GetFirst Prices_2 = tsOk
+           {
+             Prices_2.SrPrice  := _tmpPrice.Price_1;
+             Update current Prices_2;
+    /*
+             if NOT Ex.doSetAttrEx (
+                  word(1114),                  // _wTable  : Word;
+                  Prices_2.NREC,               // _cRec    : Comp;
+                  'Наценка %',                 // _Name    : String;
+                  _tmpPrices_2.ProcNacRozn,    // _Val
+                  true                         // bRealTbl : Boolean
+                ) {};
+    */
+           } else
+           {
+             if _tmpPrice.Price_2 <> 0 { // если вообще что то пользователь записал 0 считаем, что не пишет для новой
+                   var _npp_sp: word = 0;
+                   if GetLast Prices_gf(Prices_204) where ((_nRecKlPrice_Rozn == Prices_gf.CKLPRICE)) = tsOk _npp_sp := Prices_gf.npp;
+                   if GetFirst KatMC_gf where ((SpSopr.cMcUsl == KatMC_gf.nRec)) = tsOk
+                      {
+                        ClearBuffer(#Prices_2);
+                        Prices_2.NREC       :=  GetNextNRec(#Prices_2, 0);
+                        Prices_2.CKLPRICE   :=  _nRecKlPrice_Rozn;
+                        Prices_2.NPP        :=  _npp_sp+1;
+                        Prices_2.CTHING     :=  KatMC_gf.nRec;
+                        Prices_2.TIP        :=  0;
+                        Prices_2.NAME       :=  KatMC_gf.NAME;
+                        Prices_2.BARKOD     :=  KatMC_gf.BARKOD;
+                        if GetFirst GroupMC_gf where ((KatMC_gf.CGROUPMC == GroupMC_gf.nRec )) = tsOk
+                           {
+                             Prices_2.KOD   :=  GroupMC_gf.KOD;
+                           }
+                        Prices_2.DISKRET    :=  KatOtpEd.DISKRET;
+                        Prices_2.PRICE      :=  _tmpPrice.Price_2;
+          //              Prices_2.SrPrice    :=  _tmpPrices_2.SpSopr_Price;
+                        Prices_2.COTPED     :=  SpSopr.cOtpEd;
+                        insert current Prices_2;
+          /*
+                        if NOT Ex.doSetAttrEx (
+                             word(1114),                  // _wTable  : Word;
+                             Prices_2.NREC,               // _cRec    : Comp;
+                             'Наценка %',                 // _Name    : String;
+                             _tmpPrices_2.ProcNacRozn,    // _Val
+                             true                         // bRealTbl : Boolean
+                           ) {};
+          */
+                      }
                  }
-              Prices_2.DISKRET    :=  KatOtpEd.DISKRET;
-              Prices_2.PRICE      :=  _tmpPrice.Price_2;
-//              Prices_2.SrPrice    :=  _tmpPrices_2.SpSopr_Price;
-              Prices_2.COTPED     :=  SpSopr.cOtpEd;
-              insert current Prices_2;
-/*
-              if NOT Ex.doSetAttrEx (
-                   word(1114),                  // _wTable  : Word;
-                   Prices_2.NREC,               // _cRec    : Comp;
-                   'Наценка %',                 // _Name    : String;
-                   _tmpPrices_2.ProcNacRozn,    // _Val
-                   true                         // bRealTbl : Boolean
-                 ) {};
-*/
-            }
-
-       }
+           }
+      }
 
   }
 

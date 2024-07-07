@@ -1,3 +1,4 @@
+#component "ATC_A208"
 Interface iATC_ScaleNac 'Шкала наценок', cyan;
 Show at (,,140,25);
 

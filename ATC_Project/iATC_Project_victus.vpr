@@ -169,7 +169,7 @@
 			<BreakPoint FileName="vip\demand_report.vip" Line="710"/>
 		</BreakPointList>
 		<CompileMessengerList>
-			<CompileMessenger Name="C:\Galaktika\_git\AptekaDNR\ATC_Project\Vip.prj" DateTimeStart="45480,3906185764" DateTimeCompile="0,000180034716322552" StateHistory="False">
+			<CompileMessenger Name="C:\Galaktika\_git\AptekaDNR\ATC_Project\Vip.prj" DateTimeStart="45480,3913070023" DateTimeCompile="0,000186053242941853" StateHistory="False">
 				<CompileMessageList>
 					<CompileMessage MessageType="mtWarning" MessageText="Не задано имя компонента, компонентная принадлежность таблиц учитываться не будет" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\GRPOC\GRPOC.vip" SourceLine="4" SourceColumn="1"/>
 					<CompileMessage MessageType="mtInfo" MessageText="Компиляция ведется без файла контроля лицензий!" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\GRPOC\GRPOC.vip" SourceLine="7" SourceColumn="1"/>
@@ -287,22 +287,17 @@
 					<CompileMessage MessageType="mtWarning" MessageText="Отсутствует информация о лицензировании IATC_SHOW_PROTOCOL. Помечаем как не лицензированный." SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\IATC_IMPORT_SPSTEP\iATC_Show_Protocol.vip" SourceLine="138" SourceColumn="5"/>
 					<CompileMessage MessageType="mtInfo" MessageText="Компиляция ведется без файла контроля лицензий!" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\IATC_IMPORT_SPSTEP\iATC_PrnProtocol.vip" SourceLine="3" SourceColumn="1"/>
 					<CompileMessage MessageType="mtWarning" MessageText="Отсутствует информация о лицензировании IATC_PRNPROTOCOL. Помечаем как не лицензированный." SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\IATC_IMPORT_SPSTEP\iATC_PrnProtocol.vip" SourceLine="111" SourceColumn="5"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Неявное добавление таблицы ATC_GRPOC в логическую таблицу BASESTEP" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\ALTER_INTERFACE\alter_vSchetB.vip" SourceLine="39" SourceColumn="44"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Значение преобразовано к строке" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\ALTER_INTERFACE\alter_vSchetB.vip" SourceLine="62" SourceColumn="55"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Значение преобразовано к строке" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\ALTER_INTERFACE\alter_vSchetB.vip" SourceLine="62" SourceColumn="105"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Значение преобразовано к строке" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\ALTER_INTERFACE\alter_vSchetB.vip" SourceLine="62" SourceColumn="136"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Значение преобразовано к строке" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\ALTER_INTERFACE\alter_vSchetB.vip" SourceLine="69" SourceColumn="54"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Ожидалось: &quot;;&quot;" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\ALTER_INTERFACE\alter_vSchetB.vip" SourceLine="243" SourceColumn="1"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Таблица &quot;ATC_KATPARTY_ATR&quot;, включенная в логическую таблицу &quot;BASESTEP&quot; интерфейса &quot;VSCHETB&quot;, не была явно использована" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\ALTER_INTERFACE\alter_vSchetB.vip" SourceLine="272" SourceColumn="5"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Ожидалось: &quot;;&quot;" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\CREATETUNE\ATC_CreateTune.vip" SourceLine="17" SourceColumn="3"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Ожидалось: &quot;;&quot;" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\CREATETUNE\ATC_CreateTune.vip" SourceLine="20" SourceColumn="3"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Ожидалось: &quot;;&quot;" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\CREATETUNE\ATC_CreateTune.vip" SourceLine="22" SourceColumn="3"/>
+					<CompileMessage MessageType="mtWarning" MessageText="Значение преобразовано к строке" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\ALTER_INTERFACE\alter_vSchetB.vip" SourceLine="63" SourceColumn="55"/>
+					<CompileMessage MessageType="mtWarning" MessageText="Значение преобразовано к строке" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\ALTER_INTERFACE\alter_vSchetB.vip" SourceLine="63" SourceColumn="105"/>
+					<CompileMessage MessageType="mtWarning" MessageText="Значение преобразовано к строке" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\ALTER_INTERFACE\alter_vSchetB.vip" SourceLine="63" SourceColumn="136"/>
+					<CompileMessage MessageType="mtWarning" MessageText="Значение преобразовано к строке" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\ALTER_INTERFACE\alter_vSchetB.vip" SourceLine="70" SourceColumn="54"/>
+					<CompileMessage MessageType="mtWarning" MessageText="Таблица &quot;ATC_KATPARTY_ATR&quot;, включенная в логическую таблицу &quot;BASESTEP&quot; интерфейса &quot;VSCHETB&quot;, не была явно использована" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\ALTER_INTERFACE\alter_vSchetB.vip" SourceLine="273" SourceColumn="5"/>
 					<CompileMessage MessageType="mtInfo" MessageText="Компиляция ведется без файла контроля лицензий!" SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\MENU\MenuDynamic.vip" SourceLine="13" SourceColumn="1"/>
 					<CompileMessage MessageType="mtWarning" MessageText="Отсутствует информация о лицензировании IATC_MENUDYNAMIC. Помечаем как не лицензированный." SourceFileName="C:\Galaktika\_git\AptekaDNR\ATC_Project\SOURCE\MENU\MenuDynamic.vip" SourceLine="153" SourceColumn="5"/>
 					<CompileMessage MessageType="mtWarning" MessageText="Не найден объект" SourceLine="-1" SourceColumn="-1"/>
 					<CompileMessage MessageType="mtWarning" MessageText="Не найден объект" SourceLine="-1" SourceColumn="-1"/>
 					<CompileMessage MessageType="mtWarning" MessageText="и еще" SourceFileName="C:\G" SourceLine="758" SourceColumn="120"/>
-					<CompileMessage MessageType="mtEndCompile" MessageText="07.07.2024 9:22:45"/>
+					<CompileMessage MessageType="mtEndCompile" MessageText="07.07.2024 9:23:45"/>
 				</CompileMessageList>
 			</CompileMessenger>
 		</CompileMessengerList>

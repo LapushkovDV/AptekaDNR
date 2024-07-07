@@ -1,3 +1,4 @@
+#component "ATC_A208"
 interface import_KatOrg_DBF,  cyan;
 Show at (,,120,4);
 create view

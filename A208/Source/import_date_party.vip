@@ -1,3 +1,4 @@
+#component "ATC_A208"
 interface import_date_party,  cyan;
 Show at (,,120,4);
 create view
