@@ -102,7 +102,7 @@
 			<File Name="Source\CREATETUNE\ATC_CreateTune.vip" PosX="22" PosY="1" OpenEditor="True"/>
 			<File Name="Source\!FRM\REESTRRZ_PL_31012024.frm" PosX="36" PosY="18" OpenEditor="True"/>
 			<File Name="Source\alter_interface\alter_SoprDocB.vip" PosX="33" PosY="32" OpenEditor="True"/>
-			<File Name="Source\RascenkaPrih\RascenkaPrih.vip" PosX="34" PosY="63" OpenEditor="True" Active="True"/>
+			<File Name="Source\RascenkaPrih\RascenkaPrih.vip" PosX="55" PosY="199" OpenEditor="True" Active="True"/>
 		</FileList>
 		<DebugOptions StopOnStartup="False"/>
 		<MarkerList>
@@ -158,7 +158,7 @@
 			<Marker FileName="vip\KatMarshStruct_report.vip" Caption="Нумерованная закладка 2" Line="490" NumIndex="2" MarkerType="mtNumBookmark"/>
 			<Marker FileName="vip\KatMarshStruct_report.vip" Caption="Нумерованная закладка 1" Line="437" NumIndex="1" MarkerType="mtNumBookmark" Comment="delete all"/>
 			<Marker FileName="Source\iATC_Import_SpStep\iATC_Analiz_SpStep.vip" Caption="Нумерованная закладка 1" Line="448" NumIndex="1" MarkerType="mtNumBookmark" Comment="if SpDocNal.cSpDoc    := SpStep.nRec;"/>
-			<Marker FileName="Source\RascenkaPrih\RascenkaPrih.vip" Caption="Нумерованная закладка 1" Line="232" NumIndex="1" MarkerType="mtNumBookmark" Comment="{Font = {backColor = if(_tmpPrice.Price_2 &lt;&gt; Prices_2.Price, _ColorFldInput, 77)}};"/>
+			<Marker FileName="Source\RascenkaPrih\RascenkaPrih.vip" Caption="Нумерованная закладка 1" Line="70" NumIndex="1" MarkerType="mtNumBookmark" Comment=", ATC_KatParty_Atr.OTPPRICE*_ProcNacRozn_F/100+_Price"/>
 		</MarkerList>
 		<BreakPointList>
 			<BreakPoint FileName="Vip.prj" Line="90"/>
@@ -170,7 +170,7 @@
 			<BreakPoint FileName="vip\demand_report.vip" Line="710"/>
 		</BreakPointList>
 		<CompileMessengerList>
-			<CompileMessenger Name="C:\Galaktika\_git\AptekaDNR\A208\Vip.prj" DateTimeStart="45480,4873218634" DateTimeCompile="0,000178136579052079" StateHistory="False">
+			<CompileMessenger Name="C:\Galaktika\_git\AptekaDNR\A208\Vip.prj" DateTimeStart="45483,414163588" DateTimeCompile="0,000188263889867812" StateHistory="False">
 				<CompileMessageList>
 					<CompileMessage MessageType="mtInfo" MessageText="Компиляция ведется без файла контроля лицензий!" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\HOZOAUTO\_HozOAuto.vip" SourceLine="26" SourceColumn="1"/>
 					<CompileMessage MessageType="mtWarning" MessageText="Значение преобразовано к строке" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\HOZOAUTO\_HozOAuto.vip" SourceLine="29" SourceColumn="32"/>
@@ -342,20 +342,20 @@
 					<CompileMessage MessageType="mtWarning" MessageText="Отсутствует информация о лицензировании IMPORT_KATORG_DBF. Помечаем как не лицензированный." SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\import_KatOrg_DBF.vip" SourceLine="97" SourceColumn="5"/>
 					<CompileMessage MessageType="mtWarning" MessageText="Таблица &quot;KATPARTY&quot;, включенная в главную логическую таблицу интерфейса &quot;IMPORT_KATORG_DBF&quot;, не была явно использована" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\import_KatOrg_DBF.vip" SourceLine="97" SourceColumn="5"/>
 					<CompileMessage MessageType="mtInfo" MessageText="Компиляция ведется без файла контроля лицензий!" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="12" SourceColumn="1"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Неявное добавление таблицы SPGRNAL в логическую таблицу IATC_RASCENKAPRIH" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="61" SourceColumn="61"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Приведение типа с возможной потерей точности (Word -&gt; Integer)" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="64" SourceColumn="49"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Приведение типа с возможной потерей точности (Word -&gt; Integer)" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="65" SourceColumn="49"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Получились неуникальные имена полей _RPRICEUPACK_S_NDS" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="73" SourceColumn="1"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Получились неуникальные имена полей _RPRICEUPACK_S_NDS" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="73" SourceColumn="1"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Неявное добавление таблицы PICKREP в логическую таблицу IATC_RASCENKAPRIH" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="153" SourceColumn="38"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Ожидалось: &quot;;&quot;" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="184" SourceColumn="1"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Ожидалось: &quot;;&quot;" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="255" SourceColumn="3"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Значение преобразовано к строке" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="258" SourceColumn="75"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Нет индекса PRICES_104" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="460" SourceColumn="60"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Приведение типа с возможной потерей точности (LongInt -&gt; Word)" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="460" SourceColumn="135"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Нет индекса PRICES_204" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="512" SourceColumn="60"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Приведение типа с возможной потерей точности (LongInt -&gt; Word)" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="512" SourceColumn="134"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Отсутствует информация о лицензировании IATC_RASCENKAPRIH. Помечаем как не лицензированный." SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="602" SourceColumn="5"/>
+					<CompileMessage MessageType="mtWarning" MessageText="Неявное добавление таблицы SPGRNAL в логическую таблицу IATC_RASCENKAPRIH" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="75" SourceColumn="61"/>
+					<CompileMessage MessageType="mtWarning" MessageText="Приведение типа с возможной потерей точности (Word -&gt; Integer)" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="78" SourceColumn="49"/>
+					<CompileMessage MessageType="mtWarning" MessageText="Приведение типа с возможной потерей точности (Word -&gt; Integer)" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="79" SourceColumn="49"/>
+					<CompileMessage MessageType="mtWarning" MessageText="Получились неуникальные имена полей _RPRICEUPACK_S_NDS" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="87" SourceColumn="1"/>
+					<CompileMessage MessageType="mtWarning" MessageText="Получились неуникальные имена полей _RPRICEUPACK_S_NDS" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="87" SourceColumn="1"/>
+					<CompileMessage MessageType="mtWarning" MessageText="Неявное добавление таблицы PICKREP в логическую таблицу IATC_RASCENKAPRIH" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="167" SourceColumn="38"/>
+					<CompileMessage MessageType="mtWarning" MessageText="Ожидалось: &quot;;&quot;" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="198" SourceColumn="1"/>
+					<CompileMessage MessageType="mtWarning" MessageText="Ожидалось: &quot;;&quot;" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="269" SourceColumn="3"/>
+					<CompileMessage MessageType="mtWarning" MessageText="Значение преобразовано к строке" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="272" SourceColumn="75"/>
+					<CompileMessage MessageType="mtWarning" MessageText="Нет индекса PRICES_104" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="474" SourceColumn="60"/>
+					<CompileMessage MessageType="mtWarning" MessageText="Приведение типа с возможной потерей точности (LongInt -&gt; Word)" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="474" SourceColumn="135"/>
+					<CompileMessage MessageType="mtWarning" MessageText="Нет индекса PRICES_204" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="526" SourceColumn="60"/>
+					<CompileMessage MessageType="mtWarning" MessageText="Приведение типа с возможной потерей точности (LongInt -&gt; Word)" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="526" SourceColumn="134"/>
+					<CompileMessage MessageType="mtWarning" MessageText="Отсутствует информация о лицензировании IATC_RASCENKAPRIH. Помечаем как не лицензированный." SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\RASCENKAPRIH\RascenkaPrih.vip" SourceLine="616" SourceColumn="5"/>
 					<CompileMessage MessageType="mtWarning" MessageText="Таблица &quot;SPSOPR_GF&quot;, включенная в логическую таблицу &quot;SUPERSOPR&quot; интерфейса &quot;SOPRDOCB&quot;, не была явно использована" SourceFileName="C:\Galaktika\_git\AptekaDNR\A208\SOURCE\ALTER_INTERFACE\alter_SoprDocB.vip" SourceLine="40" SourceColumn="5"/>
 					<CompileMessage MessageType="mtWarning" MessageText="Ожидалось: &quot;;&quot;" SourceFileName="C:\GALAKTIKA\_GIT\APTEKADNR\A208\SOURCE\!FRM\REESTRRZ_PL_31012024.frm" SourceLine="81" SourceColumn="3"/>
 					<CompileMessage MessageType="mtWarning" MessageText="Ожидалось: &quot;;&quot;" SourceFileName="C:\GALAKTIKA\_GIT\APTEKADNR\A208\SOURCE\!FRM\REESTRRZ_PL_31012024.frm" SourceLine="82" SourceColumn="3"/>
@@ -400,7 +400,7 @@
 					<CompileMessage MessageType="mtWarning" MessageText="и еще" SourceFileName="C:\G" SourceLine="1084" SourceColumn="68"/>
 					<CompileMessage MessageType="mtWarning" MessageText="и еще" SourceFileName="C:\GAL" SourceLine="61" SourceColumn="68"/>
 					<CompileMessage MessageType="mtWarning" MessageText="и еще" SourceFileName="C:\G" SourceLine="1329" SourceColumn="66"/>
-					<CompileMessage MessageType="mtEndCompile" MessageText="07.07.2024 11:42:00"/>
+					<CompileMessage MessageType="mtEndCompile" MessageText="10.07.2024 9:56:40"/>
 				</CompileMessageList>
 			</CompileMessenger>
 		</CompileMessengerList>

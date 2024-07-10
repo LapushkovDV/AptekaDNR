@@ -196,7 +196,7 @@ Browse br_Rascenka 'Расценка полученных МЦ' ('Расценка полученных МЦ',  , sci1En
 Show at (,,,18);
 table SpSopr
 recMarker = pMarker {SpSopr.nRec};
-Fields
+Fields  {Font = {Color = if(_KontrolPriceRees <> 0, 10, 0)}};
   SpSopr.Npp                       '№','п.п.'                                   :[4],  protect,NoPickButton, NoAutoSize;
   KatMC.BARKOD                     'Баркод'                                     :[15], protect,NoPickButton;
   KatMC.Name                       'Наименование'                               :[30], protect,NoPickButton;
@@ -214,12 +214,12 @@ Fields
   SpGrNal.Nalog                    'Ставка','налога'                            :[6,'\2P[|-]3666`666`666`666.88'] ,NoProtect,right,lessnull,NoPickButton,NoAutoSize;
   SpSopr.KolFact                   'Кол-во'                                     :[12], [brForSopr_Price, '\2p[|-]36`666`666`666`666.88'],protect,NoAutoSize,lessnull;
   _Price                           'Цена','без НДС'                             :[12], [brForSopr_Price, '\2p[|-]36`666`666`666`666.88'],protect,NoAutoSize,lessnull;
-  _Price_s_NDS                     'Цена','без НДС'                             :[12], [brForSopr_Price, '\2p[|-]36`666`666`666`666.88'],protect,NoAutoSize,lessnull;
+  _Price_s_NDS                     'Цена','с НДС'                             :[12], [brForSopr_Price, '\2p[|-]36`666`666`666`666.88'],protect,NoAutoSize,lessnull;
   SpSopr.SumNDS                    'Сумма','НДС'                                :[12], [brForSopr_Price, '\2p[|-]36`666`666`666`666.88'],protect,NoAutoSize,lessnull;
   _Summa                           'Сумма','с НДС'                              :[12], [brForSopr_Price, '\2p[|-]36`666`666`666`666.88'],protect,NoAutoSize,lessnull;
   _SN_Status                       'Контроль','шкалы','наценок'                 :[4],  protect,NoPickButton, NoAutoSize;
-  _tmpNac.ProcNac                  'Процент','нецен.','РОЗН по ЦК'              :[10,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;
-  _tmpNac.OptNac                   'Процент','нецен.','ОПТ по ЦК'               :[10,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;
+  _tmpNac.ProcNac                  'Процент','нацен.','РОЗН по ЦК'              :[10,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;
+  _tmpNac.OptNac                   'Процент','нацен.','ОПТ по ЦК'               :[10,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;
   _ProcNacOpt_F                    'Процент','наценки','ОПТ ФАКТ'               :[10,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;
   _ProcNacRozn_F                   'Процент','наценки','РОЗН ФАКТ'              :[10,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;
   _rPriceUpack_NotNDS              'Расч.цена','за упак.','без НДС','до округ.' :[12,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;
