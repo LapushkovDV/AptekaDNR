@@ -116,6 +116,7 @@ end;
 #make "Source\alter_interface\alter_RestInKa.vip"            // Торговый зал
 #make "Source\_Make_Nakl_AUTO\_Make_Nakl_AUTO.vip"           // Автоматическое формирование накладных на реализацию
 #make "Source\alter_interface\alter_KUT4KASSA.vip"           // Прием данных из касс
+#make "Source\alter_interface\alter_RTREPBS.VIP"
 
 #make "Source\ScaleNac\ScaleNac.vip"                         // Шкала наценок
 

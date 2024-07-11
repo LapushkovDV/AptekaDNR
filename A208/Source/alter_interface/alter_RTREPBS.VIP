@@ -1,0 +1,1205 @@
+#component "L_ROZN"
+alter Interface RtRepBS 'Отчет по закупкам/продажам';
+
+overload Procedure Report_BS_FR;
+end;
+create view
+from
+    rzKUTrash rzKUTrash_dnr
+  , katmc katmc_dnr
+  , spgrnal spgrnal_dnr
+  , FRNaklItog FRNaklItog_dnr
+  , FRTovar FRTovar_dnr
+
+  ;
+Procedure Report_BS_FR; {
+{
+  var s, name, group, newgroup: string;
+  var rub, val, MassaEd, VolumeEd: double;
+  var ind: byte;
+  var grpcode, namecode, IntNakl: boolean;
+  var i: word;
+
+  NRecGroup         := 0;
+  NRecTovar1        := 0;
+  NRecTovar2        := 0;
+  NRecGroupItog1    := 0;
+  NRecGroupItog2    := 0;
+  NRecNakl1         := 0;
+  NRecNakl2         := 1;
+  NRecNaklItog1     := 0;
+  NRecNaklItog2     := 0;
+  NRecTovarItog1    := 0;
+  NRecTovarItog2    := 0;
+  NRecInterval1     := 0;
+  NRecInterval2     := 0;
+  NRecIntervalItog1 := 0;
+  NRecIntervalItog2 := 0;
+  NRecOplItog1      := 0;
+  NRecOplItog2      := 0;
+
+  GetMyHeader(s);
+  otfilter := s;
+
+  otcval  := oValFunc.ValNatName;
+  basval  := oValFunc.ValTarName;
+  vtarsim := oValFunc.ValNatSimv;
+  vbassim := oValFunc.ValTarSimv;
+
+  s := if (zp = 2, 'продажам товаров', 'закупкам товаров');
+
+  case sort of
+  //------------------------------------------------------------------------------
+    0: head1 := 'по ' + s + ' в разрезе номенклатурных номеров';
+  //------------------------------------------------------------------------------
+    1: head1 := 'по ' + s + ' в разрезе номенклатурных групп';
+  //------------------------------------------------------------------------------
+    2: head1 := 'по ' + s + ' в разрезе номенклатурных партий';
+  //------------------------------------------------------------------------------
+    3: head1 := 'по ' + s + ' в разрезе материально ответственных лиц';
+  //------------------------------------------------------------------------------
+    4: head1 := 'по ' + s + ' в разрезе подразделений';
+  //------------------------------------------------------------------------------
+    5: head1 := 'по ' + s + ' в разрезе контрагентов';
+  //------------------------------------------------------------------------------
+    6:
+    {
+     if (ClassName <> 0)
+       head1 := 'по ' + s + ' в разрезе классификации "'+string(ClassName)+'"';
+     else
+       head1 := 'по ' + s + ' в разрезе внешней классификации';
+    }
+  //------------------------------------------------------------------------------
+    7: head1 := 'по ' + s + ' в разрезе сопроводительных документов';
+  //------------------------------------------------------------------------------
+    8: head1 := 'по ' + s + ' в разрезе дескр. пользователей';
+  //------------------------------------------------------------------------------
+  end; // case
+
+  s := ' за период: с ' + DateToStr(d1, 'DD/MM/YYYY') + '  по ' + DateToStr(d2, 'DD/MM/YYYY');
+
+  //header 2
+  head2 := s;
+
+  s := ' товаров';
+
+  //header 3
+  case sort of
+    0: head3 := 'Наименования' + s;
+    1: head3 := 'Группы' + s;
+    2: head3 := 'Партии' + s;
+    3: head3 := 'Материально ответственные лица';
+    4: head3 := 'Подразделения';
+    5: head3 := 'Контрагенты';
+    6: head3 := 'Внешняя классификация';
+    7:
+    {
+      if otcItog
+        head3 := 'Контрагенты';
+      else
+        head3 := 'Сопроводительные документы';
+    }
+    8: head3 := 'Дескр. пользователей';
+  end; // case
+
+  //header 4
+  head4 := 'Наименование матценности';
+
+  //header gr
+  s := '';
+  if (zp < 2)
+  {
+    case sort of
+      0: s := 'Отчет по закупкам товаров';
+      1: s := 'Отчет по закупкам групп товаров';
+      2: s := 'Отчет по закупкам партий товаров';
+      3: s := 'Отчет по закупкам товаров по мат.-ответ. лицам';
+      4: s := 'Отчет по закупкам товаров по подразделениям';
+      5: s := 'Отчет по закупкам товаров у контрагентов';
+      6: s := 'Отчет по закупкам товаров по внеш.классификации';
+      7: s := 'Отчет по закупкам товаров по накладным';
+      8: s := 'Отчет по закупкам товаров по дескр. пользователя';
+    end; // case
+  }
+  else
+  {
+    case sort of
+      0: s := 'Отчет по продажам товаров';
+      1: s := 'Отчет по продажам групп товаров';
+      2: s := 'Отчет по продажам партий товаров';
+      3: s := 'Отчет по продажам товаров по мат.-ответ. лицам';
+      4: s := 'Отчет по продажам товаров по подразделениям';
+      5: s := 'Отчет по продажам товаров контрагентам';
+      6: s := 'Отчет по продажам товаров по внеш.классификации';
+      7: s := 'Отчет по продажам товаров по накладным';
+      8: s := 'Отчет по продажам товаров по дескр. пользователя';
+    end; // case
+  }
+  headgr := s;
+
+  //---------------------------------------------------------------------------
+  //-------------------- цикл по группирующим элементам -----------------------
+  //---------------------------------------------------------------------------
+  if GetFirst tmpRptTab ordered by index tmpRptTab01 = tsOk
+  do
+  {
+    KolGrp  := 0;   KolVozvGrp := 0;
+    SumGrp  := 0;   SumVozvGrp := 0;  MarjaGrp := 0;
+    vSumGrp := 0;  vSumVozvGrp := 0; vMarjaGrp := 0;
+
+    SumNDS_V_Grp := 0; vSumNDS_V_Grp := 0;
+    SumNDS_I_Grp := 0; vSumNDS_I_Grp := 0;
+
+    MassaGrp  := 0;
+    VolumeGrp := 0;
+
+
+    KolNak := 0;   KolVozvNak := 0;
+    SumNak := 0;   SumVozvNak := 0;  MarjaNak := 0;
+    vSumNak := 0;  vSumVozvNak := 0; vMarjaNak := 0;
+
+    SumNDS_V_Nak := 0; vSumNDS_V_Nak := 0;
+    SumNDS_I_Nak := 0; vSumNDS_I_Nak := 0;
+
+    MassaNak  := 0;
+    VolumeNak := 0;
+
+    For(i := 1; i<= 5; i++)
+    {
+      SumTarGrp[i] := 0;
+      SumBasGrp[i] := 0;
+      SumTarNak[i] := 0;
+      SumBasNak[i] := 0;
+    }
+
+    dinNewNaklDate := d1;
+    GetdinNewNaklDate;
+
+    //начало цикла по группам
+    group := '';
+
+    ClearBuffer(#FRGroup);
+    NRecGroup := NRecGroup + 1;
+    FRGroup.NRecGroup := NRecGroup;
+
+    case sort of
+    //--------------------------------------------------------------------------------
+     0:
+     {
+       FRGroup.a0        := '';
+       FRGroup.NameGroup := '';
+     }
+     //--------------------------------------------------------------------------------
+     1:
+     {
+       group := tmpRptTab.NameGroup;
+       FRGroup.a0        := 'Группа: ';
+       FRGroup.NameGroup := Upcase(group);
+     }
+     //--------------------------------------------------------------------------------
+     2:
+     {
+       group := tmpRptTab.NameParty;
+       FRGroup.a0        := 'Партия: ';
+       FRGroup.NameGroup := Upcase(group);
+     }
+     //--------------------------------------------------------------------------------
+     3:
+     {
+       group := tmpRptTab.NameMOL;
+       FRGroup.a0        := 'МОЛ: ';
+       FRGroup.NameGroup := Upcase(group);
+     }
+     //--------------------------------------------------------------------------------
+     4:
+     {
+       group := tmpRptTab.NamePodr;
+       FRGroup.a0        := 'Подразделение: ';
+       FRGroup.NameGroup := Upcase(group);
+      }
+     //--------------------------------------------------------------------------------
+     5:
+     {
+       group := tmpRptTab.KontrName;
+       FRGroup.a0        := 'Контрагент: ';
+       FRGroup.NameGroup := Upcase(group);
+     }
+     //--------------------------------------------------------------------------------
+     6:
+     {
+       group := tmpRptTab.BarKod;
+       FRGroup.a0        := 'Классификация: ';
+       FRGroup.NameGroup := Upcase(group);
+     }
+     //--------------------------------------------------------------------------------
+     7:
+     {
+       group := tmpRptTab.KontrName;
+       FRGroup.a0        := 'Контрагент: ';
+       FRGroup.NameGroup := Upcase(group);
+     }
+     //--------------------------------------------------------------------------------
+     8:
+     {
+       group := tmpRptTab.Descr;
+       FrGroup.a0        := 'Дескриптор пользователя: ';
+       FrGroup.NameGroup := UpCase(group);
+     }
+     //--------------------------------------------------------------------------------
+    end; // case
+
+    IntNakl := FALSE;   // новая накладная
+    newgroup := group;  // новая группа
+    grpcode := FALSE;   // переход на нов группу
+
+    // цикл по товарам
+    do
+    {
+      if IntNakl
+      {
+        IntNakl := FALSE;
+
+        if tmpRptTab.Date1 >= dinNewNaklDate
+        {
+          While (tmpRptTab.Date1 >= dinNewNaklDate)
+            if NOT WriteIntervalNakl_FR
+              Exit;
+        }
+        else
+        {
+          if grpcode
+          {
+            if NOT WriteIntervalNakl_FR
+              Exit;
+          }
+          else
+            insert current FRTovar;
+        }
+      }
+
+      newgroup := '';
+
+      case sort of
+        1: newgroup := tmpRptTab.NameGroup;
+        2: newgroup := tmpRptTab.NameParty;
+        3: newgroup := tmpRptTab.NameMOL;
+        4: newgroup := tmpRptTab.NamePodr;
+        5: newgroup := tmpRptTab.KontrName;
+        6: newgroup := tmpRptTab.BarKod;
+        7: newgroup := tmpRptTab.KontrName;
+        8: newgroup := tmpRptTab.Descr;
+      end; // case
+
+
+      if newgroup <> group
+      {
+        grpcode := TRUE;
+        Break;
+      }
+
+      KolTov  := 0;
+      SumTov  := 0;
+      vSumTov := 0;
+
+      KolVozvTov  := 0;
+      SumVozvTov  := 0;  MarjaTov := 0;
+      vSumVozvTov := 0; vMarjaTov := 0;
+
+      SumNDS_V_Tov := 0; vSumNDS_V_Tov := 0;
+      SumNDS_I_Tov := 0; vSumNDS_I_Tov := 0;
+
+      MassaTov  := 0;
+      VolumeTov := 0;
+
+      For(i := 1; i<= 5; i++)
+      {
+        SumTarTov[i] := 0;
+        SumBasTov[i] := 0;
+      }
+
+      //начало цикла по товарам
+
+      ClearBuffer(#FRTovar);
+
+      NRecTovar1 := NRecGroup;
+      NRecTovar2 := NRecTovar2 + 1;
+
+      FRTovar.NRecMC := tmpRptTab.cMC;
+      FRTovar.NRecTovar1 := NRecTovar1;
+      FRTovar.NRecTovar2 := NRecTovar2;
+
+      s := '';
+      if (sort = 6)
+      {
+        FRTovar.a1       := 'Классификация: ';
+        FRTovar.NomenklN := tmpRptTab.BarKod;
+        FRTovar.a2       := ', товар: ';
+      }
+      else
+      {
+        FRTovar.a1       := 'Номенклатурный номер: ';
+        FRTovar.NomenklN := tmpRptTab.BarKod;
+        FRTovar.a2       := ' - ';
+      }
+
+      FRTovar.NameMC    := tmpRptTab.NameMC;
+      FRTovar.a3        := ', ед.изм.: ';
+      FRTovar.NameUchEd := tmpRptTab.NameEd;
+
+      s := GetNameAndBarKod(tmpRptTab.NameMC, tmpRptTab.BarKod, FALSE) + ' - ' + tmpRptTab.NameEd;
+
+      FRTovar.NameMCandBARandEd := s;
+
+      MassaEd := tmpRptTab.tovMassa / tmpRptTab.Kol1;
+      VolumeEd := tmpRptTab.tovVolume / tmpRptTab.Kol1;
+      FRTovar.a4      := ', масса = ';
+      FRTovar.Massa1  := MassaEd;
+      FRTovar.a5      := ', объем = ';
+      FRTovar.Volume1 :=  VolumeEd;
+
+
+      FRTovar.Nomer_Nakl := tmpRptTab.Nomer;
+      FRTovar.Date_Nakl  := DateToStr(tmpRptTab.Date1, 'DD/MM/YYYY');
+
+      KolInt := 0;
+      SumInt := 0;
+      vSumInt := 0;
+
+      KolVozvInt := 0;
+      SumVozvInt := 0;  MarjaInt := 0;
+      vSumVozvInt := 0; vMarjaInt := 0;
+
+      SumNDS_V_Int := 0; vSumNDS_V_Int := 0;
+      SumNDS_I_Int := 0; vSumNDS_I_Int := 0;
+
+      MassaInt  := 0;
+      VolumeInt := 0;
+
+      For(i := 1; i<= 5; i++)
+      {
+        SumTarInt[i] := 0;
+        SumBasInt[i] := 0;
+      }
+
+      dinNewDate := d1;
+      GetdinNewDate;
+
+      namecode := FALSE;
+
+      name := if (sort = 7, tmpRptTab.Nomer, tmpRptTab.NameMC);
+
+      // цикл по интервалам
+      do
+      {
+        newgroup := '';
+        case sort of
+          1: newgroup := tmpRptTab.NameGroup;
+          2: newgroup := tmpRptTab.NameParty;
+          3: newgroup := tmpRptTab.NameMol;
+          4: newgroup := tmpRptTab.NamePodr;
+          5: newgroup := tmpRptTab.KontrName;
+          6: newgroup := tmpRptTab.BarKod;
+          7: newgroup := tmpRptTab.KontrName;
+          8: newgroup := tmpRptTab.Descr;
+        end; // case
+
+        if sort = 7
+        {
+          if tmpRptTab.Nomer <> name
+            namecode := TRUE;
+        }
+        else
+          if tmpRptTab.NameMC <> name
+            namecode := TRUE;
+
+        if newgroup <> group
+          grpcode := TRUE;
+
+        if grpcode OR namecode
+          Break;
+
+        While (tmpRptTab.Date1 >= dinNewDate)
+          do  // итоги по интервалу
+            if NOT WriteIntervalValues_FR
+              Exit;
+
+        Rub := Sum1;
+        Val := Sum1v;
+
+        if tmpRptTab.TypePlat <> FROM_NAROD  //не возврат
+        {
+          For(i := 1; i<= 5; i++)
+          {
+            SumTarTov[i] := SumTarTov[i] + tmpRptTab.C_SumTar[i];
+            SumBasTov[i] := SumBasTov[i] + tmpRptTab.C_SumBas[i];
+            SumTarInt[i] := SumTarInt[i] + tmpRptTab.C_SumTar[i];
+            SumBasInt[i] := SumBasInt[i] + tmpRptTab.C_SumBas[i];
+            SumTarNak[i] := SumTarNak[i] + tmpRptTab.C_SumTar[i];
+            SumBasNak[i] := SumBasNak[i] + tmpRptTab.C_SumBas[i];
+            SumTarGrp[i] := SumTarGrp[i] + tmpRptTab.C_SumTar[i];
+            SumBasGrp[i] := SumBasGrp[i] + tmpRptTab.C_SumBas[i];
+          }
+
+           KolGrp :=  KolGrp + tmpRptTab.Kol1;
+           KolTov :=  KolTov + tmpRptTab.Kol1;
+           KolInt :=  KolInt + tmpRptTab.Kol1;
+           KolNak :=  KolNak + tmpRptTab.Kol1;
+           SumGrp :=  SumGrp + tmpRptTab.Sum1;
+           SumTov :=  SumTov + tmpRptTab.Sum1;
+           SumInt :=  SumInt + tmpRptTab.Sum1;
+           SumNak :=  SumNak + tmpRptTab.Sum1;
+          vSumGrp := vSumGrp + tmpRptTab.Sum1v;
+          vSumTov := vSumTov + tmpRptTab.Sum1v;
+          vSumInt := vSumInt + tmpRptTab.Sum1v;
+          vSumNak := vSumNak + tmpRptTab.Sum1v;
+
+           MarjaTov :=  MarjaTov + tmpRptTab.Sum1  - tmpRptTab.Sum3;
+           MarjaInt :=  MarjaInt + tmpRptTab.Sum1  - tmpRptTab.Sum3;
+           MarjaGrp :=  MarjaGrp + tmpRptTab.Sum1  - tmpRptTab.Sum3;
+           MarjaNak :=  MarjaNak + tmpRptTab.Sum1  - tmpRptTab.Sum3;
+          vMarjaTov := vMarjaTov + tmpRptTab.Sum1v - tmpRptTab.Sum3v;
+          vMarjaInt := vMarjaInt + tmpRptTab.Sum1v - tmpRptTab.Sum3v;
+          vMarjaGrp := vMarjaGrp + tmpRptTab.Sum1v - tmpRptTab.Sum3v;
+          vMarjaNak := vMarjaNak + tmpRptTab.Sum1v - tmpRptTab.Sum3v;
+
+           MassaGrp := MassaGrp + tmpRptTab.tovMassa;
+           MassaTov := MassaTov + tmpRptTab.tovMassa;
+           MassaInt := MassaInt + tmpRptTab.tovMassa;
+           MassaNak := MassaNak + tmpRptTab.tovMassa;
+
+          VolumeGrp := VolumeGrp + tmpRptTab.tovVolume;
+          VolumeTov := VolumeTov + tmpRptTab.tovVolume;
+          VolumeInt := VolumeInt + tmpRptTab.tovVolume;
+          VolumeNak := VolumeNak + tmpRptTab.tovVolume;
+        }
+
+        //начало цикла по интервалам
+        ClearBuffer(#FRInterval);
+        FRInterval.cSopr  := tmpRptTab.cSopr;
+        FRInterval.cSopr3 := tmpRptTab.cSopr3;
+
+        NRecInterval1 := NRecNakl2;
+        NRecInterval2 := NRecInterval2 + 1;
+
+        FRInterval.NRecInterval1 := NRecInterval1;
+        FRInterval.NRecInterval2 := NRecInterval2;
+
+        // тут формируется строка (детализация)
+        FRInterval.DateNakl  := if (DateToStr(tmpRptTab.Date1, 'DD/MM/YYYY') = 'ДД/ММ/ГГГГ', '',DateToStr(tmpRptTab.Date1, 'DD/MM/YYYY'));
+        FRInterval.NomNakl   := tmpRptTab.Nomer;
+        FRInterval.NameParty := tmpRptTab.NameParty;
+
+        kvozvr := 0;
+        if otcVozvrat AND (tmpRptTab.TypePlat = FROM_NAROD)  //возврат
+          if GetFirst rzKutRash where ((tmpRptTab.cSopr3 == rzKutRash.NRec)) = tsOk
+            if GetFirst rzDoc where ((rzKutRash.cSopr == rzDoc.NRec)) = tsOk
+            {
+              FRInterval.NameKontr := 'возврат по накл. ' + f_sNumDate(rzDoc.nDoc, rzDoc.dDoc);
+              kvozvr := tmpRptTab.Kol1;
+            }
+            else
+            {
+              FRInterval.NameKontr := 'возврат по накл. №???';
+              kvozvr := tmpRptTab.Kol1;
+            }
+          else
+          {
+            FRInterval.NameKontr := 'возврат по накл. №???';
+            kvozvr := tmpRptTab.Kol1;
+          }
+        else
+          FRInterval.NameKontr := tmpRptTab.KontrName;
+
+        FRInterval.KolKupl      := tmpRptTab.Kol1;
+        FRInterval.KolOst       := tmpRptTab.Kolost;
+        FRInterval.SumOst       := tmpRptTab.Kolost * tmpRptTab.C_PriceTar[5];
+        FRInterval.PriceKupl    := zp_FsRoundRub(tmpRptTab.Price1);
+        FRInterval.PriceKuplVal := zp_FsRoundVal(tmpRptTab.Price1v);
+        FRInterval.CostKupl     := zp_FsRoundRub(tmpRptTab.Sum1);
+        FRInterval.CostKuplVal  := zp_FsRoundVal(tmpRptTab.Sum1v);
+        FRInterval.NalogProd    := FsRoundVal(tmpRptTab.NalogProd);
+        FRInterval.SumNalogProd := FsRoundVal(tmpRptTab.SumNalogProd);
+        FRInterval.Proc1        := percent(tmpRptTab.Sum3, tmpRptTab.Sum1);
+        FRInterval.Proc2        := percent(tmpRptTab.Sum3v, tmpRptTab.Sum1v);
+        FRInterval.SumNacen     := FsRoundRub(tmpRptTab.Sum3 - tmpRptTab.Sum1);
+        FRInterval.SumNacenVal  := FsRoundVal(tmpRptTab.Sum3v - tmpRptTab.Sum1v);
+        FRInterval.Massa        := tmpRptTab.tovMassa;
+        FRInterval.Volume       := tmpRptTab.tovVolume;
+
+        s := tmpRptTab.NameMC + ' - ' + tmpRptTab.BarKod;
+
+        FRInterval.Name_MC       := s;
+        FRInterval.Name_UchEd    := tmpRptTab.NameEd;
+        FRInterval.PriceFirst    := zp_FsRoundRub(tmpRptTab.PriceFirst);
+        FRInterval.PriceFirstVal := zp_FsRoundVal(tmpRptTab.PriceFirstVal);
+        FRInterval.CostFirst     := zp_FsRoundRub(tmpRptTab.CostFirst);
+        FRInterval.CostFirstVal  := zp_FsRoundVal(tmpRptTab.CostFirstVal);
+
+        FRInterval.PriceCZ    := zp_FsRoundRub(tmpRptTab.C_PriceTar[1]);
+        FRInterval.PriceCZVal := zp_FsRoundVal(tmpRptTab.C_PriceBas[1]);
+        FRInterval.CostCZ     := zp_FsRoundRub(tmpRptTab.C_SumTar[1]);
+        FRInterval.CostCZVal  := zp_FsRoundVal(tmpRptTab.C_SumBas[1]);
+        FRInterval.PriceRN    := FsRoundRub(tmpRptTab.C_PriceTar[2]);
+        FRInterval.PriceRNVal := FsRoundVal(tmpRptTab.C_PriceBas[2]);
+        FRInterval.CostRN     := FsRoundRub(tmpRptTab.C_SumTar[2]);
+        FRInterval.CostRNVal  := FsRoundVal(tmpRptTab.C_SumBas[2]);
+        FRInterval.PriceCR    := FsRoundRub(tmpRptTab.C_PriceTar[3]);
+        FRInterval.PriceCRVal := FsRoundVal(tmpRptTab.C_PriceBas[3]);
+        FRInterval.CostCR     := FsRoundRub(tmpRptTab.C_SumTar[3]);
+        FRInterval.CostCRVal  := FsRoundVal(tmpRptTab.C_SumBas[3]);
+        FRInterval.PriceNP    := FsRoundRub(tmpRptTab.C_PriceTar[4]);
+        FRInterval.PriceNPVal := FsRoundVal(tmpRptTab.C_PriceBas[4]);
+        FRInterval.CostNP     := FsRoundRub(tmpRptTab.C_SumTar[4]);
+        FRInterval.CostNPVal  := FsRoundVal(tmpRptTab.C_SumBas[4]);
+        FRInterval.PriceCP    := FsRoundRub(tmpRptTab.C_PriceTar[5]);
+        FRInterval.PriceCPVal := FsRoundVal(tmpRptTab.C_PriceBas[5]);
+        FRInterval.CostCP     := FsRoundRub(tmpRptTab.C_SumTar[5]);
+        FRInterval.CostCPVal  := FsRoundVal(tmpRptTab.C_SumBas[5]);
+
+        insert current FRInterval;
+
+        // Искуственный цикл для печати НДС, надбавки, налога и
+        // возврата, если установлены соответствующие флаги
+
+        // Печать НДС
+        if( zp = 1 )
+        { //отчет о закупках
+           if getFirst KatParty where ((tmpRptTab.cParty == KatParty.nRec)) = tsOk
+           {
+             if( GetFirst rzKutPrih where ((tmpRptTab.cMc    == rzKutPrih.cMc and
+                                            tmpRptTab.cParty == rzKutPrih.cParty (noindex))) <> tsOK ) // для одинаковых МЦ
+               message('Не найден приход!');
+           }
+           else
+           {
+             if( GetFirst rzKutPrih where ((tmpRptTab.cSopr == rzKutPrih.cSopr and
+                                            tmpRptTab.cMc   == rzKutPrih.cMc (noindex))) <> tsOK ) // для одинаковых МЦ
+               message('Не найден приход!');
+           }
+         }
+         else
+         { //отчет о продажах
+           if( GetFirst rzKutPrih where ((tmpRptTab.cSopr == rzKutPrih.NRec and
+                                          tmpRptTab.cMc   == rzKutPrih.cMc (noindex))) <> tsOK ) // для одинаковых МЦ
+              message('Не найден приход!');
+         }
+
+        var ValKurs  : double;
+        var dPrihKol: double;
+        var suman1, suman2 : double;
+
+        ValKurs  := GetValCurs;  //получение курса валюты
+        dPrihKol := rzKutPrih.Kol; //получение количества по приходу
+
+       //НДС (входящий)
+        if otcNDS_V AND IsValid(#NalogNDS_V)
+        {
+        //FROplItog!!!!!!!!!!!!
+          ClearBuffer(#FROplItog);
+
+          NRecOplItog1 := NRecInterval2;
+          NRecOplItog2 := NRecOplItog2 + 1;
+
+          FROplItog.NRecOplItog1 := NRecOplItog1;
+          FROplItog.NRecOplItog2 := NRecOplItog2;
+
+          FROplItog.Naim     := 'Вх. НДС  : ';                    //(Naim)
+          FROplItog.Kol      := String(NalogNDS_V.Nalog,0,2) + '%';  //ставка НДС (Kol)
+          FROplItog.Price    := 0;                               //(Price)
+          FROplItog.PriceVal := 0;                               //(PriceVal)
+
+          if zp <> 1 // отчет по продажам
+            suman1 := (NalogNDS_V.Summa / dPrihKol) * tmpRptTab.Kol1;
+          else
+            suman1 := NalogNDS_V.Summa;
+
+          if zp <> 1
+            suman2 := (NalogNDS_V.SumVal / dPrihKol) * tmpRptTab.Kol1;
+          else
+            suman2 := NalogNDS_V.SumVal;
+
+          //в рублях                                      (Sum)
+          FROplItog.Sum := RoundNalog(suman1);
+
+          //в валюте                                      (SumVal)
+          FROplItog.SumVal := RoundNalogv(suman2);
+          insert current FROplItog;
+
+          //подсчет итогов
+           SumNDS_V_Tov :=  SumNDS_V_Tov + suman1;
+          vSumNDS_V_Tov := vSumNDS_V_Tov + suman2;
+
+           SumNDS_V_Int :=  SumNDS_V_Int + suman1;
+          vSumNDS_V_Int := vSumNDS_V_Int + suman2;
+
+           SumNDS_V_Nak :=  SumNDS_V_Nak + suman1;
+          vSumNDS_V_Nak := vSumNDS_V_Nak + suman2;
+
+           SumNDS_V_All :=  SumNDS_V_All + suman1;
+          vSumNDS_V_All := vSumNDS_V_All + suman2;
+
+           SumNDS_V_Grp :=  SumNDS_V_Grp + suman1;
+          vSumNDS_V_Grp := vSumNDS_V_Grp + suman2;
+        }
+
+
+          //НДС (исходящий)
+        if otcNDS_I AND IsValid(#NalogNDS_I)
+        {
+          ClearBuffer(#FROplItog);
+
+          NRecOplItog1 := NRecInterval2;
+          NRecOplItog2 := NRecOplItog2 + 1;
+
+          FROplItog.NRecOplItog1 := NRecOplItog1;
+          FROplItog.NRecOplItog2 := NRecOplItog2;
+
+          FROplItog.Naim     := 'Исх. НДС: ';                    //(Naim)
+          FROplItog.Kol      := String(NalogNDS_I.Nalog,0,2) + '%';  //ставка НДС (Kol)
+          FROplItog.Price    := 0;                               //(Price)
+          FROplItog.PriceVal := 0;                               //(PriceVal)
+
+          if zp <> 1 // отчет по продажам
+            suman1 := (NalogNDS_I.Summa  / dPrihKol) * tmpRptTab.Kol1;
+          else
+            suman1 := NalogNDS_I.Summa;
+
+          if zp <> 1
+            suman2 := (NalogNDS_I.SumVal / dPrihKol) * tmpRptTab.Kol1;
+          else
+            suman2 := NalogNDS_I.SumVal;
+
+          //в рублях                                      (Sum)
+          FROplItog.Sum := RoundNalog(suman1);
+          //в валюте                                      (SumVal)
+          FROplItog.SumVal := RoundNalogv(suman2);
+          insert current FROplItog;
+
+          //подсчет итогов
+           SumNDS_I_Tov :=  SumNDS_I_Tov + suman1;
+          vSumNDS_I_Tov := vSumNDS_I_Tov + suman2;
+
+           SumNDS_I_Int :=  SumNDS_I_Int + suman1;
+          vSumNDS_I_Int := vSumNDS_I_Int + suman2;
+
+           SumNDS_I_Nak :=  SumNDS_I_Nak + suman1;
+          vSumNDS_I_Nak := vSumNDS_I_Nak + suman2;
+
+           SumNDS_I_All :=  SumNDS_I_All + suman1;
+          vSumNDS_I_All := vSumNDS_I_All + suman2;
+
+           SumNDS_I_Grp :=  SumNDS_I_Grp + suman1;
+          vSumNDS_I_Grp := vSumNDS_I_Grp + suman2;
+        }
+        //--------------------------------------------------------------------
+
+
+        if otcNacen
+        {
+          ClearBuffer(#FROplItog);
+
+          NRecOplItog1 := NRecInterval2;
+          NRecOplItog2 := NRecOplItog2 + 1;
+
+          FROplItog.NRecOplItog1 := NRecOplItog1;
+          FROplItog.NRecOplItog2 := NRecOplItog2;
+
+          s := String(percent(tmpRptTab.Sum1, tmpRptTab.Sum3));
+          FROplItog.Naim     := 'надбавка: ';
+          FROplItog.Kol      := String(tmpRptTab.pnacen,0,2)+'%';
+          FROplItog.Price    := tmpRptTab.C_PriceTar[2];
+          FROplItog.PriceVal := tmpRptTab.C_PriceBas[2];
+          FROplItog.Sum      := FsRoundRub(tmpRptTab.C_SumTar[2]);
+          FROplItog.SumVal   := FsRoundVal(tmpRptTab.C_SumBas[2]);
+          insert current FROplItog;
+        }
+
+        if otcNalog
+        {
+          ClearBuffer(#FROplItog);
+
+          NRecOplItog1 := NRecInterval2;
+          NRecOplItog2 := NRecOplItog2 + 1;
+
+          FROplItog.NRecOplItog1 := NRecOplItog1;
+          FROplItog.NRecOplItog2 := NRecOplItog2;
+
+          FROplItog.Naim     := 'налог: '; // налог 3
+          FROplItog.Kol      := string(100*((tmpRptTab.C_PriceTar[5]-tmpRptTab.C_PriceTar[3])/tmpRptTab.C_PriceTar[3]),0,2)+'%';
+          FROplItog.Price    := tmpRptTab.C_PriceTar[4];
+          FROplItog.PriceVal := tmpRptTab.C_PriceBas[4];
+          FROplItog.Sum      := FsRoundRub(tmpRptTab.C_SumTar[4]);
+          FROplItog.SumVal   := FsRoundVal(tmpRptTab.C_SumBas[4]);
+          insert current FROplItog;
+        }
+
+        if otcVozvrat
+          if (zp < 2) AND ((abs(tmpRptTab.Kol3) > 0.000005))  //отчет по закупкам
+          {
+            ClearBuffer(#FROplItog);
+
+            NRecOplItog1 := NRecInterval2;
+            NRecOplItog2 := NRecOplItog2 + 1;
+
+            FROplItog.NRecOplItog1 := NRecOplItog1;
+            FROplItog.NRecOplItog2 := NRecOplItog2;
+
+            FROplItog.Naim     := 'возврат: ';
+            FROplItog.Kol      := string(tmpRptTab.Kol3);
+            FROplItog.Price    := tmpRptTab.Price3;
+            FROplItog.PriceVal := tmpRptTab.Price3v;
+            FROplItog.Sum      := FsRoundRub(tmpRptTab.Sum3);
+            FROplItog.SumVal   := FsRoundVal(tmpRptTab.Sum3v);
+            insert current FROplItog;
+
+             KolVozvTov :=  KolVozvTov + tmpRptTab.Kol3;
+             KolVozvInt :=  KolVozvInt + tmpRptTab.Kol3;
+             KolVozvNak :=  KolVozvNak + tmpRptTab.Kol3;
+             KolVozvGrp :=  KolVozvGrp + tmpRptTab.Kol3;
+
+             SumVozvTov :=  SumVozvTov + tmpRptTab.Sum3;
+             SumVozvInt :=  SumVozvInt + tmpRptTab.Sum3;
+             SumVozvNak :=  SumVozvNak + tmpRptTab.Sum3;
+             SumVozvGrp :=  SumVozvGrp + tmpRptTab.Sum3;
+            vSumVozvTov := vSumVozvTov + tmpRptTab.Sum3v;
+            vSumVozvInt := vSumVozvInt + tmpRptTab.Sum3v;
+            vSumVozvNak := vSumVozvNak + tmpRptTab.Sum3v;
+            vSumVozvGrp := vSumVozvGrp + tmpRptTab.Sum3v;
+          }
+          else
+            if (tmpRptTab.TypePlat = FROM_NAROD) AND (abs(tmpRptTab.Kol1) > 0.000005)
+            {
+               if KolInt = 0
+                 if kvozvr > 0
+                   KolInt := kvozvr;
+                 else
+                   KolInt := 1; // глюк с возвратами 102.61632
+
+               KolVozvTov :=  KolVozvTov + tmpRptTab.Kol1;
+               KolVozvInt :=  KolVozvInt + tmpRptTab.Kol1;
+               KolVozvNak :=  KolVozvNak + tmpRptTab.Kol1;
+               KolVozvGrp :=  KolVozvGrp + tmpRptTab.Kol1;
+
+               SumVozvTov :=  SumVozvTov + tmpRptTab.Sum1;
+               SumVozvInt :=  SumVozvInt + tmpRptTab.Sum1;
+               SumVozvNak :=  SumVozvNak + tmpRptTab.Sum1;
+               SumVozvGrp :=  SumVozvGrp + tmpRptTab.Sum1;
+              vSumVozvTov := vSumVozvTov + tmpRptTab.Sum1v;
+              vSumVozvInt := vSumVozvInt + tmpRptTab.Sum1v;
+              vSumVozvNak := vSumVozvNak + tmpRptTab.Sum1v;
+              vSumVozvGrp := vSumVozvGrp + tmpRptTab.Sum1v;
+            }
+
+        if NOT NextVisual
+          Exit;
+      }
+      While (GetNext tmpRptTab ordered by index tmpRptTab01 = tsOk);
+
+      if NOT WriteIntervalValues_FR
+        Exit;
+
+//FRTovar (2)!!!!!!!!!!!!!!!!!!!!!!!
+      // конец цикла по интервалам
+      FRTovar.TovKol         := KolTov;
+      FRTovar.TovCostKupl    := zp_FsRoundRub(SumTov);
+      FRTovar.TovCostKuplVal := zp_FsRoundVal(vSumTov);
+      FRTovar.TovSumNacen    := FsRoundRub(MarjaTov);
+      FRTovar.TovSumNacenVal := FsRoundVal(vMarjaTov);
+      FRTovar.TovMassa       := MassaTov;
+      FRTovar.TovVolume      := VolumeTov;
+      FRTovar.TovCostCZ      := FsRoundRub(SumTarTov[1]);
+      FRTovar.TovCostCZVal   := FsRoundVal(SumBasTov[1]);
+      FRTovar.TovCostRN      := FsRoundRub(SumTarTov[2]);
+      FRTovar.TovCostRNVal   := FsRoundVal(SumBasTov[2]);
+      FRTovar.TovCostCR      := FsRoundRub(SumTarTov[3]);
+      FRTovar.TovCostCRVal   := FsRoundVal(SumBasTov[3]);
+      FRTovar.TovCostNP      := FsRoundRub(SumTarTov[4]);
+      FRTovar.TovCostNPVal   := FsRoundVal(SumBasTov[4]);
+      FRTovar.TovCostCP      := FsRoundRub(SumTarTov[5]);
+      FRTovar.TovCostCPVal   := FsRoundVal(SumBasTov[5]);
+
+      //*********  налоги по товару в цикле  *********************************
+      //НДС (входящий)
+      if otcNDS_V AND (SumNDS_V_Tov <> 0.0)
+        {
+          ClearBuffer(#FRNaklItog);
+
+          NRecNaklItog1 := NRecTovar2;
+          NRecNaklItog2 := NRecNaklItog2 + 1;
+
+          FRNaklItog.NRecNaklItog1 := NRecNaklItog1;
+          FRNaklItog.NRecNaklItog2 := NRecNaklItog2;
+
+          FRNaklItog.TovNaim   := 'Вх. НДС  : ';
+          FRNaklItog.TovNalKol := 0;
+          FRNaklItog.TovSum    := RoundNalog( SumNDS_V_Tov);
+          FRNaklItog.TovSumVal := RoundNalogv(vSumNDS_V_Tov);
+          insert current FRNaklItog;
+        }
+
+      //НДС (исходящий)
+      if otcNDS_I AND (SumNDS_I_Tov <> 0.0)
+        {
+          ClearBuffer(#FRNaklItog);
+
+          NRecNaklItog1 := NRecTovar2;
+          NRecNaklItog2 := NRecNaklItog2 + 1;
+
+          FRNaklItog.NRecNaklItog1 := NRecNaklItog1;
+          FRNaklItog.NRecNaklItog2 := NRecNaklItog2;
+
+          FRNaklItog.TovNaim   := 'Исх. НДС: ';
+          FRNaklItog.TovNalKol := 0;
+          FRNaklItog.TovSum    := RoundNalog( SumNDS_I_Tov);
+
+          FRNaklItog.TovSumVal := RoundNalogv(vSumNDS_I_Tov);
+          insert current FRNaklItog;
+        }
+
+      if otcNacen
+        {
+          ClearBuffer(#FRNaklItog);
+
+          NRecNaklItog1 := NRecTovar2;
+          NRecNaklItog2 := NRecNaklItog2 + 1;
+
+          FRNaklItog.NRecNaklItog1 := NRecNaklItog1;
+          FRNaklItog.NRecNaklItog2 := NRecNaklItog2;
+
+          FRNaklItog.TovNaim   := 'надбавка: ';
+          FRNaklItog.TovNalKol := 0;
+          FRNaklItog.TovSum    := RoundNalog(SumTarTov[2]);
+          FRNaklItog.TovSumVal := RoundNalogv(SumBasTov[2]);
+          insert current FRNaklItog;
+        }
+
+      if otcNalog
+        {
+          ClearBuffer(#FRNaklItog);
+
+          NRecNaklItog1 := NRecTovar2;
+          NRecNaklItog2 := NRecNaklItog2 + 1;
+
+          FRNaklItog.NRecNaklItog1 := NRecNaklItog1;
+          FRNaklItog.NRecNaklItog2 := NRecNaklItog2;
+
+          FRNaklItog.TovNaim   := 'налог: '; // налог 4
+          FRNaklItog.TovNalKol := 0;
+          FRNaklItog.TovSum    := RoundNalog(SumTarTov[4]);
+          FRNaklItog.TovSumVal := RoundNalogv(SumBasTov[4]);
+          insert current FRNaklItog;
+        }
+
+      if otcVozvrat AND (abs(KolVozvTov) > 0.000005)
+        {
+          ClearBuffer(#FRNaklItog);
+
+          NRecNaklItog1 := NRecTovar2;
+          NRecNaklItog2 := NRecNaklItog2 + 1;
+
+          FRNaklItog.NRecNaklItog1 := NRecNaklItog1;
+          FRNaklItog.NRecNaklItog2 := NRecNaklItog2;
+
+          FRNaklItog.TovNaim   := 'возврат: ';
+          FRNaklItog.TovNalKol := KolVozvTov;
+          FRNaklItog.TovSum    := RoundNalog( SumVozvTov);
+          FRNaklItog.TovSumVal := RoundNalogv(vSumVozvTov);
+          insert current FRNaklItog;
+        }
+      //**********************************************************************
+
+      if grpcode OR namecode
+        GetPrev tmpRptTab ordered by index tmpRptTab01;
+
+
+      if NOT NextVisual
+       Exit;
+
+      IntNakl := TRUE;
+    }
+    While (GetNext tmpRptTab ordered by index tmpRptTab01 = tsOk);
+
+    if IntNakl
+    {
+      if NOT WriteIntervalNakl_FR
+       Exit;
+    }
+//    insert current FRTovar;
+
+   // конец цикла по товарам
+   //FRGroup!!!!!!!!!!!!!!!!!
+    case sort of
+      0: FRGroup.a6 := '';
+      1: FRGroup.a6 := 'ВСЕГО по группе';
+      2: FRGroup.a6 := 'ВСЕГО по партии';
+      3: FRGroup.a6 := 'ВСЕГО по МОЛ';
+      4: FRGroup.a6 := 'ВСЕГО по подразделению';
+      5: FRGroup.a6 := 'ВСЕГО по контрагенту';
+      6: FRGroup.a6 := 'ВСЕГО по классификации';
+      7: FRGroup.a6 := 'ВСЕГО по контрагенту';
+      8: FRGroup.a6 := 'Всего по дескр. пользователя';
+    end; // case
+
+    if (sort <> 0)
+    {
+      FRGroup.GroupKol         := KolGrp;
+      FRGroup.GroupCostKupl    := zp_FsRoundRub( SumGrp);
+      FRGroup.GroupCostKuplVal := zp_FsRoundVal(vSumGrp);
+      FRGroup.GroupSumNacen    := FsRoundRub( MarjaGrp);
+      FRGroup.GroupSumNacenVal := FsRoundVal(vMarjaGrp);
+      FRGroup.GroupMassa       := MassaGrp;
+      FRGroup.GroupVolume      := VolumeGrp;
+      FRGroup.GroupCostCZ      := FsRoundRub(SumTarGrp[1]);
+      FRGroup.GroupCostCZVal   := FsRoundVal(SumBasGrp[1]);
+      FRGroup.GroupCostRN      := FsRoundRub(SumTarGrp[2]);
+      FRGroup.GroupCostRNVal   := FsRoundVal(SumBasGrp[2]);
+      FRGroup.GroupCostCR      := FsRoundRub(SumTarGrp[3]);
+      FRGroup.GroupCostCRVal   := FsRoundVal(SumBasGrp[3]);
+      FRGroup.GroupCostNP      := FsRoundRub(SumTarGrp[4]);
+      FRGroup.GroupCostNPVal   := FsRoundVal(SumBasGrp[4]);
+      FRGroup.GroupCostCP      := FsRoundRub(SumTarGrp[5]);
+      FRGroup.GroupCostCPVal   := FsRoundVal(SumBasGrp[5]);
+
+ //FRGroupItog!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      //**********************************************************************
+      //НДС (входящий)
+      if otcNDS_V AND (SumNDS_V_Grp <> 0.0)
+      {
+        ClearBuffer(#FRGroupItog);
+
+        NRecGroupItog1 := NRecGroup;
+        NRecGroupItog2 := NRecGroupItog2 + 1;
+
+        FRGroupItog.NRecGroupItog1 := NRecGroupItog1;
+        FRGroupItog.NRecGroupItog2 := NRecGroupItog2;
+
+        FRGroupItog.GroupNaim   := 'Вх. НДС  : ';
+        FRGroupItog.GroupNalKol := 0;
+        FRGroupItog.GroupSum    := RoundNalog( SumNDS_V_Grp);
+        FRGroupItog.GroupSumVal := RoundNalogv(vSumNDS_V_Grp);
+        insert current FRGroupItog;
+      }
+
+      //НДС (исходящий)
+      if otcNDS_I AND (SumNDS_I_Grp <> 0.0)
+      {
+        ClearBuffer(#FRGroupItog);
+
+        NRecGroupItog1 := NRecGroup;
+        NRecGroupItog2 := NRecGroupItog2 + 1;
+
+        FRGroupItog.NRecGroupItog1 := NRecGroupItog1;
+        FRGroupItog.NRecGroupItog2 := NRecGroupItog2;
+
+        FRGroupItog.GroupNaim   := 'Исх. НДС: ';
+        FRGroupItog.GroupNalKol := 0;
+        FRGroupItog.GroupSum    := RoundNalog( SumNDS_I_Grp);
+        FRGroupItog.GroupSumVal := RoundNalogv(vSumNDS_I_Grp);
+        insert current FRGroupItog;
+      }
+
+      if otcNacen
+      {
+        ClearBuffer(#FRGroupItog);
+
+        NRecGroupItog1 := NRecGroup;
+        NRecGroupItog2 := NRecGroupItog2 + 1;
+
+        FRGroupItog.NRecGroupItog1 := NRecGroupItog1;
+        FRGroupItog.NRecGroupItog2 := NRecGroupItog2;
+
+        FRGroupItog.GroupNaim   := 'надбавка: ';
+        FRGroupItog.GroupNalKol := 0;
+        FRGroupItog.GroupSum    := RoundNalog(SumTarGrp[2]);
+        FRGroupItog.GroupSumVal := RoundNalogv(SumBasGrp[2]);
+        insert current FRGroupItog;
+      }
+
+      if otcNalog
+      {
+        ClearBuffer(#FRGroupItog);
+
+        NRecGroupItog1 := NRecGroup;
+        NRecGroupItog2 := NRecGroupItog2 + 1;
+
+        FRGroupItog.NRecGroupItog1 := NRecGroupItog1;
+        FRGroupItog.NRecGroupItog2 := NRecGroupItog2;
+
+        FRGroupItog.GroupNaim   := 'налог: '; // налог 5
+        FRGroupItog.GroupNalKol := 0;
+        FRGroupItog.GroupSum    := RoundNalog(SumTarGrp[4]);
+        FRGroupItog.GroupSumVal := RoundNalogv(SumBasGrp[4]);
+        insert current FRGroupItog;
+      }
+
+      if otcVozvrat AND (abs(KolVozvGrp) > 0.000005)
+      {
+        ClearBuffer(#FRGroupItog);
+
+        NRecGroupItog1 := NRecGroup;
+        NRecGroupItog2 := NRecGroupItog2 + 1;
+
+        FRGroupItog.NRecGroupItog1 := NRecGroupItog1;
+        FRGroupItog.NRecGroupItog2 := NRecGroupItog2;
+
+        FRGroupItog.GroupNaim   := 'возврат: ';
+        FRGroupItog.GroupNalKol := KolVozvGrp;
+        FRGroupItog.GroupSum    := RoundNalog( SumVozvGrp);
+        FRGroupItog.GroupSumVal := RoundNalogv(vSumVozvGrp);
+        insert current FRGroupItog;
+      }
+
+        //**********************************************************************
+    }
+
+    insert current FRGroup;
+
+    if grpcode
+      GetPrev tmpRptTab ordered by index tmpRptTab01;
+
+    if NOT NextVisual
+      Exit;
+
+  }
+  While (GetNext tmpRptTab ordered by index tmpRptTab01 = tsOk);
+   // конец цикла по груп.элементам
+
+  // конец цикла по группам
+
+ //в поток !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  if f_KolIsPositive(KolAll)
+    {
+      TotKol         := KolAll;
+      TotCostKupl    := zp_FsRoundRub( SumAll);
+      TotCostKuplVal := zp_FsRoundVal(vSumAll);
+      TotSumNacen    := FsRoundRub( MarjaAll);
+      TotSumNacenVal := FsRoundVal(vMarjaAll);
+      TotMassa       := MassaAll;
+      TotVolume      := VolumeAll;
+
+      TotCostCZ     := zp_FsRoundRub(SumTarAll[1]);
+      TotCostCZVal  := zp_FsRoundVal(SumBasAll[1]);
+      TotCostRN     := FsRoundRub(SumTarAll[2]);
+      TotCostRNVal  := FsRoundVal(SumBasAll[2]);
+      TotCostCR     := FsRoundRub(SumTarAll[3]);
+      TotCostCRVal  := FsRoundVal(SumBasAll[3]);
+      TotCostNP     := FsRoundRub(SumTarAll[4]);
+      TotCostNPVal  := FsRoundVal(SumBasAll[4]);
+      TotCostCP     := FsRoundRub(SumTarAll[5]);
+      TotCostCPVal  := FsRoundVal(SumBasAll[5]);
+    }
+
+  //***  общие налоги в цикле  ***************************************
+  //НДС (входящий)
+  if otcNDS_V AND (SumNDS_V_All <> 0.0)
+    {
+      ClearBuffer(#FRAllItog);
+      FRAllItog.TotNaim   := 'Вх. НДС  : ';
+      FRAllItog.TotNalKol := 0;
+      FRAllItog.TotSum    := RoundNalog( SumNDS_V_All);
+      FRAllItog.TotSumVal := RoundNalogv(vSumNDS_V_All);
+      insert current FRAllItog;
+    }
+
+  //НДС (исходящий)
+  if otcNDS_I AND (SumNDS_I_All <> 0.0)
+    {
+      ClearBuffer(#FRAllItog);
+      FRAllItog.TotNaim   := 'Исх. НДС: ';
+      FRAllItog.TotNalKol := 0;
+      FRAllItog.TotSum    := RoundNalog( SumNDS_I_All);
+      FRAllItog.TotSumVal := RoundNalogv(vSumNDS_I_All);
+      insert current FRAllItog;
+    }
+
+  if otcNacen
+    {
+      ClearBuffer(#FRAllItog);
+      FRAllItog.TotNaim   := 'надбавка: ';
+      FRAllItog.TotNalKol := 0;
+      FRAllItog.TotSum    := RoundNalog(SumTarAll[2]);
+      FRAllItog.TotSumVal := RoundNalogv(SumBasAll[2]);
+      insert current FRAllItog;
+    }
+
+  if otcNalog
+    {
+      ClearBuffer(#FRAllItog);
+      FRAllItog.TotNaim   := 'налог: '; // налог 6
+      FRAllItog.TotNalKol := 0;
+      FRAllItog.TotSum    := RoundNalog(SumTarAll[4]);
+      FRAllItog.TotSumVal := RoundNalogv(SumBasAll[4]);
+      insert current FRAllItog;
+    }
+
+  if otcVozvrat AND (abs(KolVozvAll) > 0.000005)
+    {
+      ClearBuffer(#FRAllItog);
+      FRAllItog.TotNaim   := 'возврат: ';
+      FRAllItog.TotNalKol := KolVozvAll;
+      FRAllItog.TotSum    := RoundNalog( SumVozvAll);
+      FRAllItog.TotSumVal := RoundNalogv(vSumVozvAll);
+      insert current FRAllItog;
+    }
+
+
+
+   _loop FRNaklItog_dnr where (( 'Исх. НДС: ' == FRNaklItog_dnr.TovNaim (noindex) )){
+     var _TovSum : double = 0;
+     _loop FRTovar_dnr where  (( FRNaklItog_dnr.NRecNaklItog1 == FRTovar_dnr.NRecTovar2)) {
+       var _stavka : double = 0;
+        if getfirst katmc_dnr where ((FRTovar_dnr.NRecMC == katmc_dnr.nrec)) = tsOK {
+          if getfirst spgrnal_dnr where ((katmc_dnr.cGrnal == spgrnal_dnr.cGrnal
+                         and  coGetTune('Nalog.cNalogNDS') == spgrnal_dnr.CNALOG)) = tsOK {
+            _stavka := spgrnal_dnr.nalog
+          }
+        }
+        case _stavka of
+         20   : _TovSum := _TovSum + FRTovar_dnr.tovcostkupl/6;
+         10   :  _TovSum := _TovSum + FRTovar_dnr.tovcostkupl/11;
+        end;
+     }
+     update current FRNaklItog_dnr set FRNaklItog_dnr.TovSum := _TovSum;
+   }
+
+  //******************************************************************
+
+  runFReportByGroup(dtsRtRepBS, GroupNames);
+
+  resetbounds(#FRGroup);
+  resetbounds(#FRAllItog);
+  resetbounds(#FRTovar);
+  resetbounds(#FRGroupItog);
+  resetbounds(#FRNakl);
+  resetbounds(#FRNaklItog);
+  resetbounds(#FRTovarItog);
+  resetbounds(#FRInterval);
+  resetbounds(#FRIntervalItog);
+  resetbounds(#FROplItog);
+
+  delete all FRGroup;
+  delete all FRAllItog;
+  delete all FRTovar;
+  delete all FRGroupItog;
+  delete all FRNakl;
+  delete all FRNaklItog;
+  delete all FRTovarItog;
+  delete all FRInterval;
+  delete all FRIntervalItog;
+  delete all FROplItog;
+
+  setBounds(#FRGroup);
+  setbounds(#FRAllItog);
+  setbounds(#FRTovar);
+  setbounds(#FRGroupItog);
+  setBounds(#FRNakl);
+  setbounds(#FRNaklItog);
+  setbounds(#FRTovarItog);
+  setbounds(#FRInterval);
+  setBounds(#FRIntervalItog);
+  setBounds(#FROplItog);
+}
+}
+End. // Interface
+
+//******************************************************************************
