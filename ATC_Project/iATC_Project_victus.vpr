@@ -94,14 +94,14 @@
 			</ConfigurationList>
 		</DatabaseConfiguration>
 		<FileList>
-			<File Name="Vip.prj" PosX="58" PosY="99" OpenEditor="True"/>
+			<File Name="Vip.prj" PosX="28" PosY="120" OpenEditor="True" Active="True"/>
 			<File Name="..\..\..\GAL\Frm\SRC\CompSrc\L\L_MCU\vip\KatMC\ObjMC\ObjMC.vih" PosX="90" PosY="29" OpenEditor="True"/>
 			<File Name="Source\IATC_IMPORT_SPSTEP\iATC_Run_PrnProtocol.frm" PosX="107" PosY="60" OpenEditor="True"/>
 			<File Name="Source\IATC_IMPORT_SPSTEP\iATC_Show_Protocol.vip" PosX="1" PosY="38" OpenEditor="True"/>
 			<File Name="Source\IATC_IMPORT_SPSTEP\iATC_Import_Protocol.vip" PosX="105" PosY="529" OpenEditor="True"/>
-			<File Name="Source\alter_interface\alter_vSchetB.vip" PosX="4" PosY="9" OpenEditor="True" Active="True"/>
-			<File Name="Source\iATC_Import_SpStep\iATC_Import_SpStep.vip" PosX="1" PosY="1064" OpenEditor="True"/>
-			<File Name="Source\iATC_Import_SpStep\iATC_Analiz_SpStep.vip" PosX="54" PosY="250" OpenEditor="True"/>
+			<File Name="Source\alter_interface\alter_vSchetB.vip" PosX="4" PosY="9" OpenEditor="True"/>
+			<File Name="Source\iATC_Import_SpStep\iATC_Import_SpStep.vip" PosX="50" PosY="4" OpenEditor="True"/>
+			<File Name="Source\iATC_Import_SpStep\iATC_Analiz_SpStep.vip" PosX="95" PosY="331" OpenEditor="True"/>
 			<File Name="Source\CREATETUNE\ATC_CreateTune.vip" PosX="51" PosY="21" OpenEditor="True"/>
 		</FileList>
 		<DebugOptions StopOnStartup="False"/>

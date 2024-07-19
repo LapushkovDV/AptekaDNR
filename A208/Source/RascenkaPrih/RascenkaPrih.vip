@@ -274,8 +274,16 @@ cmInit:{
     {
       if Atc_ScaleNac.dBeg <= KatSopr.dSopr and if(Atc_ScaleNac.dEnd = date(0,0,0),KatSopr.dSopr,Atc_ScaleNac.dEnd) >= KatSopr.dSopr
          {
-           if Atc_ScaleNac.CenaFrom <= _Price and Atc_ScaleNac.CenaTo >= _Price
+           var __priceMin : double = _Price ;
+          if KatMC.Polzak = 11 {
+             if getfirst ATC_KatParty_Atr = tsOK {
+               __priceMin := if(_Price < ATC_KatParty_Atr.OTPPRICE, _Price, ATC_KatParty_Atr.OTPPRICE);
+              }
+            }
+
+           if Atc_ScaleNac.CenaFrom <= __priceMin and Atc_ScaleNac.CenaTo >= __priceMin
               {
+
                 ClearBuffer(#_tmpNac);
                 _tmpNac.cSpSopr := SpSopr.nRec;
                 if Atc_ScaleNac.cGrNal1 = KatMC.cGrNal
