@@ -75,10 +75,10 @@ as select *
       , (_Price*_ProcNacRozn_F/100+_Price)
     ) (fieldName = _rPriceUpack_NotNDS)
 
-, _rPriceUpack_NotNDS+_rPriceUpack_NotNDS/100*SpGrNal.Nalog (fieldName = _rPriceUpack_s_NDS)
+, _rPriceUpack_NotNDS*(1 + SpGrNal.Nalog/100) (fieldName = _PriceUpack_s_NDS)
 , if(isValid(tnKatOtpEdMin), KatOtpEdMin.koef, 1) (fieldName = OEKoefDel)
 //=====================================================================================
-, Trunc((_rPriceUpack_s_NDS* OEKoefDel),_RoundTo) (fieldName = _rPriceKonVal_s_NDS)
+, Trunc((_PriceUpack_s_NDS* OEKoefDel),_RoundTo) (fieldName = _rPriceKonVal_s_NDS)
 , Trunc((_rPriceKonVal_s_NDS/OEKoefDel),_RoundTo) (fieldName = _rPriceUpack_s_NDS)
 //=====================================================================================
 , Round((((_tmpPrice.Price_1/_Price_s_NDS)-1)*100)-_tmpNac.ProcNac,2) (fieldName = _KontrolNac)
@@ -226,7 +226,7 @@ Fields  {Font = {Color = if(_KontrolPriceRees <> 0, 10, 0)}};
   _ProcNacOpt_F                    'Процент','наценки','ОПТ ФАКТ'               :[10,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;
   _ProcNacRozn_F                   'Процент','наценки','РОЗН ФАКТ'              :[10,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;
   _rPriceUpack_NotNDS              'Расч.цена','за упак.','без НДС','до округ.' :[12,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;
-  _rPriceUpack_s_NDS               'Расч.цена','за упак.','с НДС','до округ.'   :[12,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;
+  _PriceUpack_s_NDS                'Расч.цена','за упак.','с НДС','до округ.'   :[12,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;
   _rPriceKonVal_s_NDS              'Расч.цена','за конвал.','с НДС'             :[12,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;
   _rPriceUpack_s_NDS               'Расч.цена','за упак.','с НДС'               :[12,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;
   _tmpPrice.Price_1                'Прайсовая','цена'                           :[12,'\2P[|-]3666`666`666`666.88'] ,NoProtect,right,lessnull,NoPickButton,NoAutoSize,
