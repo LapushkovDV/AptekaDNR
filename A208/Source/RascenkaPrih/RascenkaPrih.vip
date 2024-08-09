@@ -62,7 +62,10 @@ as select *
         )
      ,0
     ) (fieldName = _ProcNacOpt_F)
-, if(_tmpNac.ProcNac-_ProcNacOpt_F > 0,_tmpNac.ProcNac,_tmpNac.ProcNac+(_tmpNac.ProcNac-_ProcNacOpt_F)) (fieldName = _ProcNacRozn_F)
+//, if(_tmpNac.ProcNac-_ProcNacOpt_F > 0,_tmpNac.ProcNac,_tmpNac.ProcNac + (_tmpNac.ProcNac-_ProcNacOpt_F)) (fieldName = _ProcNacRozn_F)
+, if(_tmpNac.OptNac-_ProcNacOpt_F > 0,_tmpNac.ProcNac,_tmpNac.ProcNac + (_tmpNac.OptNac-_ProcNacOpt_F)) (fieldName = _ProcNacRozn_F)
+
+
 , if(KatMC.Polzak = 11
       , if(   ATC_KatParty_Atr.OTPPRICE>_Price
            , _Price*_ProcNacRozn_F/100+_Price

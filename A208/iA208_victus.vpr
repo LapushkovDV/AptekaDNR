@@ -107,7 +107,7 @@
 			<File Name="Source\A208_2.cnf" PosX="16" PosY="1280" OpenEditor="True"/>
 			<File Name="Source\_Make_Nakl_AUTO\_Make_Nakl_AUTO.old" PosX="18" PosY="244" OpenEditor="True"/>
 			<File Name="Source\_Make_Nakl_AUTO\_Make_Nakl_AUTO.vip" PosX="85" PosY="1207" OpenEditor="True"/>
-			<File Name="Source\RascenkaPrih\RascenkaPrih.vip" PosX="19" PosY="285" OpenEditor="True" Active="True"/>
+			<File Name="Source\RascenkaPrih\RascenkaPrih.vip" PosX="88" PosY="66" OpenEditor="True" Active="True"/>
 		</FileList>
 		<DebugOptions StopOnStartup="False"/>
 		<MarkerList>
@@ -164,7 +164,8 @@
 			<Marker FileName="vip\KatMarshStruct_report.vip" Caption="Нумерованная закладка 1" Line="437" NumIndex="1" MarkerType="mtNumBookmark" Comment="delete all"/>
 			<Marker FileName="Source\iATC_Import_SpStep\iATC_Analiz_SpStep.vip" Caption="Нумерованная закладка 1" Line="448" NumIndex="1" MarkerType="mtNumBookmark" Comment="if SpDocNal.cSpDoc    := SpStep.nRec;"/>
 			<Marker FileName="Source\alter_interface\alter_RTREPBS.VIP" Caption="Нумерованная закладка 1" Line="1149" NumIndex="1" MarkerType="mtNumBookmark" Comment="_loop FRTovar_dnr where  (( FRNaklItog_dnr.NRecNaklItog1 == FRTovar_dnr.NRecTovar2)) {"/>
-			<Marker FileName="Source\RascenkaPrih\RascenkaPrih.vip" Caption="Нумерованная закладка 1" Line="284" NumIndex="1" MarkerType="mtNumBookmark" Comment="if Atc_ScaleNac.CenaFrom &lt;= _Price and Atc_ScaleNac.CenaTo &gt;= _Price"/>
+			<Marker FileName="Source\RascenkaPrih\RascenkaPrih.vip" Caption="Нумерованная закладка 1" Line="68" NumIndex="1" MarkerType="mtNumBookmark" Comment=", if(_tmpNac.ProcNac-_ProcNacOpt_F &gt; 0,_tmpNac.ProcNac,_tmpNac.ProcNac + (_tmpNac.ProcNac-_ProcNacOpt_F)) (fieldName = _ProcNacRozn_F)"/>
+			<Marker FileName="Source\RascenkaPrih\RascenkaPrih.vip" Caption="Нумерованная закладка 2" Line="225" NumIndex="2" MarkerType="mtNumBookmark" Comment="_tmpNac.OptNac                   'Процент','нацен.','ОПТ по ЦК'               :[10,'\2P[|-]3666`666`666`666.88'] ,Protect,right,lessnull,NoPickButton,NoAutoSize;"/>
 		</MarkerList>
 		<BreakPointList>
 			<BreakPoint FileName="Vip.prj" Line="90"/>
