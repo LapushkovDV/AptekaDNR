@@ -184,6 +184,7 @@ Procedure InsHistoryPrice(nRec_Prices:comp);
             update current PickRep;
           }
 
+      /* 13/08/2024 убрал запись в ВА, теперь это пишется в prices.dform
        if NOT Ex.dSetAttrEx (
             word(1114),                  // _wTable  : Word;
             Prices_gf.nRec,               // _cRec    : Comp;
@@ -191,6 +192,7 @@ Procedure InsHistoryPrice(nRec_Prices:comp);
             PickRep.LastDate,            // _Val
             true                         // bRealTbl : Boolean
           ) {};
+          */
      }
 }
 
@@ -584,6 +586,7 @@ cmSavePrices:{
             {
               Prices_1.Price    := _tmpPrice.Price_1;
 //              Prices_1.SrPrice  := _tmpPrice.Price;
+              PRICES_1.DFORM    := Cur_Date;  // 13/08/2024 убрал запись в ВА, теперь это пишется в prices.dform
               Update current Prices_1;
               InsHistoryPrice(Prices_1.nRec);
             }
@@ -591,6 +594,7 @@ cmSavePrices:{
          if GetFirst Prices_2 = tsOk
             {
               Prices_2.Price    := _tmpPrice.Price_2;
+              PRICES_2.DFORM    := Cur_Date;   // 13/08/2024 убрал запись в ВА, теперь это пишется в prices.dform
 //              Prices_1.SrPrice  := _tmpPrice.Price;
               Update current Prices_2;
               InsHistoryPrice(Prices_2.nRec);
