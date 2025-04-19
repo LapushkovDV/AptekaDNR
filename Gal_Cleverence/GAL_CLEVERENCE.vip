@@ -16,6 +16,7 @@ create view
 var
    m_service : TPtr;
   _logFile : string;
+  _isDebug  : boolean = false; //тестовый режим
 
  from
     katmc
@@ -26,7 +27,7 @@ function curdatetimestr: string; {
 }
 Procedure MyLog(_str : string);
 {
-  if _logFile = '' then _logFile := GetStringParameter('Files', 'OutputFilesDirectory', 0) + 'GAL_CLEVERENCE_'+DateToStr(Cur_date, 'YYYYMMDD') + '_' + timetostr(Cur_time, 'HH.MM.SS') + '_' + UserName + '.log';
+  if _logFile = '' then _logFile := GetStringParameter('Files', 'OutputFilesDirectory', 0) + 'GAL_CLEVERENCE_log_'+DateToStr(Cur_date, 'YYYYMMDD') + '_' + timetostr(Cur_time, 'HH.MM.SS') + '_' + UserName + '.log';
   logstrtofile(_logFile,curdatetimestr + _str)
 
 }
@@ -47,6 +48,8 @@ function generateJsonForMc(_nrec : comp) : tpTr; // ссылка на JSON сформированны
 }
 */
 {
+
+  //MyLog('generateJsonForMc');
   result := 0;
   if getfirst katmc where ((_nrec == katmc.nrec)) <> tsOK {
     exit;
@@ -75,27 +78,25 @@ function generateJsonForMc(_nrec : comp) : tpTr; // ссылка на JSON сформированны
    HttpConnect_JsonObjectAddObject(m_service, JSONObj, 'packings', JSONObj_Array);
    var JSONSJSON     : TPtr    = HttpConnect_JSONObjectToJSON(m_service,JSONObj);
    var _sJSON : string = GetStringParameter('Files', 'OutputFilesDirectory', 0) + 'GAL_CLEVERENCE_MC_katmc_json_'+DateToStr(cur_date,'YYYYMMDD')+'_'+timetostr(cur_time,'HHMMSS')+'.txt' ;
-   HttpConnect_SaveToFileEx(m_service, JSONSJSON, _sJSON, cpUTF8, false);
-  result := JSONObj;
+   //message(_sJSON);
+   if _isDebug {
+      HttpConnect_SaveToFileEx(m_service, JSONSJSON, _sJSON, cpUTF8, false);
+   }
+  result := JSONSJSON;
 }
 
-function sendJson(_apiPath : string; _json: TPtr): boolean;
+function sendJson(_ApiHostPath, _ApiPath: string; _json: TPtr): boolean;
 {
 
   result := false;
 
-  var _isDebug  : boolean = true; //тестовый режим
   var _sfileout : string  = AddSlashToPath(GetStringParameter('Files','OutputFilesDirectory',0)) + 'LOG_DoRequest_'+DateToStr(cur_date,'YYYYMMDD')+'_'+timetostr(cur_time,'HHMMSS')+'_';
 
   var lResponse : TPtr;
   var httpCon   : TPtr = longint(0);
   var lHeader   : TPtr = longint(0);
 
-  var API_Host     : string = co_apipath;
-  var Api_url      : string = API_Host + _apiPath;
-  var API_Method   : string = _apiPath;
-
-  httpCon := HttpConnect_CreateEx(Api_url, '', '', True);
+  httpCon := HttpConnect_CreateEx(_ApiHostPath, '', '', True);
   HttpConnect_SetUserAgent(httpCon, 'Mozilla/5.0');
   HttpConnect_ResponseLogEnable(httpCon);
 
@@ -109,39 +110,46 @@ function sendJson(_apiPath : string; _json: TPtr): boolean;
 //---------------------------------------------------------------------------------------------------
     //формируем адрес
     var lAddUrl: TPtr = HttpConnect_CreateLongString(httpCon);
-    HttpConnect_AddValueToLongString(httpCon, API_Method, lAddUrl);
+    HttpConnect_AddValueToLongString(httpCon, _ApiPath, lAddUrl);
 
     _try
     {
        //формируем тело запроса
       var lRequest: TPtr = _json;
 
-        var _sfileoutJSON : string = _sfileout + '_JSON2_'+OleGenerateGUID+'.txt';
-        HttpConnect_SaveToFileEx(httpCon, lRequest, _sfileoutJSON, cpUTF8, false);
+
+        if _isDebug //тестовый. сохраним сформированный ответ для проверки
+        {
+          var _sfileoutJSON : string = _sfileout + '_JSON2_'+OleGenerateGUID+'.txt';
+          HttpConnect_SaveToFileEx(httpCon, lRequest, _sfileoutJSON, cpUTF8, false);
+        }
 
       _try
       {
         //отправляем запрос
-        // lResponse := HttpConnect_SendRequestPostJSON(httpCon, lAddUrl, lHeader, lRequest, false);
-        var isHTTPS : boolean = false;
+        lResponse := HttpConnect_SendRequestPostJSON(httpCon, lAddUrl, lHeader, lRequest, false);
+        var isHTTPS : boolean = true;
         var lToken : tptr;
-        lResponse := HttpConnect_EDISendRequestEx(httpCon, lAddUrl, lToken, _sfileoutJSON, 'POST', isHTTPS, 'Content-Type: application/json',0);
+        //lResponse := HttpConnect_EDISendRequestEx(httpCon, lAddUrl, lToken, _sfileoutJSON, 'POST', isHTTPS, 'Content-Type: application/json',0);
 
         if _isDebug //тестовый. сохраним сформированный ответ для проверки
         {
            var filelResponse : string = _sfileout + '_Response.txt';
            HttpConnect_ResponseLogToFile(httpCon, filelResponse);
-           if (HttpConnect_LastError(httpCon) <> 0) {
-              logstrtofile(filelResponse, HttpConnect_LastErrorText(httpCon));
-           }
-           PutFileToClient(filelResponse,false);
         }
         if (HttpConnect_LastError(httpCon) <> 0) {
            result := false;
-           sMessage := HttpConnect_LastErrorText(httpCon);
+           if pos('Created',HttpConnect_LastErrorText(httpCon)) <> 0 {
+             result := true;
+           }
+           if pos('No Content',HttpConnect_LastErrorText(httpCon)) <> 0 {
+             result := true;
+           }
+           if not result then mylog(HttpConnect_LastErrorText(httpCon));
         // LogMessage('При выполнении запроса возникла ошибка. Лог ошибок в файле: ' + filelResponse);
         } else {
-        // LogMessage('Запрос выполнен. ответ в файле: ' + filelResponse );
+/*
+       // LogMessage('Запрос выполнен. ответ в файле: ' + filelResponse );
 
            //обработка ответа lResponse
            var JSONResponse : TPtr   = HttpConnect_JSONObjectByLongString(httpCon, lResponse);
@@ -158,6 +166,8 @@ function sendJson(_apiPath : string; _json: TPtr): boolean;
               message('Ошибка интеграции : ' + if(sMessage <> '', sMessage, 'Неизвестная ошибка'));
              result := false;
            }
+*/
+         result := true;
         }
       }
       _finally
@@ -181,13 +191,14 @@ function sendJson(_apiPath : string; _json: TPtr): boolean;
 
 
 function SendProduct(_nrec :comp): boolean; {
- m_service := HttpConnect_CreateEx('http://ya.ru', '', '', true);
+ m_service := HttpConnect_CreateEx(co_apipath, '', '', true);
+ var _ApiHostPath : string = co_apipath;
  var _ApiPath : string = co_apipathadd + '/api/v1/Products';
-
+ //mylog('SendProduct ' + string(_nrec));
  var _json : tptr = generateJsonForMc(_nrec);
  if _json = 0 then exit;
 
- result := sendJson(_ApiPath, _json);
+ result := sendJson(_ApiHostPath, _ApiPath, _json);
 
 }
 

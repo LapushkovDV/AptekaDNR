@@ -94,10 +94,10 @@
 			</ConfigurationList>
 		</DatabaseConfiguration>
 		<FileList>
-			<File Name="GAL_CLEVERENCE.prj" PosX="15" PosY="31" OpenEditor="True"/>
-			<File Name="GAL_CLEVERENCE.vip" PosX="91" PosY="135" OpenEditor="True" Active="True"/>
+			<File Name="GAL_CLEVERENCE.prj" PosX="12" PosY="30" OpenEditor="True"/>
+			<File Name="GAL_CLEVERENCE.vip" PosX="69" PosY="158" OpenEditor="True"/>
 			<File Name="..\..\Barcoding\SHK_VIP\vip\SHK_InOut.vip" PosX="1" PosY="1" OpenEditor="True"/>
-			<File Name="GAL_CLEVERENCE_MC.vip" PosX="1" PosY="1" OpenEditor="True"/>
+			<File Name="GAL_CLEVERENCE_MC.vip" PosX="69" PosY="59" OpenEditor="True" Active="True"/>
 			<File Name="GAL_CLEVERENCE.vih" PosX="28" PosY="14" OpenEditor="True"/>
 		</FileList>
 		<DebugOptions StopOnStartup="False"/>
@@ -165,12 +165,15 @@
 			<BreakPoint FileName="vip\demand_report.vip" Line="710"/>
 		</BreakPointList>
 		<CompileMessengerList>
-			<CompileMessenger Name="C:\Galaktika\_git\AptekaDNR\Gal_Cleverence\GAL_CLEVERENCE.prj" DateTimeStart="45759,5620809606" DateTimeCompile="0,000175983797817025" StateHistory="False">
+			<CompileMessenger Name="C:\Galaktika\_git\AptekaDNR\Gal_Cleverence\GAL_CLEVERENCE.prj" DateTimeStart="45766,5807195718" DateTimeCompile="0,000160057868924923" StateHistory="False">
 				<CompileMessageList>
-					<CompileMessage MessageType="mtInfo" MessageText="Компиляция ведется без файла контроля лицензий!" SourceFileName="C:\Galaktika\_git\AptekaDNR\Gal_Cleverence\GAL_CLEVERENCE.vip" SourceLine="24" SourceColumn="1"/>
+					<CompileMessage MessageType="mtInfo" MessageText="Компиляция ведется без файла контроля лицензий!" SourceFileName="C:\Galaktika\_git\AptekaDNR\Gal_Cleverence\GAL_CLEVERENCE.vip" SourceLine="25" SourceColumn="1"/>
+					<CompileMessage MessageType="mtInfo" MessageText="В функции (процедуре) sendJson локальная переменная isHTTPS:Boolean, объявленная в C:\Galaktika\_git\AptekaDNR\Gal_Cleverence\GAL_CLEVERENCE.vip(131), не используется." SourceFileName="C:\Galaktika\_git\AptekaDNR\Gal_Cleverence\GAL_CLEVERENCE.vip" SourceLine="172" SourceColumn="7"/>
+					<CompileMessage MessageType="mtInfo" MessageText="В функции (процедуре) sendJson локальная переменная lToken:TPtr, объявленная в C:\Galaktika\_git\AptekaDNR\Gal_Cleverence\GAL_CLEVERENCE.vip(132), не используется." SourceFileName="C:\Galaktika\_git\AptekaDNR\Gal_Cleverence\GAL_CLEVERENCE.vip" SourceLine="172" SourceColumn="7"/>
+					<CompileMessage MessageType="mtInfo" MessageText="Переменная sMessage:String интерфейса GAL_CLEVERENCE::GAL_CLEVERENCE, объявленная в C:\Galaktika\_git\AptekaDNR\Gal_Cleverence\GAL_CLEVERENCE.vip(14), не была использована" SourceFileName="C:\Galaktika\_git\AptekaDNR\Gal_Cleverence\GAL_CLEVERENCE.vip" SourceLine="206" SourceColumn="5"/>
 					<CompileMessage MessageType="mtInfo" MessageText="Компиляция ведется без файла контроля лицензий!" SourceFileName="C:\Galaktika\_git\AptekaDNR\Gal_Cleverence\GAL_CLEVERENCE_MC.vip" SourceLine="19" SourceColumn="1"/>
-					<CompileMessage MessageType="mtWarning" MessageText="Отсутствует информация о лицензировании GAL_CLEVERENCE_MC. Помечаем как не лицензированный." SourceFileName="C:\Galaktika\_git\AptekaDNR\Gal_Cleverence\GAL_CLEVERENCE_MC.vip" SourceLine="73" SourceColumn="5"/>
-					<CompileMessage MessageType="mtEndCompile" MessageText="12.04.2025 13:29:39"/>
+					<CompileMessage MessageType="mtWarning" MessageText="Отсутствует информация о лицензировании GAL_CLEVERENCE_MC. Помечаем как не лицензированный." SourceFileName="C:\Galaktika\_git\AptekaDNR\Gal_Cleverence\GAL_CLEVERENCE_MC.vip" SourceLine="80" SourceColumn="5"/>
+					<CompileMessage MessageType="mtEndCompile" MessageText="19.04.2025 13:56:28"/>
 				</CompileMessageList>
 			</CompileMessenger>
 		</CompileMessengerList>

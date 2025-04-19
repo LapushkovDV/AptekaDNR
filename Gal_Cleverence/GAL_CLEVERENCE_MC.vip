@@ -48,18 +48,25 @@ procedure SendProduct(_nrec : comp); {
 handleevent
 cmValue1: {
 
+
+
+
     if (_pMarker.Count > 0)
     {
       var  tempMarker : longint = InitMarker('', 8, 0, 1) ;
       var _index : longint;
       _pMarker.ExportTo(tempMarker);
+     StartNewVisual(vtIndicatorVisual,vftimer,''#3'Передача данных по ТМЦ'#13#3,GetMarkerCount(tempMarker)) ;
 
       for (_index := 0; _index < GetMarkerCount(tempMarker); _index++)
       {
+        nextvisual;
         var _element : comp;
           GetMarker(tempMarker, _index, _element);
           SendProduct(_element);
       }
+     stopvisual;
+
       DoneMarker(tempMarker, '')
     } else {
        SendProduct(katmc.nrec);
