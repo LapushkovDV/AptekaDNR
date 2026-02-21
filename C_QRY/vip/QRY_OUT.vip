@@ -1290,9 +1290,11 @@ function ExecuteQueryInstanceWithAddWhereString(_fQRY_INST_CODE : string; _addWh
         ;
      _arrQryId[tqryID.npp] := _qryID;
    }
-*/
 
+   mylog(' debug before _qryID_from_arrQry ');
   var _qryID_from_arrQry : tptr = _arrQryId[tqryID.npp];
+   mylog(' debug after _qryID_from_arrQry ');
+*/
   var _qryID_new : tptr;
   sqlFreeStr(_qryID_new);
 /*

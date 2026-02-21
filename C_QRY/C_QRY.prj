@@ -2,6 +2,11 @@
 // C_QRY
 //------------------------------------------------------------------------------
 
+#params
+[vip]
+LicenseControlInclude=""
+#end
+
 #statusline "statgal"
 
 #include GalNet.inc end;
