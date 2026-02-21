@@ -1,0 +1,206 @@
+/*************************************************************************************************\
+* ----------------------------------------------------------------------------------------------- *
+  0_0        -_-    0_-        -_0     0_0       -_0    -_-        0_-    -_-       0_-      0_0
+\_| |_/   \_| |_/  \_| |_/  \_| |_/  \_| |_/  \_| |_/  \_| |_/  \_| |_/  \_| |_/  \_| |_/  \_| |_/
+  |.|       |.|      |.|      |.|      |.|      |.|      |.|      |.|      |.|      |.|      |.|
+\*************************************************************************************************/
+
+#component "GAL_CLEVERENCE"
+
+#include GAL_CLEVERENCE.vih
+
+Interface GAL_CLEVERENCE;
+
+var sMessage: string;
+create view
+var
+   m_service : TPtr;
+  _logFile : string;
+  _isDebug  : boolean = false; //тестовый режим
+
+ from
+    katmc
+  , kated
+;
+function curdatetimestr: string; {
+  result := datetostr(Cur_date,'YYYY-MM-DD') + ' ' + timeToStr(Cur_time,'HH:MM:SS') + ' ';
+}
+Procedure MyLog(_str : string);
+{
+  if _logFile = '' then _logFile := GetStringParameter('Files', 'OutputFilesDirectory', 0) + 'GAL_CLEVERENCE_log_'+DateToStr(Cur_date, 'YYYYMMDD') + '_' + timetostr(Cur_time, 'HH.MM.SS') + '_' + UserName + '.log';
+  logstrtofile(_logFile,curdatetimestr + _str)
+
+}
+function generateJsonForMc(_nrec : comp) : tpTr; // ссылка на JSON сформированный
+/*
+{
+  "id": "7782", //nrec
+  "name": "наме", //Наименование
+  "basePackingId": "1",
+  "marking": "9999" //Артикул
+,"packings":[
+{
+"id": "1",
+"name":"ШТ",//учетная единица измерения
+"barcode":"12345"//barcode
+}
+]
+}
+*/
+{
+
+  //MyLog('generateJsonForMc');
+  result := 0;
+  if getfirst katmc where ((_nrec == katmc.nrec)) <> tsOK {
+    exit;
+  }
+  if getfirst kated where ((katmc.cEd == kated.nrec)) <> tsOK {
+    exit;
+  }
+
+
+  var JSONObj : TPtr = HttpConnect_JsonObjectCreate(m_service);
+
+  HttpConnect_JsonObjectAddString(m_service, JSONObj, 'id', string(katmc.nrec,0,0));
+  HttpConnect_JsonObjectAddString(m_service, JSONObj, 'name', katmc.name);
+  HttpConnect_JsonObjectAddString(m_service, JSONObj, 'basePackingId', '1');
+  HttpConnect_JsonObjectAddString(m_service, JSONObj, 'marking', katmc.barkod2);
+
+   var JSONObj_Array : TPtr = 0;
+   JSONObj_Array := HttpConnect_JsonArrayCreate(m_service);
+
+   var JSONObj_ArrayOneElement : tptr = HttpConnect_JsonObjectCreate(m_service);
+    HttpConnect_JsonObjectAddString(m_service, JSONObj_ArrayOneElement, 'id'     , '1');
+    HttpConnect_JsonObjectAddString(m_service, JSONObj_ArrayOneElement, 'name'   , kated.abbr);
+    HttpConnect_JsonObjectAddString(m_service, JSONObj_ArrayOneElement, 'barcode', katmc.barkod);
+    HttpConnect_JsonArrayAddObject(m_service, JSONObj_Array, JSONObj_ArrayOneElement);
+
+   HttpConnect_JsonObjectAddObject(m_service, JSONObj, 'packings', JSONObj_Array);
+   var JSONSJSON     : TPtr    = HttpConnect_JSONObjectToJSON(m_service,JSONObj);
+   var _sJSON : string = GetStringParameter('Files', 'OutputFilesDirectory', 0) + 'GAL_CLEVERENCE_MC_katmc_json_'+DateToStr(cur_date,'YYYYMMDD')+'_'+timetostr(cur_time,'HHMMSS')+'.txt' ;
+   //message(_sJSON);
+   if _isDebug {
+      HttpConnect_SaveToFileEx(m_service, JSONSJSON, _sJSON, cpUTF8, false);
+   }
+  result := JSONSJSON;
+}
+
+function sendJson(_ApiHostPath, _ApiPath: string; _json: TPtr): boolean;
+{
+
+  result := false;
+
+  var _sfileout : string  = AddSlashToPath(GetStringParameter('Files','OutputFilesDirectory',0)) + 'LOG_DoRequest_'+DateToStr(cur_date,'YYYYMMDD')+'_'+timetostr(cur_time,'HHMMSS')+'_';
+
+  var lResponse : TPtr;
+  var httpCon   : TPtr = longint(0);
+  var lHeader   : TPtr = longint(0);
+
+  httpCon := HttpConnect_CreateEx(_ApiHostPath, '', '', True);
+  HttpConnect_SetUserAgent(httpCon, 'Mozilla/5.0');
+  HttpConnect_ResponseLogEnable(httpCon);
+
+
+  _try
+  {
+    //формируем заголовок
+    lHeader := HttpConnect_CreateLongString(httpCon);
+    HttpConnect_AddValueToLongString(httpCon, 'Content-Type: application/json' + chr(13), lHeader);
+//    HttpConnect_AddValueToLongString(httpCon, 'Accept: application/json'       + chr(13), lHeader);
+//---------------------------------------------------------------------------------------------------
+    //формируем адрес
+    var lAddUrl: TPtr = HttpConnect_CreateLongString(httpCon);
+    HttpConnect_AddValueToLongString(httpCon, _ApiPath, lAddUrl);
+
+    _try
+    {
+       //формируем тело запроса
+      var lRequest: TPtr = _json;
+
+
+        if _isDebug //тестовый. сохраним сформированный ответ для проверки
+        {
+          var _sfileoutJSON : string = _sfileout + '_JSON2_'+OleGenerateGUID+'.txt';
+          HttpConnect_SaveToFileEx(httpCon, lRequest, _sfileoutJSON, cpUTF8, false);
+        }
+
+      _try
+      {
+        //отправляем запрос
+        lResponse := HttpConnect_SendRequestPostJSON(httpCon, lAddUrl, lHeader, lRequest, false);
+        var isHTTPS : boolean = true;
+        var lToken : tptr;
+        //lResponse := HttpConnect_EDISendRequestEx(httpCon, lAddUrl, lToken, _sfileoutJSON, 'POST', isHTTPS, 'Content-Type: application/json',0);
+
+        if _isDebug //тестовый. сохраним сформированный ответ для проверки
+        {
+           var filelResponse : string = _sfileout + '_Response.txt';
+           HttpConnect_ResponseLogToFile(httpCon, filelResponse);
+        }
+        if (HttpConnect_LastError(httpCon) <> 0) {
+           result := false;
+           if pos('Created',HttpConnect_LastErrorText(httpCon)) <> 0 {
+             result := true;
+           }
+           if pos('No Content',HttpConnect_LastErrorText(httpCon)) <> 0 {
+             result := true;
+           }
+           if not result then mylog(HttpConnect_LastErrorText(httpCon));
+        // LogMessage('При выполнении запроса возникла ошибка. Лог ошибок в файле: ' + filelResponse);
+        } else {
+/*
+       // LogMessage('Запрос выполнен. ответ в файле: ' + filelResponse );
+
+           //обработка ответа lResponse
+           var JSONResponse : TPtr   = HttpConnect_JSONObjectByLongString(httpCon, lResponse);
+
+           if _isDebug {
+              HttpConnect_SaveToFileEx(httpCon, JSONResponse, _sfileout+ '_response2.log', cpUTF8, false);
+            }
+
+           //пример обработки полей ответа
+
+           sMessage := HttpConnect_JsonObjectValueByName(httpCon,JSONResponse,'id');
+           if sMessage = ''
+           {
+              message('Ошибка интеграции : ' + if(sMessage <> '', sMessage, 'Неизвестная ошибка'));
+             result := false;
+           }
+*/
+         result := true;
+        }
+      }
+      _finally
+      {
+        HttpConnect_DestroyLongString(httpCon, lRequest);
+      }
+    }
+    _finally
+    {
+      HttpConnect_DestroyLongString(httpCon, lHeader);
+      HttpConnect_DestroyLongString(httpCon, lAddUrl);
+    }
+  }
+  _finally
+  {
+    HttpConnect_DestroyLongString(httpCon, lResponse);
+    HttpConnect_Free(httpCon);
+  }
+
+}
+
+
+function SendProduct(_nrec :comp): boolean; {
+ m_service := HttpConnect_CreateEx(co_apipath, '', '', true);
+ var _ApiHostPath : string = co_apipath;
+ var _ApiPath : string = co_apipathadd + '/api/v1/Products';
+ //mylog('SendProduct ' + string(_nrec));
+ var _json : tptr = generateJsonForMc(_nrec);
+ if _json = 0 then exit;
+
+ result := sendJson(_ApiHostPath, _ApiPath, _json);
+
+}
+
+
+end.

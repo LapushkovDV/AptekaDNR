@@ -1,0 +1,83 @@
+#component "GAL_CLEVERENCE"
+
+#include GAL_CLEVERENCE.vih
+
+Interface GAL_CLEVERENCE_MC, cyan;
+
+create view
+var
+  _pMarker    : IMarker(marker);
+  _logFile : string;
+  iGAL_CLEVERENCE : GAL_CLEVERENCE;
+ from
+    katmc
+  , kated
+where (( root == katmc.nrec
+and katmc.ced == kated.nrec
+      ))
+;
+function curdatetimestr: string; {
+  result := datetostr(Cur_date,'YYYY-MM-DD') + ' ' + timeToStr(Cur_time,'HH:MM:SS') + ' ';
+}
+Procedure MyLog(_str : string);
+{
+  if _logFile = '' then _logFile := GetStringParameter('Files', 'OutputFilesDirectory', 0) + 'GAL_CLEVERENCE_MC_'+DateToStr(Cur_date, 'YYYYMMDD') + '_' + timetostr(Cur_time, 'HH.MM.SS') + '_' + UserName + '.log';
+  logstrtofile(_logFile,curdatetimestr + _str)
+
+}  // delete уже есть
+
+browse brKatMc 'Передача МЦ в cleverence';
+  Show at (,,,);
+Table KatMc;
+recMarker = _pMarker;
+ Fields
+  katmc.name    'Наименование' ('',,): [16], Protect, nopickbutton;
+  katmc.barkod  'Баркод'       ('',,): [6] , Protect, nopickbutton;
+  katmc.barkod2 'Штрих-код'    ('',,): [6] , Protect, nopickbutton;
+  kated.abbr    'ед.изм'       ('',,): [2] , Protect, nopickbutton;
+end;
+procedure SendProduct(_nrec : comp); {
+   if iGAL_CLEVERENCE.SendProduct(_nrec) {
+     mylog(string(_nrec,0,0) + ' OK' )
+
+  } else {
+     mylog(string(_nrec,0,0) + ' Ошибка' )
+  }
+}
+
+handleevent
+cmValue1: {
+
+
+
+
+    if (_pMarker.Count > 0)
+    {
+      var  tempMarker : longint = InitMarker('', 8, 0, 1) ;
+      var _index : longint;
+      _pMarker.ExportTo(tempMarker);
+     StartNewVisual(vtIndicatorVisual,vftimer,''#3'Передача данных по ТМЦ'#13#3,GetMarkerCount(tempMarker)) ;
+
+      for (_index := 0; _index < GetMarkerCount(tempMarker); _index++)
+      {
+        nextvisual;
+        var _element : comp;
+          GetMarker(tempMarker, _index, _element);
+          SendProduct(_element);
+      }
+     stopvisual;
+
+      DoneMarker(tempMarker, '')
+    } else {
+       SendProduct(katmc.nrec);
+    }
+  ProcessText(_logFile,vfEscable or vfNewTitle or vfMacroSize,'Протокол передачи МЦ в CLEVERENCE');
+}
+cmHotKeys:{
+  PutHotCommand(RunMenu('mnu_gal_cleverence_mc'));
+}
+end;
+end.
+mnu_gal_cleverence_mc Menu {
+    - 'передать в cleverence', cmValue1, '', hcNoContext, '',, sci1Esc;
+}

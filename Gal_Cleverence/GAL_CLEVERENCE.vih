@@ -1,0 +1,21 @@
+
+#ifnDef _GAL_CLEVERENCE_INCLUDED_
+#define _GAL_CLEVERENCE_INCLUDED_
+
+
+#component "GAL_CLEVERENCE"
+
+ObjInterface oGAL_CLEVERENCE;
+Public:
+#doc
+  SendProduct отправить в клеверенс МЦ
+#end
+
+public function SendProduct(_nrec :comp): boolean;
+
+end;
+
+
+VipInterface GAL_CLEVERENCE implements oGAL_CLEVERENCE #Licensed_Free ;
+
+#end
