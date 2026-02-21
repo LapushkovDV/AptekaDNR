@@ -55,23 +55,23 @@
 		<FileList>
 			<File Name="C_QRY.prj" PosX="16" PosY="26" OpenEditor="True"/>
 			<File Name="vip\LoadDeclension.vip" PosX="1" PosY="1" OpenEditor="True"/>
-			<File Name="vip\QRY_Base.vip" PosX="3" PosY="358" OpenEditor="True"/>
+			<File Name="vip\QRY_Base.vip" PosX="11" PosY="357" OpenEditor="True" Active="True"/>
 			<File Name="vip\QRY_INSTANCE.vip" PosX="16" PosY="25" OpenEditor="True"/>
 			<File Name="vip\QRY_INSTANCE.pan" PosX="7" PosY="228" OpenEditor="True"/>
-			<File Name="vip\QRY_OUT.vip" PosX="1" PosY="1293" OpenEditor="True" Active="True"/>
+			<File Name="vip\QRY_OUT.vip" PosX="1" PosY="1293" OpenEditor="True"/>
 		</FileList>
 		<ProjectItems>
 			<ProjectCompileFile FileName="C_QRY.prj" Priority="0"/>
 		</ProjectItems>
 		<CompileMessengerList>
-			<CompileMessenger Name="D:\_GIT\AptekaDNR\C_QRY\C_QRY.prj" DateTimeStart="46074,564629919" DateTimeCompile="5,75810190639459E-5" StateHistory="False">
+			<CompileMessenger Name="D:\_GIT\AptekaDNR\C_QRY\C_QRY.prj" DateTimeStart="46074,5678991898" DateTimeCompile="6,37731427559629E-5" StateHistory="False">
 				<CompileMessageList>
 					<CompileMessage MessageType="mtInfo" MessageText=" омпил€ци€ ведетс€ без файла контрол€ лицензий!" SourceFileName="D:\_GIT\AptekaDNR\C_QRY\VIP\QRY_OUT.vip" SourceLine="107" SourceColumn="1"/>
 					<CompileMessage MessageType="mtWarning" MessageText="ѕеременна€ JSONObj_Array не была инициализирована" SourceFileName="D:\_GIT\AptekaDNR\C_QRY\VIP\QRY_OUT.vip" SourceLine="536" SourceColumn="1"/>
 					<CompileMessage MessageType="mtWarning" MessageText="ѕеременна€ JSONObj_ArrayOneElement не была инициализирована" SourceFileName="D:\_GIT\AptekaDNR\C_QRY\VIP\QRY_OUT.vip" SourceLine="536" SourceColumn="1"/>
 					<CompileMessage MessageType="mtInfo" MessageText="ћетод интерфейса &quot;QRY_OUT.getinsertUniqValuesByLVL&quot;, объ€вленный в D:\_GIT\AptekaDNR\C_QRY\VIP\QRY_OUT.vip(314), не был использован" SourceFileName="D:\_GIT\AptekaDNR\C_QRY\VIP\QRY_OUT.vip" SourceLine="1393" SourceColumn="5"/>
 					<CompileMessage MessageType="mtInfo" MessageText="ћетод интерфейса &quot;QRY_OUT.widestring_to_longstring&quot;, объ€вленный в D:\_GIT\AptekaDNR\C_QRY\VIP\QRY_OUT.vip(439), не был использован" SourceFileName="D:\_GIT\AptekaDNR\C_QRY\VIP\QRY_OUT.vip" SourceLine="1393" SourceColumn="5"/>
-					<CompileMessage MessageType="mtEndCompile" MessageText="21.02.2026 13:33:09"/>
+					<CompileMessage MessageType="mtEndCompile" MessageText="21.02.2026 13:37:52"/>
 				</CompileMessageList>
 			</CompileMessenger>
 		</CompileMessengerList>
