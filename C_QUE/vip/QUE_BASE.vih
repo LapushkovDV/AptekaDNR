@@ -1,0 +1,194 @@
+/*************************************************************************************************\
+* Наименование: Базовый объект работы очереди                                                     *
+* Контур/Модуль: Очередь исходящих сообщений                                                      *
+* Примечание:                                                                                     *
+*                                                                                                 *
+* Вид работы  |Номер         |Дата    |Исполнитель              |Проект                           *
+* ----------------------------------------------------------------------------------------------- *
+
+\*************************************************************************************************/
+
+#ifnDef _QUE_BASE_INCLUDED_
+#define _QUE_BASE_INCLUDED_
+#component "C_QUE"
+
+ObjInterface oQUE_Base;
+public:
+#doc
+#end
+
+#doc
+Получить путь на текущий файл логов
+#end
+function GetLogFile : string;
+
+#doc
+Создать новый файл
+#end
+Function GenerateNewFile: string;
+
+#doc
+Вставить запись из пула зависимых записей в очередь на рассмотрение для формирования JSON и последующей передаче в очередь
+Возвращает NREC вставленной записи
+У вставленной записи устанавливается статус "coPreQUE_WaitForRelatedRcrdsToInsert = "ожидает вставки связанных записей" "
+После того как все записи будут вставлены необходимо вызвать SetPoolRecordsReadyToGenerateJSON с указанием NREC самого верхнего элемента пула
+так всем записям будет установлен статус "coPreQUE_AwaitProcessJSONgenerate = "ожидает обработки для формирования JSON" "
+и по ним будут генерироваться JSON процедурой ProcessEntriesForReview
+
+  _cParent   : comp - ссылка на вышестоящую запись. В случае пула зависимых записей
+  _TypeEvent : string[20] - тип события coQUE_TypeEvent_Insert coQUE_TypeEvent_Delete coQUE_TypeEvent_Update
+  _InstanceCode : string - код экземпляра запроса
+  _AddWhereStr : string - строка для добавления в условие в экземпляр запроса
+  _nrecRootTable : comp - nrec корневой таблицы запроса
+  если одновременно указано _AddWhereStr и _nrecRootTable, то берется _nrecRootTable
+
+Пример: сначала вставляем экземпляр запросов по генерации подразделений, получаем NREC вставленной записи,
+далее вставляем все должности и всех сотрудников этого подразделения, указывая в качестве _cParent для всех самый первый NREC
+
+Для приказа с несколькими сотрудниками можно поступить так: вставляем первого сотрудника, под него второго, под него третьего и т.д.
+под самого последнего вставляем сам приказ. Тем самым получаем последовательную выгрузку в очередь сначала всех сотрудников и только потом приказ по ним
+#end
+Function InsertEntriesForReview_PoolParent(_cParent : comp;
+                                           _TypeEvent : string[20];
+                                           _InstanceCode : string;
+                                           _AddWhereStr : string = '';
+                                           _nrecRootTable : comp= 0h
+                                          ) : comp;
+
+#doc
+Вставить одиночную/независимую запись в очередь на рассмотрение для формирования JSON и последующей передаче в очередь
+Возвращает NREC вставленной записи
+У вставленной записи устанавливается статус "coPreQUE_AwaitProcessJSONgenerate = "ожидает обработки для формирования JSON" "
+т.е. по ним будут генерироваться JSON процедурой ProcessEntriesForReview
+
+  _TypeEvent : string[20] - тип события coQUE_TypeEvent_Insert coQUE_TypeEvent_Delete coQUE_TypeEvent_Update
+  _InstanceCode : string - код экземпляра запроса
+  _AddWhereStr : string - строка для добавления в условие в экземпляр запроса
+  _nrecRootTable : comp - nrec корневой таблицы запроса
+  если одновременно указано _AddWhereStr и _nrecRootTable, то берется _nrecRootTable
+#end
+Function InsertEntriesForReview_Single(_TypeEvent : string[20];
+                                       _InstanceCode : string;
+                                       _AddWhereStr : string = '';
+                                       _nrecRootTable : comp= 0h
+                                      ) : comp;
+
+#doc
+Поставить в пуле записям в статусе "ожидает вставки связанных записей" статус в "ожидает обработки для формирования JSON"
+апдейт начинается с нижних записей
+  _cMainParent : comp - верхняя запись в пуле
+#end
+Procedure SetPoolRecordsReadyToGenerateJSON(_cMainParent : comp);
+
+#doc
+Очищение очереди от "старых" сообщений
+
+Удаление записей из очереди старше количества дней, определенных в настройках
+ QUE_OUT_CLEAR_COUNT_DAYS_SUCCESS - количество дней для хранения записей успешной передачи
+ QUE_OUT_CLEAR_COUNT_DAYS_ERROR   - количество дней для хранения записей передачи с ошибкой
+#end
+procedure ClearQUE_OldRows;
+
+#doc
+Обработка записей в QUE_EntriesForReview
+Выборка пула записей, у которых cParent = 0h и статус = "coPreQUE_AwaitProcessJSONgenerate "ожидает обработки для формирования JSON" "
+Далее цикл по выбранным записям и рекурсивно генерируем по ним JSON функцией RecursiveGenerateJSON_from_EntriesForReviewRecords
+Рекурсия нужна для обработки вложенных записей
+#end
+procedure ProcessEntriesForReview;
+
+#doc
+Обработка записей в QUE_EntriesForReview
+Выборка пула записей, у которых cParent = 0h и статус = coPreQUE_ReadyToTransferToQueue "готова к передаче в очередь (JSON сформирован)" "
+Далее цикл по выбранным записям и рекурсивно копируем в очередь
+Рекурсия нужна для обработки вложенных записей
+#end
+procedure CopyEntriesForReviewToQueue;
+
+#doc
+Положить сообщение в очередь.
+Используется если сообщение сгенерировано не средствами конструктора JSON (компонент C_QRY)
+
+_bodyMessage - tptr, ссылка на длинную строку с содержимым сообщения
+_codeReciptSystem - string, код системы-получателя (по ней определяется интерфейс для отсылки сообщения во внешнюю систему)
+_TypeEvent - тип события (coQUE_TypeEvent_Insert, coQUE_TypeEvent_Delete, coQUE_TypeEvent_Update)
+#end
+function InsertMessageDirectToQueue(_bodyMessage : tptr; _codeReciptSystem : string; _TypeEvent : string) : boolean;
+
+#doc
+Положить уже исполненное сообщение в очередь.
+Используется если сообщение отправлено не через очередь, но надо видеть результат интеграции в ней
+
+_success - boolean, true - сообщение отправлено успешно, false - при отправке сообщения возникла ошибка
+             данный параметр определяет в каком статусе будет создана запись в очереди
+             true  - статус будет coQUE_SuccessTransToExtSystem
+             false - статус будет coQUE_ErrorTransToExtSystem
+_bodyMessage - tptr, ссылка на длинную строку с содержимым сообщения
+_bodyAnswer  - tptr, ссылка на длинную строку с содержимым ответа от системы-приемника при отправке
+_codeReciptSystem - string, код системы-получателя
+_TypeEvent - тип события (coQUE_TypeEvent_Insert, coQUE_TypeEvent_Delete, coQUE_TypeEvent_Update)
+_description - string, краткое описание, теги, ключевые слова
+#end
+function InsertProcessedMessageDirectToQueue( _success : boolean;
+                                             _bodyMessage : tptr;
+                                             _bodyAnswer  : tptr;
+                                             _codeReciptSystem : string;
+                                             _TypeEvent : string;
+                                             _description : string
+                                             ) : boolean;
+
+#doc
+Получить строковое название статуса записей на рассмотрение QUE_EntriesForReview
+#end
+Function GetNameStatusEntriesForReview(_Status : word) : string;
+
+#doc
+Получить номер позиции вхождения _text в длинную строку tptr
+#end
+function GetPosTextInLongStr(_text : string; _longStr : tptr) : longint;
+
+#doc
+Получить картинку статуса записей на рассмотрение QUE_EntriesForReview
+#end
+Function GetImageStatusEntriesForReview(_Status : word) : string;
+
+#doc
+Получить строковое название статуса очереди QUE_OUT
+#end
+Function GetNameStatusQueue(_Status : word) : string;
+
+#doc
+Получить картинку статуса очереди QUE_OUT
+#end
+Function GetImageStatusQueue(_Status : word) : string;
+
+#doc
+Выбрать интерфейс для отправки сообщений из очереди во внешние системы
+#end
+function GetQUE_SENDMESSTOEXTSYS : string;
+
+#doc
+Выбор/редактирование настройки интерфейс для отправки/приемки сообщений очереди
+#end
+function GetSetQUE_Handler_tune(__interfaceName : string) : comp;
+
+#doc
+Обработать записи очереди
+#end
+procedure ProcessQueueOut;
+
+#doc
+Зашифровать строку
+#end
+ function encrypt(_str:string):string;
+
+#doc
+Расшифровать строку
+#end
+ function decrypt(_str:string):string;
+
+end;
+
+VipInterface QUE_BASE Implements oQUE_Base #Licensed_Free;
+
+#end

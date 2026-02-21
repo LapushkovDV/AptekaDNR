@@ -1,0 +1,136 @@
+/*************************************************************************************************\
+* Наименование: Интерфейс просмотра записей в очередь на рассмотрении                             *
+* Контур/Модуль: Очередь исходящих сообщений                                                      *
+* Примечание:                                                                                     *
+*                                                                                                 *
+* Вид работы  |Номер         |Дата    |Исполнитель              |Проект                           *
+* ----------------------------------------------------------------------------------------------- *
+
+\*************************************************************************************************/
+#include QUE_BASE.vih
+#include QUE_View_QUE_OUT.vih
+#include QUE_View_QUE_EntriesForReview.vih
+
+Interface QUE_View_QUE_EntriesForReview 'Интерфейс просмотра записей в очередь на рассмотрении',  cyan;
+create view
+ var
+  _cParent : comp;
+  iQUE_BASE : QUE_BASE;
+ as select
+     iQUE_BASE.GetNameStatusEntriesForReview(QUE_EntrForReview_BR.Status) (FieldName = StatusName)
+   , iQUE_BASE.GetNameStatusQueue(QUE_OUT_BR.status) (FieldName = StatusNameQueue)
+ from
+   QUE_EntriesForReview QUE_EntrForReview_BR
+ , QRY_INSTANCE QRY_INST_BR
+ , QUE_OUT QUE_OUT_BR
+ where ((
+                                    _cParent == QUE_EntrForReview_BR.cParent
+  and QUE_EntrForReview_BR.QRY_Instance_code == QRY_INST_BR.code
+               and QUE_EntrForReview_BR.nrec == QUE_OUT_BR.cQUE_EntriesReview
+ ))
+// Bounds ForTree = _cParent == QUE_EntrForReview_BR.cParent
+;
+function GetImageStatus: string; {
+  Result:=iQUE_BASE.GetImageStatusEntriesForReview(QUE_EntrForReview_BR.Status);
+}
+function GetImageStatusQueue: string; {
+  Result:=iQUE_BASE.GetImageStatusQueue(QUE_OUT_BR.Status);
+}
+
+tree brQUE_EntrForReview_BR (,,Sci1Esc);
+  show at ( ,,80,15);
+ table QUE_EntrForReview_BR;
+  Fields
+    QUE_EntrForReview_BR.DateTime_in 'Дата-время','создания записи' : [5] , Protect, nopickbutton;
+    QUE_EntrForReview_BR.TypeEvent   'Тип события'           : [3] , Protect, nopickbutton;
+   [Img_Status]  GetImageStatus()    'Статус'                :[4],Image;
+    //QUE_EntrForReview_BR.Status      'Статус','код'          : [1] , Protect, nopickbutton;
+    StatusName                       'Статус','наименование' : [15] , Protect, nopickbutton;
+    QUE_EntrForReview_BR.DateTime_genJSON 'Дата-время ','генерации JSON/лога' : [5] , Protect, nopickbutton;
+    QUE_EntrForReview_BR.QRY_Instance_code 'Запрос','код'          : [5] , Protect, nopickbutton;
+    QRY_INST_BR.name                 'Запрос','наименование' : [9] , Protect, nopickbutton;
+    QUE_EntrForReview_BR.ADDWHERESTR 'Запрос','доп.условие'   : [9] , Protect, nopickbutton;
+    QUE_EntrForReview_BR.err         'Ошибка','текст'        : [9] , Protect, nopickbutton;
+end;
+
+text QUE_EntrForReview_BR.JSON 'JSON/лог ошибок' : Protect;
+  show at ( 81,,,);
+
+browse brQUE_OUT_BR (,,Sci1Esc);
+  show at ( ,16,80,);
+table QUE_OUT_BR;
+ Fields
+  QUE_OUT_BR.DateTime_in           'Очередь','время создания' : [5]  , Protect, nopickbutton;
+  [Img_StatusQueue]  GetImageStatusQueue() 'Очередь','статус' : [4]  , Image;
+  QUE_OUT_BR.TypeEvent             'Событие',''               : [10] , Protect, nopickbutton;
+  QUE_OUT_BR.DateTime_in           'Дата-время ','создания записи' : [5] , Protect, nopickbutton;
+  QUE_OUT_BR.DateTime_out          'Дата-время ','передачи'   : [5] , Protect, nopickbutton;
+  StatusNameQueue                  'Очередь','статус'         : [10] , Protect, nopickbutton;
+  QUE_OUT_BR.RecipientSystem       'Система','получатель'     : [10] , Protect, nopickbutton;
+  QUE_OUT_BR.TryCount              'Кол-во','попыток'         : [5] , Protect, nopickbutton;
+end;
+
+handleevent
+cmTreeTop: {
+    set _cParent:=0;
+ }
+cmTreeUp: {
+    set _cParent:=QUE_EntrForReview_BR.cParent;
+ }
+cmTreeDown: {
+    set _cParent:=QUE_EntrForReview_BR.nRec;
+ }
+cmTreeNodeType: {
+     if (TreeIsTerminal(brQUE_EntrForReview_BR) OR IsNew)
+        TreeSetNodeType(brQUE_EntrForReview_BR, 2);
+ }
+cmTreeNeedOwner: {
+     TreeJumpToRecord (brQUE_EntrForReview_BR, QUE_EntrForReview_BR.cParent);
+ }
+cmAttrib: {
+     if not TreeNodeIsOpen(FocusedFormat)
+     {
+        PutCommand(cmTreeOpenNode);
+     }
+     else
+     {
+        PutCommand(cmTreeCloseNode);
+     }
+ }
+cmCompressLevel: {
+      PutCommand(cmTreeCloseNode);
+ }
+cmValue4:{
+   var _file : string = iQUE_BASE.GenerateNewFile;
+   if trim(QUE_EntrForReview_BR.err) <> ''
+    then _file := _file + '.log'
+    else _file := _file + '.JSON';
+   if ExportMemoToFile(QUE_EntrForReview_BR.JSON, _file, false)
+    then putfiletoclient(_file,false)
+     else message('Ошибка экспорта мемо-поля',error)
+}
+
+cmValue5:{
+ var iQUE_View_QUE_OUT : QUE_View_QUE_OUT new;
+ iQUE_View_QUE_OUT.showwinQUE_OUT_BR(QUE_OUT_BR.nrec);
+}
+
+cmHotKeys:
+{
+  case curtable of
+    tnQUE_EntrForReview_BR : PutHotCommand(RunMenu('mnuQUE_EntriesForReview_Review'));
+    tnQUE_OUT_BR           : PutHotCommand(RunMenu('mnuQUE_EntriesForReview_Queue'));
+  end;
+}
+
+end;
+end.
+mnuQUE_EntriesForReview_Review Menu
+{
+  - 'Скачать JSON/лог файл', cmValue4;
+}
+
+mnuQUE_EntriesForReview_Queue Menu
+{
+  - 'Перейти в очередь сообщений', cmValue5;
+}

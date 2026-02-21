@@ -1,0 +1,1179 @@
+/*************************************************************************************************\
+* Наименование: Базовый объект работы очереди                                                     *
+* Контур/Модуль: Очередь исходящих сообщений                                                      *
+* Примечание:                                                                                     *
+*                                                                                                 *
+* Вид работы  |Номер         |Дата    |Исполнитель              |Проект                           *
+* ----------------------------------------------------------------------------------------------- *
+
+\*************************************************************************************************/
+/*
+  Status|  QUE_EntriesForReview                                   |  QUE_OUT
+------------------------------------------------------------------------------------
+       0|   ожидает обработки для формирования JSON               |
+       1|   готова к передаче в очередь (JSON сформирован)        | готова к передаче во внешнюю систему
+       2|   ожидает обработки связанных записей (JSON сформирован)| ожидает вставки связанных записей в очередь
+       3|   ошибка при генерации JSON                             | ошибка передачи во внешнюю систему
+       4|   успешно передана в очередь                            | успешно передана
+       5|   ошибка передачи в очередь                             | не все записи из пула переданы во внешнюю систему
+*/
+#include QUE_BASE.vih
+#include QUE_INCOME_BASE.vih
+#include QRY_OUT.vih
+#include QUE_SendMessToExtSys.vih
+#include QUE_ProcessMessIncomeQueue.vih
+
+#declare tableeventtable (table)
+TableEvent table #table;
+cmSetDefault: {
+  if curtable = tnHandler_tune {
+     Handler_tune.interface_name := _interfaceName;
+   }
+}
+
+cmInsertRecord: {
+  Insert Current #table;
+}
+
+cmUpdateRecord: {
+  Update Current #table;
+}
+
+cmDeleteRecord: {
+ if(getfirst SenderSystem where ((Handler_tune.nrec == SenderSystem.cQUE_Handler_tune (noindex) )) ) = tsOK {
+   message('Настройка используется в системах-отправителях',error);
+   stop; abort; exit;
+ }
+
+ if(getfirst ReciptSystem where ((Handler_tune.nrec == ReciptSystem.cQUE_Handler_tune (noindex) )) ) = tsOK {
+   message('Настройка используется в системах-получателях',error);
+   stop; abort; exit;
+ }
+
+ if message('Удалить?',YesNo)<>cmYes  {
+   abort; exit;
+  }
+  delete Current #table;
+}
+end; //TableEvent table #table
+#end
+
+table struct tmpEntriesForReview (
+   cEntriesForReview : comp
+ , QRY_Instance_code : string
+ , DateTime_in       : datetime
+)
+with index (
+   ind0 = cEntriesForReview
+ , ind1 = DateTime_in
+)
+;
+
+table struct tEntrForReviewToQue (
+   cEntriesForReview : comp
+ , QRY_Instance_code : string
+ , DateTime_in       : datetime
+)
+with index (
+   ind0 = cEntriesForReview
+ , ind1 = DateTime_in
+)
+;
+
+table struct tQueueOut (
+   cQue_OUT    : comp
+ , DateTime_in : datetime
+)
+with index (
+   ind0 = cQue_OUT
+ , ind1 = DateTime_in
+)
+;
+
+table struct tSendMessToExtSys (
+   name  : string
+ , descr : string
+)
+with index (
+ ind0 = name
+)
+;
+
+Table Struct tRefSendMessToExtSys
+(
+   Name : string[100]
+ , num  : word
+)
+with index
+(
+ ind01=Name
+);
+
+
+/*
+
+TODO^ пересмотреть все эти getfirst where /// по вьюху их надо убрать - быстрее быдет все работать (ну кроме рекурсий)
+*/
+Interface QUE_BASE 'QUE базовый объект';
+function isExistStatusInPool(_cEntriesForReview: comp; _status : word) : boolean; forward;
+ var _arrQUE_SendMessToExtSys : Array [1..1] of oQUE_SendMessToExtSys;
+create view
+var
+     _logQUE_OUT
+   , _interfaceName : string; //глобальная
+//  iQRY_OUT : QRY_OUT;
+ as select
+ QUE_OUT_Copy.nrec
+from
+   //QUE_OUT
+   QUE_EntriesForReview QUE_EntrRvwIns
+ , QUE_EntriesForReview QUE_EntrRvwGenJSON
+ , QUE_EntriesForReview QUE_EntrRvwIns_1
+// , QUE_EntriesForReview QUE_EntrRvwLoop
+ , QUE_EntriesForReview QUE_EntrCopyToQueue
+ , QUE_EntriesForReview QUE_EntrCopyToQueueUp
+ , QUE_OUT QUE_OUT_Copy
+ , QUE_LOG QUE_LOG_Copy
+ , QUE_EntriesForReview QUE_EntrRvwLoop_status
+ , QRY_Instance QRY_Instance_1
+ , QRY_Template QRY_INST_TMPLT_1
+ , QUE_RecipientSystem ReciptSystem
+ , QUE_QRY_RECIPT QRY_RECIPT
+ , QUE_OUT QUE_OUT_SNDMSG
+ , QUE_LOG QUE_LOG_SNDMSG
+ , QUE_OUT QUE_OUT_LoopStatus
+ , QUE_OUT QUE_OUT_LoopRecursive
+ , QUE_RecipientSystem RecipSystem
+ , QUE_Handler_tune Handler_tune
+ , QUE_SenderSystem SenderSystem
+
+ , tmpEntriesForReview
+ , tEntrForReviewToQue
+ , tQueueOut
+ , tSendMessToExtSys
+ , tRefSendMessToExtSys
+
+ where ((
+        _interfaceName == Handler_tune.interface_name
+       ))
+;
+
+function GetPosTextInLongStr(_text : string; _longStr : tptr) : longint; {
+  var iQUE_INCOME_BASE : QUE_INCOME_BASE;
+  var _wideStr : widestring[2097151] = iQUE_INCOME_BASE.longstring_to_widestring(_longStr);
+  result := instr(_text, _wideStr)
+}
+
+function encrypt(_str:string):string;{
+  var _strres : string = '';
+  var _i : byte = 1;
+  while _i <= length(_str)
+   {
+     _strres :=_strres + chr(ord(char(substr(_str,_i,1))) + _i);
+     _i++;
+   }
+   result := _strres;
+}
+function decrypt(_str:string):string;{
+  var _strres : string = '' ;
+  var _i : byte = 1;
+  while _i <= length(_str)
+   {
+     _strres := _strres + chr(ord(char(substr(_str,_i,1))) - _i);
+     _i++;
+   }
+   result := _strres;
+}
+
+
+
+Procedure fillQUE_SENDMESSTOEXTSYS; {
+  delete all tSendMessToExtSys;
+  if (LoadImplementationList('C_QUE::OQUE_SENDMESSTOEXTSYS', 'QUE_SENDMESSTOEXTSYS_'))
+  {
+    StartNewVisual(vtNumericVisual, vfTimer + vfBreak, 'Загрузка списка QUE_SendMessToExtSys...', 1);
+    _try
+    {
+      var I: integer = 0;
+      for (I := 0; I < GetImplementationCount; I := I + 1) {
+        var _iQUE_SendMessToExtSys : oQUE_SendMessToExtSys;
+        if LoadvipRef(_iQUE_SendMessToExtSys, GetImplementationName(I)) {
+          insert tSendMessToExtSys set
+             tSendMessToExtSys.name  :=  replace(GetImplementationName(I), 'C_QUE::QUE_SENDMESSTOEXTSYS_', '')
+           , tSendMessToExtSys.descr := _iQUE_SendMessToExtSys.GetDescription;
+          ;
+          FreeVipInterface(_iQUE_SendMessToExtSys);
+        }
+        NextVisual;
+      }
+    }
+    _except
+      on ExUserBreak : {};
+    _finally
+      StopVisual('', 0);
+  }
+}
+
+window winSelectQUE_SENDMESSTOEXTSYS 'Выбор шаблона запроса', cyan;
+ browse brSelectQUE_SENDMESSTOEXTSYS;
+  table tSendMessToExtSys;
+  Fields
+   tSendMessToExtSys.NAME  'Наименование' : [10] , Protect, nopickbutton;
+   tSendMessToExtSys.descr 'Описание'     : [20] , Protect, nopickbutton;
+ end;
+end;
+windowevent winSelectQUE_SENDMESSTOEXTSYS ;
+ cmdefault: {
+   closewindowex(winSelectQUE_SENDMESSTOEXTSYS, cmDefault)
+ }
+end;
+
+function GetQUE_SENDMESSTOEXTSYS : string; {
+ fillQUE_SENDMESSTOEXTSYS;
+ if getfirst tSendMessToExtSys <> tsOK {
+   message('Нет ни одной реализации объектного интерфейса OQUE_SendMessToExtSys', error);
+   exit;
+ }
+ result := '';
+ if runwindowmodal(winSelectQUE_SENDMESSTOEXTSYS) = cmDefault {
+   result := tSendMessToExtSys.NAME ;
+ }
+}
+
+window winGetSetQUE_SENDMESSTOEXTSYS 'Выбор настройки интерфейса обработки исходящих сообщений', cyan;
+ browse brwinGetSetQUE_SENDMESSTOEXTSYS (,,Sci1478Esc) ;
+  table Handler_tune;
+  Fields
+   Handler_tune.interface_name 'Интерфейс'     : [5] , Protect, nopickbutton;
+   Handler_tune.NAME           'Наименование'  : [10] , Protect, nopickbutton;
+ end;
+end;
+#tableeventtable(Handler_tune)
+windowevent winGetSetQUE_SENDMESSTOEXTSYS ;
+ cmedit: {
+   if not isvalidall(tnHandler_tune) {
+     insert current Handler_tune;
+   }
+
+   if isvalidall(tnHandler_tune) {
+       var _iQUE_SendMessToExtSys : oQUE_SendMessToExtSys;
+       if LoadvipRef(_iQUE_SendMessToExtSys, Handler_tune.interface_name) {
+          _iQUE_SendMessToExtSys.Setup(Handler_tune.nrec);
+        }
+        else {
+         message('Не удалось загрузить интерфейс ' + Handler_tune.interface_name);
+        }
+    }
+    rereadrecord;
+ }
+ cmdefault: {
+   closewindowex(winGetSetQUE_SENDMESSTOEXTSYS, cmDefault)
+ }
+end;
+
+window winGetSetQUE_ProcessMessIncomeQueue 'Выбор настройки интерфейса обработки входящих сообщений', cyan;
+ browse brwinGetSetQUE_SProcessMessIncomeQueue (,,Sci1478Esc) ;
+  table Handler_tune;
+  Fields
+   Handler_tune.interface_name 'Интерфейс'     : [5] , Protect, nopickbutton;
+   Handler_tune.NAME           'Наименование'  : [10] , Protect, nopickbutton;
+ end;
+end;
+windowevent winGetSetQUE_ProcessMessIncomeQueue ;
+ cmedit: {
+   if not isvalidall(tnHandler_tune) {
+     insert current Handler_tune;
+   }
+   if isvalidall(tnHandler_tune) {
+      var _iQUE_ProcessMessIncomeQueue : oQUE_ProcessMessIncomeQueue new;
+       if LoadvipRef(_iQUE_ProcessMessIncomeQueue, Handler_tune.interface_name) {
+          _iQUE_ProcessMessIncomeQueue.Setup(Handler_tune.nrec);
+        }
+        else {
+         message('Не удалось загрузить интерфейс ' + Handler_tune.interface_name);
+        }
+    }
+    rereadrecord;
+ }
+ cmdefault: {
+   closewindowex(winGetSetQUE_ProcessMessIncomeQueue, cmDefault)
+ }
+end;
+
+#tableeventtable(Handler_tune)
+
+function GetSetQUE_Handler_tune(__interfaceName : string) : comp; {
+  result := 0h;
+  if trim(__interfaceName ) = '' then  {
+    message('Указано пустое имя интерфейса',error);
+    exit;
+  }
+
+ set _interfaceName  := __interfaceName;
+
+ if pos('C_QUE::QUE_SENDMESSTOEXTSYS_',_interfaceName) = 1 {
+     if runwindowmodal(winGetSetQUE_SENDMESSTOEXTSYS) = cmDefault {
+       result := Handler_tune.nrec;
+     }
+ }
+ if pos('C_QUE::QUE_PROCESSMESSINCOMEQUEUE_',_interfaceName) = 1 {
+     if runwindowmodal(winGetSetQUE_ProcessMessIncomeQueue) = cmDefault {
+       result := Handler_tune.nrec;
+     }
+ }
+}
+
+Function GetNameStatusEntriesForReview(_Status : word) : string; cacheable;{
+ case _Status of
+   coPreQUE_AwaitProcessJSONgenerate    : result := 'ожидает обработки для формирования JSON'// 0; //  ожидает обработки для формирования JSON
+   coPreQUE_WaitForRelatedRcrdsToInsert : result := 'ожидает вставки связанных записей' // 1 //  ожидает вставки связанных записей
+   coPreQUE_ReadyToTransferToQueue      : result := 'готова к передаче в очередь (JSON сформирован)' // 2; //  готова к передаче в очередь (JSON сформирован)
+   coPreQUE_AwaitProcessRelatedRcrd     : result := 'ожидает генерации JSON в связанных записях' // 3; //  ожидает генерации JSON в связанных записях (JSON сформирован)
+   coPreQUE_ErrorGenerateJSON           : result := 'ошибка при генерации JSON' // 4; //  ошибка при генерации JSON
+   coPreQUE_SuccessTransferToQueue      : result := 'успешно передана в очередь' // 5; //  успешно передана в очередь
+   coPreQUE_ErrorTransferToQueue        : result := 'ошибка передачи в очередь' // 6; //  ошибка передачи в очередь
+   coPreQUE_ErrorFindInstanceInReciept  : result := 'экземпляр запроса не подписан на внешние системы'  // 7 Экземпляр запроса не подписан на внешние системы
+  else {
+    result := '--неизвестный статус--' //
+  }
+ end;
+}
+
+Function GetNameStatusQueue(_Status : word) : string; cacheable;{
+ case _Status of
+   coQUE_ReadyTransfToExtSystem         : result := 'готова к передаче во внешнюю систему'              //  готова к передаче во внешнюю систему
+   coQUE_AwaitRelatRecordToInsQue       : result := 'ожидает вставки связанных записей в очередь'       //  ожидает вставки связанных записей в очередь
+   coQUE_ErrorTransToExtSystem          : result := 'ошибка передачи во внешнюю систему'                //  ошибка передачи во внешнюю систему
+   coQUE_SuccessTransToExtSystem        : result := 'успешно передана'                                  //  успешно передана
+   coQUE_NotAllPoolRcrdTransToExtSystem : result := 'не все записи из пула переданы во внешнюю систему' //  не все записи из пула переданы во внешнюю систему
+   coQUE_ErrorFindInstanceInReciept     : result := 'Экземпляр запроса не подписан на внешние системы'  // 5; //  Экземпляр запроса не подписан на внешние системы
+   coQUE_ErrButWillContinueTryToSend    : result := 'Ошибка передачи, будут еще попытки'           // 6; //  Ошибка передачи, но еще будем пробовать
+   coQUE_TryToSend                      : result := 'Обрабатывается сейчас'                             // 7; //  обрабатывается сейчас
+  else {
+    result := '--неизвестный статус--' //
+  }
+ end;
+}
+
+procedure RunClearQUE(_FirstDate : datetime; _status : word); {
+ StartNewVisual(vtRotateVisual, vfTimer , 'Очистка исходящей очереди', 1);
+  _loop QUE_OUT_Copy where ((_FirstDate >> QUE_OUT_Copy.datetime_in
+                            and _status == QUE_OUT_Copy.status (noindex))) {
+     _loop QUE_LOG_Copy where ((QUE_OUT_Copy.nrec == QUE_LOG_Copy.cQUE_OUT)) {
+       delete current QUE_LOG_Copy;
+     }
+    delete current QUE_OUT_Copy;
+   }
+ stopvisual;
+}
+procedure ClearQUE_OldRows; {
+
+  if wgettune('QUE_OUT_CLEAR_COUNT_DAYS_SUCCESS') > 0 {
+    var _FirstDate : datetime = _DateTime1(add_day(cur_date,-1*wgettune('QUE_OUT_CLEAR_COUNT_DAYS_SUCCESS')),0);
+    RunClearQUE(_FirstDate, coQUE_SuccessTransToExtSystem) ;
+  }
+
+  if wgettune('QUE_OUT_CLEAR_COUNT_DAYS_ERROR') > 0 {
+    var _FirstDate : datetime = _DateTime1(add_day(cur_date,-1*wgettune('QUE_OUT_CLEAR_COUNT_DAYS_ERROR')),0);
+    RunClearQUE(_FirstDate, coQUE_ErrorTransToExtSystem);
+  }
+
+}
+
+Function GetImageStatusQueue(_Status : word) : string; cacheable;{
+
+  case _Status of
+   coQUE_ReadyTransfToExtSystem         : result := 'C_QUE::bmpQUE_STATUS_BlueL'              //  готова к передаче во внешнюю систему
+   coQUE_AwaitRelatRecordToInsQue       : result := 'C_QUE::bmpQUE_STATUS_YellowL'       //  ожидает вставки связанных записей в очередь
+   coQUE_ErrorTransToExtSystem          : result := 'C_QUE::bmpQUE_STATUS_RedL'                //  ошибка передачи во внешнюю систему
+   coQUE_SuccessTransToExtSystem        : result := 'C_QUE::bmpQUE_STATUS_LimeL'                                  //  успешно передана
+   coQUE_NotAllPoolRcrdTransToExtSystem : result := 'C_QUE::bmpQUE_STATUS_YellowL' //  не все записи из пула переданы во внешнюю систему
+  else {
+    result := 'C_QUE::bmpQUE_STATUS_GrayL';
+  }
+ end;
+}
+Function GetImageStatusEntriesForReview(_Status : word) : string; cacheable;{
+
+case _Status of
+   coPreQUE_AwaitProcessJSONgenerate    : result := 'C_QUE::bmpQUE_STATUS_YellowL';  // ожидает обработки для формирования JSON
+   coPreQUE_WaitForRelatedRcrdsToInsert : result := 'C_QUE::bmpQUE_STATUS_YellowL';   // ожидает вставки связанных записей
+   coPreQUE_ReadyToTransferToQueue      : result := 'C_QUE::bmpQUE_STATUS_BlueL'; // готова к передаче в очередь (JSON сформирован)
+   coPreQUE_AwaitProcessRelatedRcrd     : result := 'C_QUE::bmpQUE_STATUS_YellowL';   // ожидает генерации JSON в связанных записях (JSON сформирован)
+   coPreQUE_ErrorGenerateJSON           : result := 'C_QUE::bmpQUE_STATUS_RedL';     // ошибка при генерации JSON
+   coPreQUE_SuccessTransferToQueue      : result := 'C_QUE::bmpQUE_STATUS_LimeL';  // успешно передана в очередь
+   coPreQUE_ErrorTransferToQueue        : result := 'C_QUE::bmpQUE_STATUS_RedL';     // ошибка передачи в очередь
+  else {
+    result := 'C_QUE::bmpQUE_STATUS_GrayL';
+  }
+ end;
+
+/* case _Status of
+   coPreQUE_AwaitProcessJSONgenerate    : result := ColorSysBlack;  // ожидает обработки для формирования JSON
+   coPreQUE_WaitForRelatedRcrdsToInsert : result := ColorSysGray;   // ожидает вставки связанных записей
+   coPreQUE_ReadyToTransferToQueue      : result := ColorSysPurple; // готова к передаче в очередь (JSON сформирован)
+   coPreQUE_AwaitProcessRelatedRcrd     : result := ColorSysGray;   // ожидает генерации JSON в связанных записях (JSON сформирован)
+   coPreQUE_ErrorGenerateJSON           : result := colorerror;     // ошибка при генерации JSON
+   coPreQUE_SuccessTransferToQueue      : result := ColorSysGreen;  // успешно передана в очередь
+   coPreQUE_ErrorTransferToQueue        : result := colorerror;     // ошибка передачи в очередь
+  else {
+    result := ColorSysBlack;
+  }
+ end;
+ */
+}
+
+
+Function GenerateNewFile: string; {
+ result := GetStringParameter('Files','OutputFilesDirectory',0)+ '\QUE_'+olegenerateguid+'_'+DateToStr(cur_date,'YYYYMMDD')+'_'+timetostr(cur_time,'HHMMSS-SSS');
+}
+
+function GetLogFile : string; {
+  if _logQUE_OUT = '' then _logQUE_OUT := GenerateNewFile+'.log';
+  result := _logQUE_OUT;
+}
+
+Procedure MyLog(_str: string; _needlog : boolean = false); {
+  LogStrToFile(GetLogFile,DateToStr(cur_date,'YYYYMMDD')+'_'+timetostr(cur_time,'HHMMSS') + ': ' + shortstrtowin(_str));
+}
+
+Function InsertEntriesForReview(_cParent : comp; _Status : word; _TypeEvent : string[20]; _InstanceCode : string; _AddWhereStr : string) : comp; {
+  result := 0h;
+   ClearBuffer(tnQUE_EntrRvwIns);
+   QUE_EntrRvwIns.cParent           := _cParent          ; // "Ссылка вышестоящую запись"
+   QUE_EntrRvwIns.Status            := _Status           ; // "Статус обработки"
+   QUE_EntrRvwIns.TypeEvent         := _TypeEvent        ; // "Тип события"
+   QUE_EntrRvwIns.QRY_Instance_code := _InstanceCode     ; // "Код экземпляра запроса"
+   QUE_EntrRvwIns.AddWhereStr       := _AddWhereStr      ; // "Строка-доп.условия в запрос"
+   QUE_EntrRvwIns.DateTime_in       := _curdatetime      ; // Дата-время создания записи
+  if(Insert current QUE_EntrRvwIns) = tsOK {
+    result := QUE_EntrRvwIns.nrec;
+  }
+}
+function getRootTableNameByInstanceCode(_InstanceCode : string) : string; cacheable;{
+   result := '----- не найден экземпляр запроса с кодом "' + _InstanceCode+'"  -----';
+   if getfirst fastfirstrow QRY_Instance_1 where ((_InstanceCode == QRY_Instance_1.code)) = tsOK then {
+   if getfirst fastfirstrow QRY_INST_TMPLT_1 where ((QRY_Instance_1.cTmplt == QRY_INST_TMPLT_1.nrec)) = tsOK {
+      var iQRY_OUT : QRY_OUT  new;
+      result := iQRY_OUT.GetTableNameByCode(QRY_INST_TMPLT_1.TABLECODE)
+    }
+   }
+}
+Function InsertEntriesForReview_PoolParent(_cParent : comp;
+                                           _TypeEvent : string[20];
+                                           _InstanceCode : string;
+                                           _AddWhereStr : string = '';
+                                           _nrecRootTable : comp= 0h) : comp; {
+  if _nrecRootTable <> 0h {
+     _AddWhereStr := 'and ' + getRootTableNameByInstanceCode(_InstanceCode) + '.nrec = ' + string(_nrecRootTable);
+    }
+  result := InsertEntriesForReview(_cParent, coPreQUE_WaitForRelatedRcrdsToInsert, _TypeEvent, _InstanceCode, _AddWhereStr);
+}
+
+Procedure EntriesForReviewSetPoolRecordsStatus(_cMainParent : comp; _CheckStatus, _ToStatus : word); {
+   _loop QUE_EntrRvwIns where ((_cMainParent == QUE_EntrRvwIns.cParent)) {
+     if QUE_EntrRvwIns.status <> _CheckStatus // coPreQUE_WaitForRelatedRcrdsToInsert
+         then continue; //если статус не равен ожидает вставки связанных записей, то пропускаем - видимо уже обработали
+     if(getfirst QUE_EntrRvwIns_1 where ((QUE_EntrRvwIns.nrec == QUE_EntrRvwIns_1.cParent)) ) = tsOK {
+         pushpos(tnQUE_EntrRvwIns);
+          EntriesForReviewSetPoolRecordsStatus(QUE_EntrRvwIns.nrec, _CheckStatus, _ToStatus);
+         poppos(tnQUE_EntrRvwIns);
+      }
+
+     update current QUE_EntrRvwIns set QUE_EntrRvwIns.status := _ToStatus ; // coPreQUE_AwaitProcessJSONgenerate;
+   }
+}
+
+Procedure QueueSetPoolRecordsStatus(_cMainParent : comp; _CheckStatus, _ToStatus : word); {
+
+   _loop QUE_OUT_Copy where ((_cMainParent == QUE_OUT_Copy.cParent)) {
+     if QUE_OUT_Copy.status <> _CheckStatus // coPreQUE_WaitForRelatedRcrdsToInsert
+         then continue; //если статус не равен ожидает вставки связанных записей, то пропускаем - видимо уже обработали
+         pushpos(tnQUE_OUT_Copy);
+          QueueSetPoolRecordsStatus(QUE_OUT_Copy.nrec, _CheckStatus, _ToStatus);
+         poppos(tnQUE_OUT_Copy);
+     update current QUE_OUT_Copy set QUE_OUT_Copy.status := _ToStatus ; // coPreQUE_AwaitProcessJSONgenerate;
+   }
+}
+
+
+Procedure SetPoolRecordsReadyToGenerateJSON(_cMainParent : comp); {
+ if getfirst QUE_EntrRvwIns where ((_cMainParent == QUE_EntrRvwIns.nrec and 0h == QUE_EntrRvwIns.cParent (noindex))) <> tsOK then exit;
+
+  EntriesForReviewSetPoolRecordsStatus(_cMainParent, coPreQUE_WaitForRelatedRcrdsToInsert, coPreQUE_AwaitProcessJSONgenerate);
+   if getfirst QUE_EntrRvwIns where ((_cMainParent == QUE_EntrRvwIns.nrec)) = tsOK {
+     update current QUE_EntrRvwIns set QUE_EntrRvwIns.status := coPreQUE_AwaitProcessJSONgenerate ; // coPreQUE_AwaitProcessJSONgenerate;
+   }
+}
+
+Procedure SetPoolRecordsCopiedToQueue(_cMainParent : comp); {
+ if getfirst QUE_OUT_Copy where ((_cMainParent == QUE_OUT_Copy.nrec and 0h == QUE_OUT_Copy.cParent (noindex))) <> tsOK then exit;
+
+  QueueSetPoolRecordsStatus(QUE_OUT_Copy.nrec, coQUE_AwaitRelatRecordToInsQue, coQUE_ReadyTransfToExtSystem);
+   if getfirst QUE_OUT_Copy where ((_cMainParent == QUE_OUT_Copy.nrec)) = tsOK {
+     update current QUE_OUT_Copy set QUE_OUT_Copy.status := coQUE_ReadyTransfToExtSystem ; // coPreQUE_AwaitProcessJSONgenerate;
+   }
+}
+
+Function InsertEntriesForReview_Single(_TypeEvent : string[20]; _InstanceCode : string; _AddWhereStr : string = ''; _nrecRootTable : comp= 0h) : comp; {
+  if _nrecRootTable <> 0h {
+     _AddWhereStr := 'and ' + getRootTableNameByInstanceCode(_InstanceCode) + '.nrec = ' + string(_nrecRootTable);
+    }
+
+  result := InsertEntriesForReview(0h, coPreQUE_AwaitProcessJSONgenerate, _TypeEvent, _InstanceCode, _AddWhereStr);
+}
+
+Procedure GenerateJSONInEntriesForReview(_cQUE_EntriesForReview : comp); {
+  if getfirst fastfirstrow QUE_EntrRvwGenJSON where ((_cQUE_EntriesForReview == QUE_EntrRvwGenJSON.nrec)) <> tsOK then exit;
+
+  if not ( QUE_EntrRvwGenJSON.Status = coPreQUE_AwaitProcessJSONgenerate // если статус е равен "ожидает обработки для формирования JSON"
+        or QUE_EntrRvwGenJSON.Status = coPreQUE_AwaitProcessRelatedRcrd) // ожидает генерацию в связанных
+       then exit;
+
+
+  var _err : string = '';
+  var FNservice, _JSON : tptr = 0;
+  var iQRY_OUT : QRY_OUT  new;
+  if not iQRY_OUT.GenerateJSONFromQueryInstanceWithAddWhereString(QUE_EntrRvwGenJSON.QRY_Instance_code, QUE_EntrRvwGenJSON.AddWhereStr, FNservice, _JSON, _err){
+      var __log : string = iQRY_OUT.GetLogFile;
+       ImportFileToMemo(QUE_EntrRvwGenJSON.JSON, __log, false);
+       QUE_EntrRvwGenJSON.Status := coPreQUE_ErrorGenerateJSON; // ошибка при генерации JSON
+       QUE_EntrRvwGenJSON.DateTime_genJSON := _curdatetime;
+       QUE_EntrRvwGenJSON.err    := _err;
+      update current QUE_EntrRvwGenJSON;
+      deletefile(__log);
+   }
+  else {
+      var _jsonFile : string = iQRY_OUT.GenerateNewFile+'.json';
+       HttpConnect_SaveToFileEx(FNservice, _JSON, _jsonFile, cpUTF8, false);
+       ImportFileToMemo(QUE_EntrRvwGenJSON.JSON, _jsonFile, false);
+       QUE_EntrRvwGenJSON.Status := coPreQUE_ReadyToTransferToQueue;
+       QUE_EntrRvwGenJSON.DateTime_genJSON := _curdatetime;
+      update current QUE_EntrRvwGenJSON;
+      deletefile(_jsonFile);
+  }
+}
+
+procedure RecursiveGenerateJSON_from_EntriesForReviewRecords(_cEntriesForReview : comp); {
+   _loop QUE_EntrRvwIns where ((_cEntriesForReview == QUE_EntrRvwIns.cParent))  {
+
+      if QUE_EntrRvwIns.status <> coPreQUE_AwaitProcessJSONgenerate then continue;
+
+      update current QUE_EntrRvwIns set QUE_EntrRvwIns.Status := coPreQUE_AwaitProcessRelatedRcrd; // идем сверху вниз и всем сначала ставим 'ожидает генерации JSON в связанных записях'
+
+     if(getfirst QUE_EntrRvwIns_1 where ((QUE_EntrRvwIns.nrec == QUE_EntrRvwIns_1.cParent)) ) = tsOK {
+         pushpos(tnQUE_EntrRvwIns);
+          RecursiveGenerateJSON_from_EntriesForReviewRecords(QUE_EntrRvwIns.nrec);
+         poppos(tnQUE_EntrRvwIns);
+      }
+
+    if isExistStatusInPool(QUE_EntrRvwIns.nrec,coPreQUE_ErrorGenerateJSON) then  {// если есть записи с "ошибка при генерации JSON
+         QUE_EntrRvwIns.status := coPreQUE_ErrorGenerateJSON;
+         QUE_EntrRvwIns.err    := 'Ошибки в подчиненных записях';
+        update current QUE_EntrRvwIns ;
+    }
+    else {
+       GenerateJSONInEntriesForReview(QUE_EntrRvwIns.nrec); // а вот тут генерим JSON  и ставим 'готова к передаче в очередь (JSON сформирован)'
+      }
+   }
+}
+
+function isExistStatusInPool(_cEntriesForReview: comp; _status : word) : boolean; {
+  result := false;
+  _loop QUE_EntrRvwLoop_status where ((_cEntriesForReview == QUE_EntrRvwLoop_status.cParent)) {
+    if QUE_EntrRvwLoop_status.status = _status then {
+      result := true;
+      exit;
+    }
+     pushpos(tnQUE_EntrRvwLoop_status);
+      result := isExistStatusInPool(QUE_EntrRvwLoop_status.nrec, _status);
+     poppos(tnQUE_EntrRvwLoop_status);
+     if result = True then exit;
+   }
+}
+
+function isExistStatusInPoolQueue(_cQue: comp; _status : word) : boolean; {
+  result := false;
+  _loop QUE_OUT_LoopStatus where ((_cQue == QUE_OUT_LoopStatus.cParent)) {
+    if QUE_OUT_LoopStatus.status = _status then {
+      result := true;
+      exit;
+    }
+     pushpos(tnQUE_OUT_LoopStatus);
+      result := isExistStatusInPoolQueue(QUE_OUT_LoopStatus.nrec, _status);
+     poppos(tnQUE_OUT_LoopStatus);
+     if result = True then exit;
+   }
+}
+
+procedure GenerateJSON_from_EntriesForReviewRecords(_cEntriesForReview : comp); {
+   if getfirst QUE_EntrRvwGenJSON where ((_cEntriesForReview == QUE_EntrRvwGenJSON.nrec)) <> tsOk then exit;
+   if QUE_EntrRvwGenJSON.status <> coPreQUE_AwaitProcessJSONgenerate then exit;
+
+   QUE_EntrRvwGenJSON.status := coPreQUE_AwaitProcessRelatedRcrd; // ожидает генерации JSON в связанных записях' - вдруг где то рядом запустили тоже обработку... потому ставим верхнюю запись в статус иной чем coPreQUE_AwaitProcessJSONgenerate
+   update current QUE_EntrRvwGenJSON;
+
+   RecursiveGenerateJSON_from_EntriesForReviewRecords(_cEntriesForReview );
+
+   if getfirst QUE_EntrRvwGenJSON where ((_cEntriesForReview == QUE_EntrRvwGenJSON.nrec)) <> tsOk then exit;
+   if isExistStatusInPool(QUE_EntrRvwGenJSON.nrec,coPreQUE_ErrorGenerateJSON) then  {// если есть записи с "ошибка при генерации JSON
+       QUE_EntrRvwGenJSON.err    := 'Ошибки в подчиненных записях';
+       QUE_EntrRvwGenJSON.status := coPreQUE_ErrorGenerateJSON;
+       update current QUE_EntrRvwGenJSON;
+    }
+    else {
+        GenerateJSONInEntriesForReview(_cEntriesForReview); // а вот тут генерим JSON  и ставим 'готова к передаче в очередь (JSON сформирован)'
+      }
+}
+
+function CopyEntriesForReviewRecordsToQueue(_cEntriesForReview : comp; _codeReciptSystem : string) : comp; {
+  if getfirst QUE_EntrRvwIns where ((_cEntriesForReview == QUE_EntrRvwIns.nrec)) <> tsOK then exit;
+
+  if getfirst QUE_OUT_Copy where ((_cEntriesForReview == QUE_OUT_Copy.cQUE_EntriesReview
+                              and _codeReciptSystem == QUE_OUT_Copy.RecipientSystem (noindex)
+                              )) = tsOK then exit; // уже передали в очередь позицию
+
+  var _cQUE_OUT_CopyUp : comp = 0h;
+  if getfirst QUE_EntrRvwIns_1 where ((QUE_EntrRvwIns.cParent == QUE_EntrRvwIns_1.nrec)) = tsOK then {
+     if getfirst QUE_OUT_Copy where ((QUE_EntrRvwIns_1.nrec == QUE_OUT_Copy.cQUE_EntriesReview)) = tsOK {
+       _cQUE_OUT_CopyUp := QUE_OUT_Copy.nrec;
+     }
+  }
+   clearbuffer(tnQUE_OUT_Copy);
+    QUE_OUT_Copy.Status             := coQUE_AwaitRelatRecordToInsQue;
+    QUE_OUT_Copy.TypeEvent          := QUE_EntrRvwIns.TypeEvent;
+    QUE_OUT_Copy.TryCount           := 0;
+    QUE_OUT_Copy.cParent            := _cQUE_OUT_CopyUp;
+    QUE_OUT_Copy.QRY_Instance_code  := QUE_EntrRvwIns.QRY_Instance_code;
+    QUE_OUT_Copy.DateTime_in        := _curDateTime;
+//    QUE_OUT_Copy.DateTime_out       := 0;
+    QUE_OUT_Copy.RecipientSystem    := _codeReciptSystem; // string     "Код системы получателя";
+    QUE_OUT_Copy.cQUE_EntriesReview := QUE_EntrRvwIns.nrec;
+    QUE_OUT_Copy.JSON               := QUE_EntrRvwIns.JSON;
+    QUE_OUT_Copy.atl_owner          := userid;
+   result := 0h;
+   if insert current QUE_OUT_Copy = tsOK {
+     result := QUE_OUT_Copy.nrec;
+   }
+}
+
+function InsertMessageDirectToQueue(_bodyMessage : tptr; _codeReciptSystem : string; _TypeEvent : string) : boolean; {
+/*
+_TypeEvent
+coQUE_TypeEvent_Insert = 'INSERT'; // Событие вставка
+coQUE_TypeEvent_Delete = 'DELETE'; // Событие обновление
+coQUE_TypeEvent_Update = 'UPDATE'; // Событие удаление
+*/
+   result := false;
+   clearbuffer(tnQUE_OUT_Copy);
+    QUE_OUT_Copy.Status             := coQUE_AwaitRelatRecordToInsQue;
+    QUE_OUT_Copy.TypeEvent          := _TypeEvent;
+    QUE_OUT_Copy.TryCount           := 0;
+    QUE_OUT_Copy.cParent            := 0h;
+    QUE_OUT_Copy.QRY_Instance_code  := 'DIRECT INSERT';
+    QUE_OUT_Copy.DateTime_in        := _curDateTime;
+    QUE_OUT_Copy.RecipientSystem    := _codeReciptSystem; // string     "Код системы получателя";
+    QUE_OUT_Copy.cQUE_EntriesReview := 0h;
+    QUE_OUT_Copy.atl_owner          := userid;
+
+   if insert current QUE_OUT_Copy <> tsOK {
+    exit;
+   }
+
+   var m_service : tptr = HttpConnect_CreateEx('http://ya.ru', '', '', true);
+   var _bodyMessageFile : string = GenerateNewFile + '.bodymsg';
+
+   HttpConnect_SaveToFileEx(m_service, _bodyMessage, _bodyMessageFile, cpUTF8, false);
+
+   if not importfiletomemo(QUE_OUT_Copy.JSON, _bodyMessageFile, false) {
+      deletefile(_bodyMessageFile);
+      HttpConnect_Free(m_service);
+      exit;
+     }
+
+   QUE_OUT_Copy.Status := coQUE_ReadyTransfToExtSystem;
+
+   if update current QUE_OUT_Copy <> tsOK {
+      deletefile(_bodyMessageFile);
+      HttpConnect_Free(m_service);
+      exit;
+     }
+
+   deletefile(_bodyMessageFile);
+   HttpConnect_Free(m_service);
+   result := true;
+}
+
+function InsertProcessedMessageDirectToQueue( _success : boolean;
+                                             _bodyMessage : tptr;
+                                             _bodyAnswer  : tptr;
+                                             _codeReciptSystem : string;
+                                             _TypeEvent : string;
+                                             _description : string
+                                             ) : boolean; {
+/*
+_TypeEvent
+coQUE_TypeEvent_Insert = 'INSERT'; // Событие вставка
+coQUE_TypeEvent_Delete = 'DELETE'; // Событие обновление
+coQUE_TypeEvent_Update = 'UPDATE'; // Событие удаление
+*/
+   result := false;
+   clearbuffer(tnQUE_OUT_Copy);
+    QUE_OUT_Copy.Status             := if(_success, coQUE_SuccessTransToExtSystem, coQUE_ErrorTransToExtSystem);
+    QUE_OUT_Copy.TypeEvent          := _TypeEvent;
+    QUE_OUT_Copy.TryCount           := 1;
+    QUE_OUT_Copy.cParent            := 0h;
+    QUE_OUT_Copy.QRY_Instance_code  := 'DIRECT INSERT PROCESSED MESSAGE';
+    QUE_OUT_Copy.DateTime_in        := _curDateTime;
+    QUE_OUT_Copy.RecipientSystem    := _codeReciptSystem; // string     "Код системы получателя";
+    QUE_OUT_Copy.cQUE_EntriesReview := 0h;
+    QUE_OUT_Copy.log_string         := _description;
+    QUE_OUT_Copy.atl_owner          := userid;
+
+   if insert current QUE_OUT_Copy <> tsOK {
+    exit;
+   }
+
+   var m_service : tptr = HttpConnect_CreateEx('http://ya.ru', '', '', true);
+   var _bodyMessageFile : string = GenerateNewFile + '.bodymsg';
+
+   HttpConnect_SaveToFileEx(m_service, _bodyMessage, _bodyMessageFile, cpUTF8, false);
+
+   if not importfiletomemo(QUE_OUT_Copy.JSON, _bodyMessageFile, false) {
+      deletefile(_bodyMessageFile);
+      HttpConnect_Free(m_service);
+      exit;
+     }
+
+   if update current QUE_OUT_Copy <> tsOK {
+      deletefile(_bodyMessageFile);
+      HttpConnect_Free(m_service);
+      exit;
+     }
+    deletefile(_bodyMessageFile);
+
+    insert QUE_LOG_SNDMSG set
+       QUE_LOG_SNDMSG.cQUE_OUT     := QUE_OUT_Copy.nrec
+     , QUE_LOG_SNDMSG.DateTime_try := _curdatetime
+     , QUE_LOG_SNDMSG.LOG_STRING   := _description
+     , QUE_LOG_SNDMSG.status       := QUE_OUT_Copy.Status
+    ;
+
+   _bodyMessageFile := GenerateNewFile + '.bodyansw';
+
+   HttpConnect_SaveToFileEx(m_service, _bodyAnswer, _bodyMessageFile, cpUTF8, false);
+
+   if not importfiletomemo(QUE_LOG_SNDMSG.LOG_TEXT, _bodyMessageFile, false) {
+      deletefile(_bodyMessageFile);
+      HttpConnect_Free(m_service);
+      exit;
+     }
+
+   if update current QUE_LOG_SNDMSG <> tsOK {
+      deletefile(_bodyMessageFile);
+      HttpConnect_Free(m_service);
+      exit;
+     }
+
+   deletefile(_bodyMessageFile);
+   HttpConnect_Free(m_service);
+   result := true;
+}
+
+procedure RecursiveCopyToQueue_from_EntriesForReviewRecords(_cEntriesForReview : comp; _codeReciptSystem : string); {
+   _loop QUE_EntrCopyToQueue where ((_cEntriesForReview == QUE_EntrCopyToQueue.cParent))  {
+
+      if CopyEntriesForReviewRecordsToqueue(QUE_EntrCopyToQueue.nrec, _codeReciptSystem) <> 0h {
+        QUE_EntrCopyToQueue.status := coPreQUE_SuccessTransferToQueue;
+      }
+      else {
+         QUE_EntrCopyToQueue.status := coPreQUE_ErrorTransferToQueue
+      }
+      update current QUE_EntrCopyToQueue;
+
+        QUE_EntrCopyToQueue.status := coPreQUE_SuccessTransferToQueue;
+      update current QUE_EntrCopyToQueue;
+
+      if(getfirst QUE_EntrCopyToQueueUp where ((QUE_EntrCopyToQueue.nrec == QUE_EntrCopyToQueueUp.cParent)) ) = tsOK {
+        pushpos(tnQUE_EntrCopyToQueue);
+         RecursiveCopyToQueue_from_EntriesForReviewRecords(QUE_EntrCopyToQueue.nrec, _codeReciptSystem);
+        poppos(tnQUE_EntrCopyToQueue);
+       }
+
+        if isExistStatusInPool(QUE_EntrCopyToQueue.nrec,coPreQUE_ErrorTransferToQueue) then  {// если есть записи с "ошибка передачи в очередь
+            QUE_EntrCopyToQueue.status := coPreQUE_ErrorGenerateJSON;
+            QUE_EntrCopyToQueue.err    := 'Ошибки в подчиненных записях';
+           update current QUE_EntrCopyToQueue;
+        }
+
+    }
+}
+
+procedure CopyToQueue_from_EntriesForReviewRecords(_cEntriesForReview : comp; _codeReciptSystem : string); {
+
+   if getfirst QUE_EntrRvwGenJSON where ((_cEntriesForReview == QUE_EntrRvwGenJSON.nrec)) <> tsOk then exit;
+
+   //if QUE_EntrRvwGenJSON.status <> coPreQUE_ReadyToTransferToQueue then exit;
+
+   if CopyEntriesForReviewRecordsToqueue(_cEntriesForReview, _codeReciptSystem) <> 0h {
+        QUE_EntrRvwGenJSON.status := coPreQUE_SuccessTransferToQueue;
+      }
+      else {
+         QUE_EntrRvwGenJSON.status := coPreQUE_ErrorTransferToQueue
+      }
+      update current QUE_EntrRvwGenJSON;
+
+   RecursiveCopyToQueue_from_EntriesForReviewRecords(_cEntriesForReview,_codeReciptSystem );
+
+   if getfirst QUE_EntrRvwGenJSON where ((_cEntriesForReview == QUE_EntrRvwGenJSON.nrec)) <> tsOk then exit;
+
+   if isExistStatusInPool(QUE_EntrRvwGenJSON.nrec,coPreQUE_ErrorTransferToQueue) then  {// если есть записи с "ошибка передачи в очередь
+       QUE_EntrRvwGenJSON.err    := 'Ошибки в подчиненных записях';
+       QUE_EntrRvwGenJSON.status := coPreQUE_ErrorTransferToQueue;
+      update current QUE_EntrRvwGenJSON;
+    }
+
+  if getfirst QUE_OUT_Copy where ((QUE_EntrRvwGenJSON.nrec == QUE_OUT_Copy.cQUE_EntriesReview
+                                     and _codeReciptSystem == QUE_OUT_Copy.RecipientSystem (noindex) )) = tsOK {
+    SetPoolRecordsCopiedToQueue(QUE_OUT_Copy.nrec);
+   }
+}
+
+Function GetInterfaceNameByReciptSystem(_RecipientSystemCode : string): string; cacheable;{
+  result := '';
+  if getfirst fastfirstrow RecipSystem where ((_RecipientSystemCode == RecipSystem.code )) = tsOK {
+   result := RecipSystem.interface_name
+  }
+}
+
+Function GetTuneByReciptSystem(_RecipientSystemCode : string): comp; cacheable;{
+  result := 0h;
+  if getfirst fastfirstrow RecipSystem where ((_RecipientSystemCode == RecipSystem.code )) = tsOK {
+   result := RecipSystem.cQUE_Handler_tune
+  }
+}
+Function SendOneMessage(_cQue_OUT : comp) : boolean; {
+#declare updatelogSetStatusQueue(StrError)
+          QUE_LOG_SNDMSG.log_string := #StrError;
+          QUE_LOG_SNDMSG.Status     := coQUE_ErrorTransToExtSystem;
+         update current QUE_LOG_SNDMSG;
+        if QUE_OUT_SNDMSG.TryCount >= coMaxTryCount {
+           QUE_OUT_SNDMSG.status := coQUE_ErrorTransToExtSystem
+          } else {
+            QUE_OUT_SNDMSG.status := coQUE_ErrButWillContinueTryToSend
+          }
+          update current QUE_OUT_SNDMSG;
+#end
+ result := false;
+ if getfirst fastfirstrow QUE_OUT_SNDMSG where ((_cQue_OUT == QUE_OUT_SNDMSG.nrec)) <> tsOk then exit;
+ if QUE_OUT_SNDMSG.status = coQUE_SuccessTransToExtSystem {
+    result := true; // ну т.е. может надо по подчиненным пройтись
+  }
+
+ if  QUE_OUT_SNDMSG.status = coQUE_ErrButWillContinueTryToSend {
+   _loop QUE_LOG_SNDMSG where ((QUE_OUT_SNDMSG.nrec == QUE_LOG_SNDMSG.cQUE_OUT)) {
+      if QUE_LOG_SNDMSG.status = coQUE_SuccessTransToExtSystem then {
+       result := true; // это актуально для корневой записи у нее такой статус. если не все вложенные передались
+       break;
+      }
+    }
+  }
+
+  if result then exit;
+
+  update current QUE_OUT_SNDMSG set
+     QUE_OUT_SNDMSG.status   := coQUE_TryToSend
+   , QUE_OUT_SNDMSG.TryCount := QUE_OUT_SNDMSG.TryCount + 1
+ ;
+  insert QUE_LOG_SNDMSG set
+     QUE_LOG_SNDMSG.cQUE_OUT := _cQue_OUT
+   , QUE_LOG_SNDMSG.DateTime_try := _curdatetime
+  ;
+
+//, QUE_LOG_SNDMSG.Status            : word       "Статус попытки"
+//, QUE_LOG_SNDMSG.log_text          : LVAR       "Полное описание ошибки"
+
+
+ var _retStatus  : string = '';
+ var _retFileLog : string = '';
+   var iQUE_BASE : QUE_BASE;
+   var _FilePath : string = iQUE_BASE.GenerateNewFile+'.JSON';
+   if not ExportMemoToFile(QUE_OUT_SNDMSG.JSON, _FilePath, false) {
+         #updatelogSetStatusQueue('Ошибка экспорта мемо поля')
+         exit;
+      }
+
+   var m_service : tptr = HttpConnect_CreateEx('http://ya.ru', '', '', true);
+   var _longValue : TPtr = HttpConnect_LoadFromFile (m_service //fn        : LongInt,
+                                                , _FilePath // sFileName : String,
+                                                , cpUTF8 // Encoding  : LongInt
+                                                 ) ;
+  deletefile(_FilePath);
+  if (_longValue = 0) {
+       #updatelogSetStatusQueue('Ошибка загрузки файла с диска после экспорта из мемо-поля')
+       exit;
+      }
+
+  if (HttpConnect_GetLongStringLength(m_service, _longValue) <= 0) {
+       #updatelogSetStatusQueue('после экспорта из мемо-поля пустой файл')
+       Exit;
+      }
+
+/* передавать будем не JSON а ссылку на длинную строку, т.к. не только JSON может быть в очереди
+  var JSON_Object : tptr = HttpConnect_JSONObjectByLongString(m_service, _longValue);
+   if JSON_Object = 0 {
+      #updatelogSetStatusQueue('не смогли преобразовать файл в JSON')
+      exit;
+    }
+*/
+     var _interfaceName : string = GetInterfaceNameByReciptSystem(QUE_OUT_SNDMSG.RecipientSystem);
+     var _cTuneReciptSystem : comp = GetTuneByReciptSystem(QUE_OUT_SNDMSG.RecipientSystem);
+
+     if _interfaceName = '' {
+      #updatelogSetStatusQueue('Пустое имя интерфейса отправки сообщения или нет системы-получателя')
+      exit;
+     }
+
+          var ww_num:word=0;
+          if Getfirst tRefSendMessToExtSys where (( _interfaceName == tRefSendMessToExtSys.Name )) <> tsOk {
+
+            Insert into tRefSendMessToExtSys set tRefSendMessToExtSys.Name:= _interfaceName;
+          }
+          else  {
+            ww_num:=tRefSendMessToExtSys.num;
+           }
+
+          do
+          { if ww_num=0
+            { ww_num:=getlimit(_arrQUE_SendMessToExtSys)+1;
+              SetLimit(_arrQUE_SendMessToExtSys, ww_num);
+              if LoadvipRef(_arrQUE_SendMessToExtSys[ww_num], 'C_QUE::QUE_SENDMESSTOEXTSYS_'+_interfaceName){
+               update current tRefSendMessToExtSys set tRefSendMessToExtSys.Num:=ww_num;
+              }
+              else {
+                #updatelogSetStatusQueue('Не удалось загрузить интерфейс C_QUE::QUE_SENDMESSTOEXTSYS_'+_interfaceName)
+                exit;
+              }
+            }
+
+         _try
+            {
+              result :=_arrQUE_SendMessToExtSys[ww_num].SendMessage(  QUE_OUT_SNDMSG.nrec
+                                                                    , _longValue // JSON_Object
+                                                                    , QUE_OUT_SNDMSG.QRY_Instance_code
+                                                                    , QUE_OUT_SNDMSG.TypeEvent
+                                                                    , _cTuneReciptSystem
+                                                                    , _retStatus
+                                                                    , _retFileLog
+                                                                    );
+            }
+            _except
+            else {
+              exit;
+            }
+
+            Break;
+          } while True;
+
+
+       if _retFileLog <> '' {
+          ImportFileToMemo(QUE_LOG_SNDMSG.log_text, _retFileLog, false);
+          deletefile(_retFileLog);
+       }
+
+     if result {
+        QUE_LOG_SNDMSG.log_string := _retStatus;
+        QUE_LOG_SNDMSG.Status     := coQUE_SuccessTransToExtSystem;
+       update current QUE_LOG_SNDMSG;
+         QUE_OUT_SNDMSG.status := coQUE_SuccessTransToExtSystem;
+         QUE_OUT_SNDMSG.DateTime_out := _curdatetime;
+       update current QUE_OUT_SNDMSG;
+      }
+      else {
+        #updatelogSetStatusQueue(_retStatus)
+      }
+  HttpConnect_Free(m_service);
+}
+Procedure FreetRefSendMessToExtSys;
+{
+  var _cntArr, _i:word=0;
+  _cntArr:=count(_arrQUE_SendMessToExtSys);
+  if _cntArr=0 then exit;
+
+  for(_i:=1;_i<=_cntArr;_i := _i+1) {
+    if not NullVipRef(_arrQUE_SendMessToExtSys[_i]) {
+    FreeVipInterface(_arrQUE_SendMessToExtSys[_i]);
+    }
+  } //for(kk:=1;kk<count(RPD_A);kk:= kk+1)
+  delete all tRefSendMessToExtSys;
+  SetLimit(_arrQUE_SendMessToExtSys,0)
+} //Procedure tRefSendMessToExtSys;
+
+procedure RecursiveSendMessages(_cQue_OUT : comp); {
+
+   _loop QUE_OUT_LoopRecursive where ((_cQue_OUT == QUE_OUT_LoopRecursive.cParent))  {
+
+     if not SendOneMessage(QUE_OUT_LoopRecursive.nrec) then exit;
+        pushpos(tnQUE_OUT_LoopRecursive);
+         RecursiveSendMessages(QUE_OUT_LoopRecursive.nrec);
+        poppos(tnQUE_OUT_LoopRecursive);
+    }
+}
+
+procedure SendMessage(_cQue_OUT : comp); {
+
+   if getfirst fastfirstrow QUE_OUT_SNDMSG where ((_cQue_OUT == QUE_OUT_SNDMSG.nrec)) <> tsOk then exit;
+   if not (QUE_OUT_SNDMSG.status = coQUE_ReadyTransfToExtSystem        // готова к передаче во внешнюю систему
+        or QUE_OUT_SNDMSG.status = coQUE_ErrButWillContinueTryToSend) // Ошибка передачи, но еще будем пробовать
+      then exit;
+
+   if not SendOneMessage(_cQue_OUT) then exit;
+
+   RecursiveSendMessages(_cQue_OUT);
+
+  if getfirst fastfirstrow QUE_OUT_SNDMSG where ((_cQue_OUT == QUE_OUT_SNDMSG.nrec)) <> tsOk then exit;
+
+#declare updateQUE_EntrRvwGenJSON(txterror,status)
+       QUE_OUT_SNDMSG.log_string := #txterror;
+       QUE_OUT_SNDMSG.status     := #status;
+      update current QUE_OUT_SNDMSG;
+#end
+
+   if isExistStatusInPoolQueue(QUE_OUT_SNDMSG.nrec,coQUE_ErrorTransToExtSystem) then  {// если есть записи с "ошибка передачи в очередь
+      #updateQUE_EntrRvwGenJSON('Ошибки в подчиненных записях',coQUE_NotAllPoolRcrdTransToExtSystem)
+    }
+    else {
+      if isExistStatusInPoolQueue(QUE_OUT_SNDMSG.nrec,coQUE_ErrorFindInstanceInReciept) then  {// если есть записи с "ошибка передачи в очередь
+        #updateQUE_EntrRvwGenJSON('Ошибки в подчиненных записях',coQUE_NotAllPoolRcrdTransToExtSystem)
+       }
+       else {
+          if isExistStatusInPoolQueue(QUE_OUT_SNDMSG.nrec,coQUE_ErrButWillContinueTryToSend) then  {// если есть записи с "ошибка передачи в очередь
+            #updateQUE_EntrRvwGenJSON('Не все подчиненные записи переданы',coQUE_ErrButWillContinueTryToSend)
+           }
+       }
+    }
+}
+
+procedure SetStatusGenerateJSON(_cMainParent : comp); {
+   if getfirst fastfirstrow QUE_EntrRvwGenJSON where ((_cMainParent == QUE_EntrRvwGenJSON.nrec )) <> tsOK then exit;
+   if QUE_EntrRvwGenJSON.status = coPreQUE_ReadyToTransferToQueue then exit; // одиночные записи уже имеют статус для передачи "готова к передаче в очередь (JSON сформирован)"
+
+    if isExistStatusInPool(QUE_EntrRvwGenJSON.nrec,coPreQUE_AwaitProcessJSONgenerate) then exit; // есть воообще необработанные записи в статусе "ожидает обработки для формирования JSON"
+
+    if isExistStatusInPool(QUE_EntrRvwGenJSON.nrec,coPreQUE_WaitForRelatedRcrdsToInsert) then exit; // есть воообще необработанные записи в статусе ожидает вставки связанных записей
+
+    if isExistStatusInPool(QUE_EntrRvwGenJSON.nrec,coPreQUE_ErrorGenerateJSON) then  {// если есть записи с "ошибка при генерации JSON
+     update current QUE_EntrRvwGenJSON set QUE_EntrRvwGenJSON.status := coPreQUE_ErrorGenerateJSON;
+     exit;
+    }
+
+    if not isExistStatusInPool(QUE_EntrRvwGenJSON.nrec,coPreQUE_AwaitProcessRelatedRcrd) then exit; // если есть записи с "ожидает генерации JSON в связанных записях (JSON сформирован)"
+
+    EntriesForReviewSetPoolRecordsStatus(_cMainParent, coPreQUE_AwaitProcessRelatedRcrd, coPreQUE_ReadyToTransferToQueue);
+}
+
+procedure ProcessEntriesForReview; {
+ delete all tmpEntriesForReview;
+ _try
+    {
+      sql
+      select top 1000
+         QUE_EntriesForReview.nrec as cEntriesForReview
+       , QUE_EntriesForReview.QRY_Instance_code as QRY_Instance_code
+       , QUE_EntriesForReview.DateTime_in as DateTime_in
+      from QUE_EntriesForReview
+      where   QUE_EntriesForReview.status = :(coPreQUE_AwaitProcessJSONgenerate)
+         and QUE_EntriesForReview.cParent = :(0h)
+      order by QUE_EntriesForReview.DateTime_in
+      into tmpEntriesForReview;
+    }
+    _except
+    else {
+      exit;
+    }
+
+ // iQRY_OUT.FreeqryIDs;
+ _loop tmpEntriesForReview ordered by tmpEntriesForReview.DateTime_in {
+    if getfirst QRY_Instance_1 where (( tmpEntriesForReview.QRY_Instance_code == QRY_Instance_1.CODE)) = tsOK {
+     if getfirst QRY_RECIPT where ((QRY_Instance_1.nrec == QRY_RECIPT.cQRY_Instance)) <> tsOK {
+       if getfirst QUE_EntrRvwIns_1 where ((tmpEntriesForReview.cEntriesForReview == QUE_EntrRvwIns_1.nrec)) = tsOK {
+       update current QUE_EntrRvwIns_1 set QUE_EntrRvwIns_1.Status := coPreQUE_ErrorFindInstanceInReciept ;
+       continue;
+      }
+     }
+    }
+    GenerateJSON_from_EntriesForReviewRecords(tmpEntriesForReview.cEntriesForReview);
+//    SetStatusGenerateJSON(tmpEntriesForReview.cEntriesForReview);
+  }
+// iQRY_OUT.FreeqryIDs;
+}
+
+procedure CopyEntriesForReviewToQueue; {
+//  mylog('CopyEntriesForReviewToQueue');
+ delete all tEntrForReviewToQue;
+ _try
+    {
+      sql
+      select top 10000
+         QUE_EntriesForReview.nrec as cEntriesForReview
+       , QUE_EntriesForReview.QRY_Instance_code as QRY_Instance_code
+       , QUE_EntriesForReview.DateTime_in as DateTime_in
+      from QUE_EntriesForReview
+      where   QUE_EntriesForReview.status = :(coPreQUE_ReadyToTransferToQueue)
+         and QUE_EntriesForReview.cParent = :(0h)
+      order by QUE_EntriesForReview.DateTime_in
+      into tEntrForReviewToQue;
+    }
+    _except
+    else {
+      exit;
+    }
+  _loop tEntrForReviewToQue ordered by tEntrForReviewToQue.DateTime_in {
+//    mylog('_loop tEntrForReviewToQue tEntrForReviewToQue.QRY_Instance_code = ' + tEntrForReviewToQue.QRY_Instance_code);
+    if getfirst QRY_Instance_1 where (( tEntrForReviewToQue.QRY_Instance_code == QRY_Instance_1.CODE)) = tsOK {
+//      mylog('_loop tEntrForReviewToQue if getfirst QRY_Instance_1 = tsok');
+         if getfirst QRY_RECIPT where ((QRY_Instance_1.nrec == QRY_RECIPT.cQRY_Instance)) <> tsOK {
+           if getfirst QUE_EntrRvwIns_1 where ((tEntrForReviewToQue.cEntriesForReview == QUE_EntrRvwIns_1.nrec)) = tsOK {
+             update current QUE_EntrRvwIns_1 set QUE_EntrRvwIns_1.Status := coPreQUE_ErrorFindInstanceInReciept ;
+           }
+         }
+         _loop QRY_RECIPT where ((QRY_Instance_1.nrec == QRY_RECIPT.cQRY_Instance)) {
+           if getfirst ReciptSystem where ((QRY_RECIPT.cQUE_RecipientSystem == ReciptSystem.nrec)) <> tsok then {
+//                  mylog('if getfirst ReciptSystem where ((QRY_RECIPT.cQUE_RecipientSystem == ReciptSystem.nrec)) <> tsok');
+             continue;
+            }
+//           mylog('if getfirst ReciptSystem where ((QRY_RECIPT.cQUE_RecipientSystem == ReciptSystem.nrec)) = tsok');
+           CopyToQueue_from_EntriesForReviewRecords(tEntrForReviewToQue.cEntriesForReview, ReciptSystem.code);
+         }
+//    SetStatusGenerateJSON(tmpEntriesForReview.cEntriesForReview);
+      }
+  }
+}
+
+procedure ProcessQueueOut; {
+// mylog('CopyEntriesForReviewToQueue');
+ delete all tEntrForReviewToQue;
+ _try
+    {
+      sql
+      select top 500
+         QUE_OUT.nrec as cQue_OUT
+       , QUE_OUT.DateTime_in as DateTime_in
+      from QUE_OUT
+      where   (QUE_OUT.status = :(coQUE_ReadyTransfToExtSystem)
+            or QUE_OUT.status = :(coQUE_ErrButWillContinueTryToSend)
+              )
+         and QUE_OUT.cParent = :(0h)
+      order by QUE_OUT.DateTime_in
+      into tQueueOut;
+    }
+    _except
+    else {
+      exit;
+    }
+    FreetRefSendMessToExtSys;
+    _loop tQueueOut ordered by tQueueOut.DateTime_in {
+       SendMessage(tQueueOut.cQue_OUT);
+    }
+}
+end.

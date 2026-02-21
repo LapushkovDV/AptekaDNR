@@ -1,0 +1,1391 @@
+/*************************************************************************************************\
+* Наименование: Формирование/выполнение экземпляра запроса с формирование JSON                    *
+* Контур/Модуль: Абстрактный конструктор JSON                                                     *
+* Примечание:                                                                                     *
+*                                                                                                 *
+* Вид работы  |Номер         |Дата    |Исполнитель              |Проект                           *
+* ----------------------------------------------------------------------------------------------- *
+
+\*************************************************************************************************/
+
+#include Query.vih
+#include QRY_OUT.vih
+#include odecl.vih
+#include QRY_ALG_USER.vih
+#include StrFunc.vih
+#include AdrFunc.vih
+#include SpecialPropetiesForG.vih
+
+//#include SpecialPropetiesForG.vih
+//#include CatFunc.vih
+//************************************************************
+const
+  coMaxElemets = 256;
+end;
+
+type String_xMaxEl  = Array [1..coMaxElemets] of widestring[2000] ;
+
+var _arrQRY_USER_ALG : Array [1..1] of IQRY_ALG_USER;
+var _arrQryId: Array [1..1] of tptr;
+
+Table Struct tqryID
+(
+  QRY_INST_CODE : string
+ ,npp           : longint
+)
+with index
+(
+ tmp_tqryID01 = QRY_INST_CODE
+);
+
+Table Struct tmp_UserAlt
+(
+   Name : string[100]
+ , num  : word
+)
+with index
+(
+ tmp_UserAlt01=Name
+);
+
+Table Struct Tmp_Alg
+(
+   Npp  : word        "Порядковый номер"
+ , Key  : string[100] "Ключ"
+ , Prim : String      "Использование"
+)
+With Index
+( Tmp_Alg01 = Npp
+ ,Tmp_Alg02 = Key
+);
+
+table struct tCheckFields
+(
+     nrec : comp
+   , FieldNam     : string
+   , FieldSynonim : string
+   , FieldJSON    : string
+   , cLevel       : comp
+)
+with index
+(
+ ind0 = nrec
+)
+;
+
+
+table struct tAbstrResultValues
+(
+     nrec     : comp
+   , value    : String_xMaxEl
+)
+with index
+(
+   ind0 = nrec (unique, surrogate)
+)
+;
+table struct tForExportJSON
+(
+     nrec    : comp
+   , cParent : comp
+   , cLVL    : comp
+   , firstElement   : string
+   , value   : String_xMaxEl
+)
+with index
+(
+   ind0 = nrec (unique, surrogate)
+ , ind1 = cParent + cLVL + firstElement
+// , ind2 = cLVL
+)
+;
+Interface QRY_OUT 'Генерация запросов и файлов на основе шаблонов и инстансов';
+
+
+var arrAbstrResultFldNames : array [1..1] of string;
+var arrFldFormulas         : array [1..1] of string;
+Function Fill_Tmp_alg : boolean; forward;
+create view
+var
+  m_service : TPTR;
+  strID : tptr;
+  _cnt : longint;
+  odecl : declension ; // склонение фио
+  _iStrFunc : StringFunctions; // Функции работы со строками
+//  JSONObj_ArrayOneElement : tptr;
+//  JSONObj_Array : tptr;
+  JSONObj : TPtr;
+  iAddressFunc : AddressFunc;
+  _logDebug : string = GetStringParameter('Files','OutputFilesDirectory',0)+ '\QRY_debug.log';
+as select
+  tCheckFields_1.FieldNam
+from
+   tCheckFields tCheckFields_1
+ , tCheckFields tCheckFields_2
+ , tForExportJSON
+ , tForExportJSON tForExportJSON_1
+ , Tmp_Alg
+ , tAbstrResultValues
+ , QRY_Instance QRY_Instance_1
+ , QRY_Instance QRY_Instance_Memo
+ , QRY_Template QRY_Template_Memo
+ , QRY_Instance_FLD QRY_INST_FLD_CHECK_LVL
+ , QRY_Instance_FLD_LVL QRY_INST_FLD_LVL_LOOP
+ , QRY_Instance_FLD_LVL QRY_INST_FLD_LVL_LOOP_1
+ , QRY_Instance_FLD_LVL QRY_INST_FLD_LVL_LOOP_2
+ , QRY_Instance_FLD QRY_INST_FLD_LOOP
+ , Persons Persons_DECL
+ , catalogs cat_search
+
+ , tmp_UserAlt
+ , tqryID
+
+;
+
+window winTmp_Alg 'Выбор алгоритма', cyan;
+browse brTmp_Alg;
+ table Tmp_Alg;
+  Fields
+   Tmp_Alg.Npp  '№','п/п'            : [1], Protect, NoPickButton;
+   Tmp_Alg.Key  'Ключ','формула'     : [6], Protect, NoPickButton;
+   Tmp_Alg.Prim 'Описание','формулы' : [12], Protect, NoPickButton;
+end;
+end;
+windowevent winTmp_Alg ;
+ cminit:{
+  Fill_Tmp_alg;
+ }
+ cmdefault: {
+   closewindowex(winTmp_Alg, cmDefault)
+ }
+end;
+function GetFormula : string; {
+ result := '';
+ if runwindowmodal(winTmp_Alg) = cmDefault {
+   result := Tmp_Alg.Key;
+ }
+}
+
+procedure FreeqryIDs; {
+  _loop tqryID sqlFreeStr(_arrQryId[tqryID.npp]);
+  delete all tqryID;
+  setlimit(_arrQryId,0);
+}
+
+function TestQueryTemplate(_fcQRY_TMPLT : comp; var _err : string): boolean; {
+   if BoundActive(tbbyQRY_TMPLTNrec) {
+     popbounds(tbbyQRY_TMPLTNrec);
+   }
+  set _cQRY_TMPLT := _fcQRY_TMPLT;
+  pushbounds(tbbyQRY_TMPLTNrec);
+
+ if getfirst QRY_TMPLT <> tsOK {
+   _err := 'Не найден шаблон запроса ' + string(_fcQRY_TMPLT ,0,0);
+   result := false;
+ }
+
+  var objQuery: iQuery;
+  var _qryID   : tPtR;
+  var oResultSet : IResultSet;
+
+  sqlFreeStr(_qryID);
+  _qryID := 0;
+
+  MysqlAddStr(_qryID, ' select top 1 1                                    ');
+
+  MysqlAddStr(_qryID, ' from '+GetTableNameByCode(QRY_TMPLT.TABLECODE));
+  _loop QRY_TMPLTSP {
+      if QRY_TMPLTSP.TABLECODE > 0 // на случай если нет спецификации т.е. JOIN
+       MysqlAddStr(_qryID, QRY_TMPLTSP.join_type + ' ' +TblTMPLTSP.XF$NAME + ' ' + QRY_TMPLTSP.SynonimName + ' on ' + QRY_TMPLTSP.JoinTerms);
+    }
+  MysqlAddStr(_qryID, ' where');
+   MemoFile.OpenMemo(QRY_TMPLT.WhereTerms);
+   do {
+      var StringValue1 : string = '';
+      MemoFile.readln(StringValue1);
+      MysqlAddStr(_qryID, StringValue1);
+    } while (not MemoFile.EOF);
+   MemoFile.Close;
+
+  var queryManager1 : IQueryManager(vipQueryManager) new;
+  objQuery := queryManager1.createQuery(_qryID);
+  if (objQuery.execute.errorCode != tsOk) then {
+    _err := 'Ошибка проверки записей'+ objQuery.ErrorCode;
+    mylog(_err);
+    result := false;
+    sqlFreeStr(_qryID);
+    Exit;
+  }
+  else{
+    result := true;
+  }
+}
+
+Procedure addSysFieldsForLevels; {
+  _loop QRY_INST_FLD_LVL {
+    if getfirst QRY_INST_FLD_CHECK_LVL where ((QRY_INST.nrec == QRY_INST_FLD_CHECK_LVL.cInstance
+                                   and QRY_INST_FLD_LVL.nrec == QRY_INST_FLD_CHECK_LVL.cLevel )) <> tsOK {
+      var _sysYOUDONTHAVETOSEETHIS : string = coYOUDONTHAVETOSEETHIS + replaceProhibitSymbols(OleGenerateGUID);
+      insert current QRY_INST_FLD_CHECK_LVL set
+         QRY_INST_FLD_CHECK_LVL.cLevel       := QRY_INST_FLD_LVL.nrec
+       , QRY_INST_FLD_CHECK_LVL.cInstance    := QRY_INST.nrec
+       , QRY_INST_FLD_CHECK_LVL.TableName    := 'NO TABLE'
+       , QRY_INST_FLD_CHECK_LVL.TableCode    := word(-1)
+       , QRY_INST_FLD_CHECK_LVL.FieldSynonim := _sysYOUDONTHAVETOSEETHIS
+       , QRY_INST_FLD_CHECK_LVL.FieldJSON    := _sysYOUDONTHAVETOSEETHIS
+       , QRY_INST_FLD_CHECK_LVL.FieldName    := ''''''
+      ;
+    }
+  }
+}
+
+function checkFieldsDuplicate(var _err: string) : boolean; {
+   if VisualizationActive then setvisualheader('проверка полей запроса');
+    addSysFieldsForLevels;
+    mylog('проверка полей запроса');
+  delete all tCheckFields_1;
+  _loop QRY_INST_FLD {
+    insert tCheckFields_1 set
+       tCheckFields_1.nrec         := QRY_INST_FLD.nrec
+     , tCheckFields_1.FieldNam     := QRY_INST_FLD.FieldName
+     , tCheckFields_1.FieldSynonim := QRY_INST_FLD.FieldSynonim
+     , tCheckFields_1.FieldJSON    := QRY_INST_FLD.FieldJSON
+     , tCheckFields_1.cLevel       := QRY_INST_FLD.cLevel
+    ;
+  }
+
+  _Loop tCheckFields_1 {
+      var _prohstr : string = '';
+      if trim(tCheckFields_1.cLevel) = 0h {
+          _err := 'Не указан уровень вложенности поля JSON "'+tCheckFields_1.FieldNam+'"';
+          result := false;
+          exit;
+        }
+
+      if trim(tCheckFields_1.FieldJSON) = '' {
+          _err := 'Не указано наименование поля JSON "'+tCheckFields_1.FieldNam+'"';
+          result := false;
+          exit;
+        }
+
+      if(getfirst tCheckFields_2 where
+                              tCheckFields_2.nrec         <> tCheckFields_1.nrec
+                          and tCheckFields_2.cLevel      = tCheckFields_1.cLevel
+                          and trim(tCheckFields_2.FieldJSON) = trim(tCheckFields_1.FieldJSON)
+        ) = tsok {
+          _err := 'Дубль наименование поля JSON "'+tCheckFields_1.FieldJSON+'" на одном уровне вложенности "'+
+              if(getfirst QRY_INST_FLD_LVL_LOOP_1 where ((tCheckFields_1.cLevel == QRY_INST_FLD_LVL_LOOP_1.nrec)) = tsOK,QRY_INST_FLD_LVL_LOOP_1.fld_json_name,'НЕ ВЫБРАН')+'"';
+          result := false;
+          exit;
+        }
+
+      if IsStrHaveProhibitSymbols(trim(tCheckFields_1.FieldSynonim), _prohstr) {
+        _err := 'Поле "'+tCheckFields_1.FieldNam+'" синоним "'+ trim(tCheckFields_1.FieldSynonim)+'" содержит запрещенный символ "'+_prohstr+'"';
+        result := false;
+        exit;
+      }
+
+      if trim(tCheckFields_1.FieldNam) = '' {
+          _err := 'Есть пустое поле в запросе nrec = ' + string(tCheckFields_1.nrec,0,0);
+          result := false;
+          exit;
+        }
+
+
+      if trim(tCheckFields_1.FieldSynonim) = '' {
+          _err := 'Не указан синоним поля "'+tCheckFields_1.FieldNam+'"';
+          result := false;
+          exit;
+        }
+
+      if(getfirst tCheckFields_2 where
+                              tCheckFields_2.nrec         <> tCheckFields_1.nrec
+                          and trim(tCheckFields_2.FieldSynonim) = trim(tCheckFields_1.FieldSynonim)
+        ) = tsok {
+          _err := 'Дубль синонима поля "'+tCheckFields_2.FieldSynonim+'"';
+          result := false;
+          exit;
+        }
+
+  }
+  result := True;
+}
+
+function getinsertUniqValuesByLVL(_cLevel : comp; _arrOneValue : String_xMaxEl; _cParentJSON : comp): comp; {
+//      mylog('getinsertUniqValuesByLVL');
+ result := 0h;
+  var _arrNumsOfValue : array[1..1] of word;
+    _loop QRY_INST_FLD_LOOP where(( _cQRY_INST == QRY_INST_FLD_LOOP.cInstance
+                                and _cLevel == QRY_INST_FLD_LOOP.cLevel)) {
+        var _i : word = 0;
+        for (_i := 1; _i<= getlimit(arrAbstrResultFldNames); _i++) {
+          if arrAbstrResultFldNames[_i] = QRY_INST_FLD_LOOP.FieldSynonim
+           then {
+             _arrNumsOfValue[getlimit(_arrNumsOfValue)] := _i;
+             setlimit(_arrNumsOfValue,getlimit(_arrNumsOfValue)+1);
+           }
+        }
+      }
+    setlimit(_arrNumsOfValue,getlimit(_arrNumsOfValue)-1);
+    if getlimit(_arrNumsOfValue) = 0 then exit;
+    var _isequal : boolean = False;
+    var _i : word = 0;
+       _loop tForExportJSON where ((_cLevel == tForExportJSON.cLVL
+                           and _cParentJSON == tForExportJSON.cParent))
+                   and tForExportJSON.value[_arrNumsOfValue[1]] = _arrOneValue[_arrNumsOfValue[1]] // встаем на позицию по первому значению, а потом сравним в строке остальные
+         {
+          _isequal := True;
+          if getlimit(_arrNumsOfValue) > 1 then {
+              for (_i := 2; _i<= getlimit(_arrNumsOfValue); _i++) {
+                // вот тут проблема с производительностью.... если все записи уникальные,например , выгружаем каталог с нреками... то с каждым проходом время растет и растет
+                // и это самое узкое место... млять
+                 if tForExportJSON.value[_arrNumsOfValue[_i]] <> _arrOneValue[_arrNumsOfValue[_i]] then { // сравниваем все значения в строке
+                    _isequal := false;
+                    break;
+                 }
+               }
+           }
+           if _isequal then break; // все значения по строке сошлись
+         }
+
+
+    if _isequal = false {
+      clearbuffer(#tForExportJSON);
+      for (_i := 1; _i<= getlimit(_arrNumsOfValue); _i++) {
+         tForExportJSON.value[_arrNumsOfValue[_i]] := _arrOneValue[_arrNumsOfValue[_i]];
+        }
+       tForExportJSON.cLVL    := _cLevel;
+       tForExportJSON.cParent := _cParentJSON;
+      insert current tForExportJSON;
+      _cnt++;
+      //if _cnt mod 1000 = 0 then mylog('insert current tForExportJSON; _cnt = ' + _cnt);
+    }
+  result := tForExportJSON.nrec;
+}
+function getinsertUniqValuesByLVL_new(_cLevel : comp; _arrOneValue : String_xMaxEl; _cParentJSON : comp): comp; {
+//      mylog('getinsertUniqValuesByLVL_new');
+ result := 0h;
+  var _arrNumsOfValue : array[1..1] of word;
+    _loop QRY_INST_FLD_LOOP where(( _cQRY_INST == QRY_INST_FLD_LOOP.cInstance
+                                and _cLevel == QRY_INST_FLD_LOOP.cLevel)) {
+        var _i : word = 0;
+        for (_i := 1; _i<= getlimit(arrAbstrResultFldNames); _i++) {
+          if arrAbstrResultFldNames[_i] = QRY_INST_FLD_LOOP.FieldSynonim
+           then {
+             _arrNumsOfValue[getlimit(_arrNumsOfValue)] := _i;
+             setlimit(_arrNumsOfValue,getlimit(_arrNumsOfValue)+1);
+           }
+        }
+      }
+    setlimit(_arrNumsOfValue,getlimit(_arrNumsOfValue)-1);
+    if getlimit(_arrNumsOfValue) = 0 then exit;
+    var _isequal : boolean = False;
+    var _i : word = 0;
+       _loop tForExportJSON where ((     _cLevel == tForExportJSON.cLVL
+                                and _cParentJSON == tForExportJSON.cParent
+            and substr(_arrOneValue[_arrNumsOfValue[1]],1,256) == tForExportJSON.firstElement))  //widestring явно не на всю длинну может в индекс пойти встаем на позицию по первому значению, а потом сравним в строке остальные
+         {
+//           mylog('_loop tForExportJSON where ((     _cLevel == tForExportJSON.cLVL');
+          _isequal := True;
+          if getlimit(_arrNumsOfValue) > 1 then {
+              for (_i := 2; _i<= getlimit(_arrNumsOfValue); _i++) {
+                // вот тут проблема с производительностью.... если все записи уникальные,например , выгружаем каталог с нреками... то с каждым проходом время растет и растет
+                // и это самое узкое место... млять
+                 if tForExportJSON.value[_arrNumsOfValue[_i]] <> _arrOneValue[_arrNumsOfValue[_i]] then { // сравниваем все значения в строке
+//                     mylog('_isequal := false;');
+                    _isequal := false;
+                    break;
+                 }
+               }
+           }
+           if _isequal then break; // все значения по строке сошлись
+         }
+
+
+    if _isequal = false {
+      clearbuffer(#tForExportJSON);
+      for (_i := 1; _i<= getlimit(_arrNumsOfValue); _i++) {
+         tForExportJSON.value[_arrNumsOfValue[_i]] := _arrOneValue[_arrNumsOfValue[_i]];
+//         mylog('tForExportJSON.value[_arrNumsOfValue[_i]] = ' + substr(tForExportJSON.value[_arrNumsOfValue[_i]],1,256));
+        }
+       tForExportJSON.cLVL         := _cLevel;
+       tForExportJSON.cParent      := _cParentJSON;
+       tForExportJSON.firstElement := substr(_arrOneValue[_arrNumsOfValue[1]],1,256);
+      insert current tForExportJSON;
+      _cnt++;
+      if _cnt mod 1000 = 0 then mylog('insert current tForExportJSON; _cnt = ' + _cnt);
+//     mylog('tForExportJSON.cParent = ' + string(tForExportJSON.cParent,0,0));
+//     mylog('tForExportJSON.nrec = ' + string(tForExportJSON.nrec,0,0));
+    }
+  result := tForExportJSON.nrec;
+//  mylog('result = ' + string(result,0,0))
+}
+
+procedure insertvaluesbylevel(_fcLevel : comp; _arrOneValue : String_xMaxEl; _cParentJSON : comp);
+{
+ _cParentJSON := getinsertUniqValuesByLVL_new(_fcLevel,_arrOneValue,_cParentJSON);
+
+//    mylog('insertvaluesbylevel _cParentJSON = ' + _cParentJSON);
+
+  _loop QRY_INST_FLD_LVL_LOOP where ((_cQRY_INST == QRY_INST_FLD_LVL_LOOP.cInstance
+                                     and _fcLevel == QRY_INST_FLD_LVL_LOOP.cLevel (noindex)
+                                     )) {
+    pushpos(#QRY_INST_FLD_LVL_LOOP);
+     insertvaluesbylevel(QRY_INST_FLD_LVL_LOOP.nrec, _arrOneValue, _cParentJSON);
+    poppos(#QRY_INST_FLD_LVL_LOOP);
+  }
+}
+
+function widestring_to_longstring(_widestr : widestring[2000]) : tptr; {
+  //var m_service : tptr = HttpConnect_CreateEx('http://ya.ru', '', '', true);
+  var _longstring : TPtr =  HttpConnect_CreateLongString( m_service);
+  var _i : longint;
+  for (_i := 1; _i <= Length(_widestr)-1; _i += 200)
+    HttpConnect_AddValueToLongString( m_service, SubStr(_widestr, _i, 200), _longstring);
+ result := _longstring;
+}
+
+function GenerateJSONfromtForExportJSON(_cParentJSON, _cLVL : comp; var _fld_json_name : string) : tptr;
+{
+// MyLog('GenerateJSONfromtForExportJSON _cParentJSON = ' + string(_cParentJSON,0,0) + '| _fld_json_name = ' + _fld_json_name);
+//  JSONObj := HttpConnect_JsonObjectCreate(m_service);
+  var JSONObj_Array : tptr;
+  var JSONObj_ArrayOneElement : tptr;
+
+   var isFound : boolean = false;
+
+   if getfirst QRY_INST_FLD_LVL_LOOP_2 where ((_cLVL == QRY_INST_FLD_LVL_LOOP_2.nrec)) <> tsOK then exit;
+
+//      JSONObj_Array := HttpConnect_JsonArrayCreate(m_service);
+
+  _loop tForExportJSON where ((_cParentJSON  == tForExportJSON.CPARENT and _cLVL == tForExportJSON.cLVL)) {
+  //  mylog('tForExportJSON.cParent = '+tForExportJSON.cParent);
+     if isFound = false {
+        JSONObj_Array := HttpConnect_JsonArrayCreate(m_service);
+        isFound := true;
+      }
+
+   if (HttpConnect_LastError(m_service) <> 0) then mylog('HttpConnect_LastErrorText = ' + HttpConnect_LastErrorText(m_service));
+   JSONObj_ArrayOneElement := HttpConnect_JsonObjectCreate(m_service);
+    var _arrNumsOfValue : array[1..1] of word;
+    _loop QRY_INST_FLD_LOOP where(( _cQRY_INST == QRY_INST_FLD_LOOP.cInstance
+                       and tForExportJSON.cLvl == QRY_INST_FLD_LOOP.cLevel)) {
+       if pos(coYOUDONTHAVETOSEETHIS,QRY_INST_FLD_LOOP.FieldJSON) <> 0 then { // по сути мы сгенерировали пустые секции по уровням вложенности
+           //mylog('QRY_INST_FLD_LOOP.FieldJSON like  ' + coYOUDONTHAVETOSEETHIS + ' continue');
+           continue; //
+        }
+
+       if (HttpConnect_LastError(m_service) <> 0) then mylog('HttpConnect_LastErrorText = ' + HttpConnect_LastErrorText(m_service));
+        var _i : word = 0;
+        for (_i := 1; _i<= getlimit(arrAbstrResultFldNames); _i++) {
+          if arrAbstrResultFldNames[_i] = QRY_INST_FLD_LOOP.FieldSynonim
+           then {
+                var _longstring : TPtr =  HttpConnect_CreateLongString( m_service);
+                if length(tForExportJSON.value[_i]) > 256 then {
+                HttpConnect_AddValueToLongString( m_service, '', _longstring);
+                var _ii : longint = 0;
+                for (_ii := 1; _ii <= Length(tForExportJSON.value[_i])-1; _ii += 200) {
+                  //MyLog('SubStr(tForExportJSON.value[_i], '+string(_ii)+', 200) =' + SubStr(tForExportJSON.value[_i], _ii, 200));
+                  HttpConnect_AddValueToLongString( m_service, SubStr(tForExportJSON.value[_i], _ii, 200), _longstring);
+                 }
+
+               //HttpConnect_JsonObjectAddString(m_service, JSONObj_ArrayOneElement, QRY_INST_FLD_LOOP.FieldJSON, substr(tForExportJSON.value[_i],1,256));
+                  HttpConnect_JsonObjectAddLongString(m_service, JSONObj_ArrayOneElement, QRY_INST_FLD_LOOP.FieldJSON,_longstring);
+              }
+              else {
+                HttpConnect_JsonObjectAddString(m_service, JSONObj_ArrayOneElement, QRY_INST_FLD_LOOP.FieldJSON, substr(tForExportJSON.value[_i],1,256))
+              }
+             if (HttpConnect_LastError(m_service) <> 0) then mylog('HttpConnect_LastErrorText = ' + HttpConnect_LastErrorText(m_service));
+           }
+        }
+      }
+
+    if getfirst tForExportJSON_1 where ((tForExportJSON.nrec  == tForExportJSON_1.CPARENT))  = tsOK {
+
+       _loop QRY_INST_FLD_LVL_LOOP where ((_cQRY_INST == QRY_INST_FLD_LVL_LOOP.cInstance)){
+            pushpos(#QRY_INST_FLD_LVL_LOOP);
+            pushpos(#tForExportJSON);
+            var _JSONObj_ArraySUB : tptr = GenerateJSONfromtForExportJSON(tForExportJSON.nrec, QRY_INST_FLD_LVL_LOOP.nrec, _fld_json_name);
+            poppos(#tForExportJSON);
+            poppos(#QRY_INST_FLD_LVL_LOOP);
+            if _fld_json_name <> '' then {
+              HttpConnect_JsonObjectAddObject(m_service, JSONObj_ArrayOneElement, _fld_json_name, _JSONObj_ArraySUB);
+            }
+          }
+    }
+
+      HttpConnect_JsonArrayAddObject(m_service, JSONObj_Array, JSONObj_ArrayOneElement);
+
+    if (HttpConnect_LastError(m_service) <> 0) then mylog('HttpConnect_LastErrorText = ' + HttpConnect_LastErrorText(m_service));
+    if getfirst QRY_INST_FLD_LVL_LOOP_2 where ((_cLVL == QRY_INST_FLD_LVL_LOOP_2.nrec)) <> tsOK then exit;
+    _fld_json_name := QRY_INST_FLD_LVL_LOOP_2.fld_json_name;
+//     mylog('_fld_json_name = ' + _fld_json_name)
+   }
+/*
+        mylog('QRY_INST_FLD_LVL_LOOP_2.fld_json_name = '+QRY_INST_FLD_LVL_LOOP_2.fld_json_name+
+        + ', QRY_INST_FLD_LVL_LOOP_2.NotAlwaysArray = ' + string(QRY_INST_FLD_LVL_LOOP_2.NotAlwaysArray)+
+        + ', HttpConnect_JsonCount(m_service, JSONObj_Array) ='+ string(HttpConnect_JsonCount(m_service, JSONObj_Array))
+             );
+*/
+    if QRY_INST_FLD_LVL_LOOP_2.NotAlwaysArray = True and HttpConnect_JsonCount(m_service, JSONObj_Array) = 1 { // стоит признак, что может быть не массив и в массиве 1 элемент
+        result := JSONObj_ArrayOneElement;
+      }
+      else {
+         result := JSONObj_Array;
+      }
+}
+
+
+function generateJSONFromtAbstrResultValues : tptr; {
+ if VisualizationActive then setvisualheader('JSON формирование структуры');
+  mylog('заполняем tForExportJSON');
+   _loop tAbstrResultValues {
+//     mylog('tAbstrResultValues.value[4] = ' + tAbstrResultValues.value[4]);
+     var _arrOneValue : String_xMaxEl;
+     var _i : word = 0;
+     for(_i:=1;_i <= coMaxElemets; _i++){
+         _arrOneValue[_i] := tAbstrResultValues.value[_i];
+       }
+      insertvaluesbylevel(0h, _arrOneValue, 0h);  // заполняем tForExportJSON
+    }
+
+  mylog('recordsintable(tntForExportJSON) = ' + string(recordsintable(tntForExportJSON)));
+ // putTableToDBF(#tForExportJSON, GenerateNewFile+'_tForExportJSON.dbf', ptfFullTable);
+  mylog('start GenerateJSONfromtForExportJSON');
+   var _fld_json_name : string = '';
+   var JSONObj_Array : tptr;
+   JSONObj := HttpConnect_JsonObjectCreate(m_service);
+       _loop QRY_INST_FLD_LVL_LOOP_1 where ((_cQRY_INST == QRY_INST_FLD_LVL_LOOP_1.cInstance
+                                                 and 0h == QRY_INST_FLD_LVL_LOOP_1.cLevel(noindex) )) {
+              JSONObj_Array := GenerateJSONfromtForExportJSON(0h, QRY_INST_FLD_LVL_LOOP_1.nrec, _fld_json_name);
+              if _fld_json_name <> '' then {
+              HttpConnect_JsonObjectAddObject(m_service, JSONObj, _fld_json_name, JSONObj_Array);
+            }
+          }
+  mylog('end GenerateJSONfromtForExportJSON');
+   result := JSONObj;
+}
+Procedure Fill_Tmp_alg_One(_Key:string; _Prim:string='');
+{
+  var _Npp : word = recordsintable(tnTmp_Alg) + 1;
+  Insert into Tmp_Alg set
+      Tmp_Alg.Npp :=_Npp
+    , Tmp_Alg.Key :=_Key
+    , Tmp_Alg.Prim:=_Prim
+   ;
+}
+
+procedure Add_UserInterfaces;
+{
+  if (LoadImplementationList('C_QRY::IQRY_ALG_USER', 'QRY_ALG_USER_'))
+  {
+    StartNewVisual(vtNumericVisual, vfTimer + vfBreak, 'Загрузка списка пользовательских алгоритмов...', 1);
+    _try
+    {
+      var I: integer = 0;
+      for (I := 0; I < GetImplementationCount; I := I + 1) {
+        var _QRY_ALG_USER : IQRY_ALG_USER;
+        if LoadvipRef(_QRY_ALG_USER, GetImplementationName(I)) {
+          Fill_Tmp_alg_One('%USER_INTERFACE('+replace(GetImplementationName(I), 'C_QRY::QRY_ALG_USER_', '')+',''%VALUE%'')%',_QRY_ALG_USER.GetDescription);
+          FreeVipInterface(_QRY_ALG_USER);
+        }
+        NextVisual;
+      }
+    }
+    _except
+      on ExUserBreak : {};
+    _finally
+      StopVisual('', 0);
+  }
+} //Function ChooseInterface(_wType_Alg:word):string;
+
+#doc
+  Заполнить справочник алгоритмов
+#end
+Function Fill_Tmp_alg : boolean;
+{ Result:=True;
+  //if wType_Alg=_wType_Alg
+  // if (getfirst Tmp_Alg)=tsok      Exit;
+  // delete Tmp_Alg;
+  if (getfirst Tmp_Alg)=tsok
+     Exit;
+//   Fill_Tmp_alg_One(00,'USERNAME','Имя текущего пользователя');
+   Fill_Tmp_alg_One('%DECLENSION(%VALUE%,NCASE)%','Склонение ФИО ,%VALUE%=persons.nrec, NCASE - номер падежа (2-6)');
+   Fill_Tmp_alg_One('%GetRollCatalogsByPadeg(%VALUE%,TRUE,1)%','Склонение наименование записи справочника (Catalogs). параметр2: проверять наличие ВА с падежом, параметр3: номер склонения');
+   Fill_Tmp_alg_One('%UP_CATALOGS_UNDER_CODE(%VALUE%,''0000'')%','Подняться вверх по CATALOGS пока вышестоящая запись не будет иметь код = второй параметр. %VALUE% = CATALOGS.NREC ');
+   Fill_Tmp_alg_One('%DIVSTR(%VALUE%)%','Из указанной строки выделяется первое слово, в том числе и с дефисами. %VALUE% = ФИО');
+   Fill_Tmp_alg_One('%GET_LASTNAME(%VALUE%)%','Извлечение фамилии из заданной строки ФИО. %VALUE% = ФИО');
+   Fill_Tmp_alg_One('%GET_FIRSTNAME(%VALUE%)%','Извлечение имени из заданной строки ФИО. %VALUE% = ФИО');
+   Fill_Tmp_alg_One('%GETPATRONYMIC(%VALUE%)%','Извлечение отчества из заданной строки ФИО. %VALUE% = ФИО');
+   Fill_Tmp_alg_One('%GETFIOIN(%VALUE%)%','ФИО в формате "Фамилия И.О.". %VALUE% = ФИО');
+   Fill_Tmp_alg_One('%GETFIO_ZAR(%VALUE%)%','ФИО в формате, заданном настройкой "Настройки Галактики \ Управление персоналом \ Расчеты с персоналом \ Отчеты \ Вывод ФИО". %VALUE% = ФИО');
+   Fill_Tmp_alg_One('%GETRUB(%VALUE%,okrug1)%','Выделяет рубли из суммы = %VALUE%, okrug1 - количество знаков после запятой');
+   Fill_Tmp_alg_One('%GETKOP(%VALUE%, okrug1)%','Выделяет копейки из суммы = %VALUE% и округляет с указанной точностью');
+   Fill_Tmp_alg_One('%GETSUMRATE(%VALUE%,okrug1)%','Округляет сумму=%VALUE% с указанной точностью и преобразует в строку');
+   Fill_Tmp_alg_One('%GETFIODIR%','ФИО из настройки "Право подписи приказов по персоналу" или из настройки "Руководитель"');
+   Fill_Tmp_alg_One('%EXTERNALPARAMETER%','Возвращает входной внешний параметр ()');
+   Fill_Tmp_alg_One('%GetStreetStr(%VALUE%)%','Выделяет улицу из строки GetStreetStr(str : string) : string;');
+   Fill_Tmp_alg_One('%GetHouseStr(%VALUE%)%','Выделяет дом из строки GetHouseStr(str : string) : string;');
+   Fill_Tmp_alg_One('%GetCorpStr(%VALUE%)%','Выделяет корпус из строки GetCorpStr(str : string) : string;)');
+   Fill_Tmp_alg_One('%GetFlatStr(%VALUE%)%','Выделяет квартиру из строки GetFlatStr(str : string) : string;');
+   Fill_Tmp_alg_One('%GetStreetName(%VALUE%)%','Возвращает название улицы GetStreetName(NRecAddress : comp) : string;');
+   Fill_Tmp_alg_One('%GetHouse(%VALUE%)%','Возвращает номер дома GetHouse(NRecAddress : comp) : string;');
+   Fill_Tmp_alg_One('%GetCorpus(%VALUE%)%','Возвращает номер корпуса GetCorpus(NRecAddress : comp) : string;');
+   Fill_Tmp_alg_One('%GetFlat(%VALUE%)%','Возвращает номер квартиры GetFlat(NRecAddress : comp) : string;');
+   Fill_Tmp_alg_One('%GetATDName(%VALUE%)%','Возвращает название текущего элемента АТД по NRec адреса GetATDName(NRecAddress : comp) : string;');
+   Fill_Tmp_alg_One('%GetFullTerrName(%VALUE%)%','Формирование полного названия адм.-терр. деления GetFullTerrName(NRecTerrName : comp) : string;');
+   Fill_Tmp_alg_One('%GetCountryName(%VALUE%)%','Функция возвращает название страны с адресом NRecAddressN GetCountryName(NRecAddressN : comp) : string;');
+   Fill_Tmp_alg_One('%GetCountryCode(%VALUE%)%','Функция возвращает код страны с адресом NRecAddressN GetCountryCode(NRecAddressN : comp) : string;');
+   Fill_Tmp_alg_One('%GetCountryNameATD(%VALUE%)%','Функция возвращает название страны  для элемента ATD с NRecATD GetCountryNameATD(NRecATD : comp) : string;');
+   Fill_Tmp_alg_One('%GetCountryCodeATD(%VALUE%)%','Функция возвращает код страны для элемента ATD с NRecATD GetCountryCodeATD(NRecATD : comp) : string;');
+   Fill_Tmp_alg_One('%GetFullAddress(%VALUE%)%','Формирование полного адреса GetFullAddress(NRecAddressN : comp) : string;');
+   Fill_Tmp_alg_One('%GetFullAddressInd(%VALUE%)%','Формирование полного адреса с индексом GetFullAddressInd(NRecAddressN : comp) : string;');
+   Fill_Tmp_alg_One('%GetAddressInd(%VALUE%)%','Возвращает индекс адреса GetAddressInd(NRecAddressN : comp) : string;');
+   Fill_Tmp_alg_One('%GetDateBeg(%VALUE%)%','Возвращает дату начала действия этого адреса GetDateBeg(NRecAddressN : comp) : Date;');
+   Fill_Tmp_alg_One('%GetDateEnd(%VALUE%)%','Возвращает дату окончания действия этого адреса GetDateEnd(NRecAddressN : comp) : Date;');
+   Fill_Tmp_alg_One('%GetAddressRegistr(%VALUE%)%','Возвращает адрес временной регистрации GetAddressRegistr(NRecPersons : comp) : comp;');
+   Fill_Tmp_alg_One('%GetStreet(%VALUE%)%','Возвращает строку: улица, дом, квартира GetStreet(NRecAddress : comp) : string;');
+   Fill_Tmp_alg_One('%GetNRecSity(%VALUE%)%','Возвращает NRec населенного пункта по адресу GetNRecSity(NRecAddress : comp) : comp;');
+   Fill_Tmp_alg_One('%GetNameRegion(%VALUE%)%','Возвращает название региона GetNameRegion(NRecATD : comp) : string;');
+   Fill_Tmp_alg_One('%GetCodeRegion(%VALUE%)%','Возвращает код региона GetCodeRegion(NRecATD : comp) : string;');
+   Fill_Tmp_alg_One('%GetNamePlace_City(%VALUE%)%','Возвращает название населенного пункта или города GetNamePlace_City(NRecATD : comp) : string;');
+   Fill_Tmp_alg_One('%GetPostZipGni(%VALUE%)%','Возвращает почтовый индекс из базы ГНИ для адреса NRecAddress GetPostZipGni(NRecAddress : comp) : string;');
+   Fill_Tmp_alg_One('%GetStreetNRec(%VALUE%)%','Возвращает NRec АТД по NRec адреса GetStreetNRec(NRecAddress : comp) : comp;');
+   Fill_Tmp_alg_One('%GetMemoFrom_QRY_TEMPLATE(%VALUE%)%','Возвращает текст (до 2000 символов) секции WHERE шаблона запроса, в качестве входного параметра QRY_TEMPLATE.NREC');
+   Fill_Tmp_alg_One('%GetMemoFrom_QRY_INSTANCE(%VALUE%)%','Возвращает текст (до 2000 символов) секции WHERE экземпляра запроса, в качестве входного параметра QRY_INSTANCE.NREC');
+   Add_UserInterfaces;
+} //Function Fill_Tmp_alg(_wType_Alg:word):boolean;
+
+
+
+function getpodrunder_nrec(_code : string; _crec , _cParent: comp) : comp; cacheable;{
+
+//  mylog('getpodrunder_nrec _code = ' +_code+' _crec = '+ _crec+ ' _cParent = '+ _cParent);
+
+  if getfirst fastfirstrow cat_search where ((_cParent == cat_search.nrec)) = tsOK
+   {
+    if cat_search.code = _code {
+        if getfirst fastfirstrow cat_search where ((_crec == cat_search.nrec)) = tsOK {
+          result := cat_search.nrec;
+          exit;
+        }
+        else {
+         result := 0h;
+         exit;
+        }
+      }
+      else {
+        result := getpodrunder_nrec(_code, cat_search.nrec, cat_search.cParent)
+      }
+   }
+   else {
+     result := 0h;
+     exit;
+   }
+}
+
+function getpodrunder(_code : string; _crec , _cParent: comp) : string; cacheable;{
+  result := '';
+//  mylog('getpodrunder _code = ' +_code+' _crec = '+ _crec+ ' _cParent = '+ _cParent);
+  var _crec : comp = getpodrunder_nrec(_code, _crec, _cParent);
+//  mylog('getpodrunder _crec = ' +_crec);
+   if getfirst cat_search where (( _crec == cat_search.nrec)) = tsOK then result := cat_search.longname ;
+}
+
+//----------------------------------------
+// освободить пользовательские алгоритмы
+//----------------------------------------
+Procedure Free_QRY_ALG_USER;
+{
+  var _cntArr, _i:word=0;
+  _cntArr:=count(_arrQRY_USER_ALG);
+  if _cntArr=0 then exit;
+
+  delete all tmp_UserAlt;
+  for(_i:=1;_i<=_cntArr;_i := _i+1) {
+    if not NullVipRef(_arrQRY_USER_ALG[_i]) {
+    FreeVipInterface(_arrQRY_USER_ALG[_i]);
+    }
+  } //for(kk:=1;kk<count(RPD_A);kk:= kk+1)
+  SetLimit(_arrQRY_USER_ALG,0)
+} //Procedure Free_QRY_ALG_USER;
+
+
+
+function EncodelongStringToBase64(_longstr : tptr) : tptr; {
+
+   var _FilePath       : string = GenerateNewFile+'.txt';
+   var _FilePathEncode : string = GenerateNewFile + 'encodebase64.txt';
+
+  HttpConnect_SaveToFileEx( m_service , _longstr, _FilePath, cpUTF8, false);
+
+  EncodeFileToBase64(_FilePath, _FilePathEncode);
+  var _longValue64 : tptr = HttpConnect_LoadFromFile(m_service, _FilePathEncode, cpUTF8) ;
+  result := _longValue64;
+  deletefile(_FilePath);
+  deletefile(_FilePathEncode);
+}
+
+function longstring_to_widestring2000(_longstring : tptr) : widestring[2000]; {
+//  mylog('longstring_to_widestring2000');
+  var _widestr : widestring[2000] = '';
+  var _i : longint;
+  for (_i := 0; _i <= HttpConnect_GetLongStringLength(m_service, _longstring); _i += 200) {
+     _widestr := _widestr + HttpConnect_GetLongStringSubString (m_service, _longstring, _i, 200);
+//     mylog('longstring_to_widestring2000 _i = '+string(_i));
+     }
+ result := _widestr;
+}
+
+function FillWideStringFromFile2000(_FilePath : string): widestring[2000];{
+  result := '';
+//  mylog('FillWideStringFromFile2000 ');
+ var _longValueMemo : TPtr = HttpConnect_LoadFromFile (m_service //fn        : LongInt,
+                                                     , _FilePath // sFileName : String,
+                                                     , cpUTF8 // Encoding  : LongInt
+                                                      ) ;
+  deletefile(_FilePath);
+//  mylog('FillWideStringFromFile2000 _longValueMemo  = ' + string(_longValueMemo));
+  if (_longValueMemo != 0)
+   if (HttpConnect_GetLongStringLength(m_service, _longValueMemo) > 0) {
+     var _longValueMemoBase64 : tptr = EncodelongStringToBase64(_longValueMemo);
+    result := longstring_to_widestring2000(_longValueMemoBase64);
+   }
+}
+function ReplaceByValues(Formula:string; _value: string; _strParameter: string = ''):widestring[2000]; cacheable; // 2000 - максимальное для таблиц в памяти
+{
+  Fill_Tmp_alg;
+  mylog('function ReplaceByValues Formula = '+ Formula + ' _value = ' +_value );
+  Formula := replace(Formula,'%VALUE%',_value);
+
+
+  Result := Formula;
+  //mylog('ReplaceByValues Formula = ' + Formula);
+//  mylog('ReplaceByValues  replace(Formula) ='+ Formula);
+  _Loop Tmp_Alg ordered by Index Tmp_Alg02
+  {
+     //нужно вычислять
+      var _Key,_SubKey:string;
+      var _stop:word=0;
+      _SubKey:='';
+      _Key:=UpCase(Tmp_Alg.Key);
+      if pos('(',_Key)>0
+      { _Key:=substr(_Key,1,pos('(',_Key));
+        _SubKey:=')%'
+      }
+//if timelog_Status>2 then timelog('_Key='+_Key+'; _SubKey='+_SubKey);
+      //mylog('ReplaceByValues _Key='+_Key+'; _SubKey='+_SubKey);
+      do {
+        var ii_first,_Len:word;
+        ii_first:=pos(_Key,upcase(Result));
+        var _Parameter:string='';
+        _Len:=0;
+        if ii_first=0 break;
+        //длина подстроки всегда короче на 2 символа
+        if _SubKey<>''
+        { _Len:=Pos(_SubKey,Substr(upcase(Result),ii_first+Length(_Key),255))-1;
+          _Parameter:=Substr(Result,ii_first+Length(_Key),_Len);
+        }
+        else _len:=0;
+
+//        mylog('_Len='+string(_Len)+'; _Parameter='+_Parameter+'; _Key='+_Key+'; Formula='+ Formula);
+
+        var _Res:widestring[2000];//результат
+        _Res:='';
+        //mylog('_Key = ' + _Key);
+        case upcase(_Key) of
+        //01, %EM_FieldDocbyPers(wtype,Filedname,param)% -  wtype = word,
+        // Filedname = string, param - string. Получает значение поля ведомости по типу док-та
+        //и наименованию поля: в текущем месяце находится док-нт типа,
+        //в нем ищется строка по человеку и в этой строке берется значение поля
+        //FieldName. Param - дополнительный параметр');
+        '%DECLENSION(': {
+          /*
+          %VALUE% - NREC persons
+          1-6 - номер падежа
+          */
+          var _cPerson : comp = comp(ParseWord(_Parameter,1,','));
+          var _NCase   : word = word(ParseWord(_Parameter,2,','));
+
+          //mylog('_cPerson = ' + _cPerson + ' _NCase = ' + _NCase);
+
+          var _Infinitive : string = '';
+          if getfirst fastfirstrow persons_decl where ((_cPerson == persons_decl.nrec)) = tsOK {
+            _Infinitive := persons_decl.fio
+          }
+          _res:=''''+Odecl.FIODeclension(_cPerson, _Infinitive, _NCase)+'''';
+          //mylog('_res = ' + _res);
+         }
+        '%UP_CATALOGS_UNDER_CODE(': {
+          _res := ''' ''';
+          var _cCatalogs : comp = comp(ParseWord(_Parameter,1,','));
+          var _UpperCode : string = ParseWord(_Parameter,2,',');
+//          mylog('%UP_CATALOGS_UNDER_CODE( _cCatalogs = ' + _cCatalogs + ' _UpperCode = '  + _UpperCode);
+          if getfirst fastfirstrow cat_search where ((_cCatalogs == cat_search.nrec)) = tsOK {
+             _res := ''''+getpodrunder(_UpperCode, cat_search.nrec, cat_search.cParent)+'''';
+//             mylog('_res =' + _res);
+           }
+         }
+        '%DIVSTR(': { // Из указанной строки выделяется первое слово, в том числе и с дефисами
+                var _Fio : string = ParseWord(_Parameter,1,',');
+               _res := ''''+_iStrFunc.DivStr(_Fio)+'''';
+         }
+        '%GET_LASTNAME(':{ // Извлечение фамилии из заданной строки ФИО
+                var _Fio : string = ParseWord(_Parameter,1,',');
+               _res := ''''+_iStrFunc.Get_LastName(_Fio)+'''';
+         }
+        '%GET_FIRSTNAME(':{ // Извлечение имени из заданной строки ФИО
+                var _Fio : string = ParseWord(_Parameter,1,',');
+               _res := ''''+_iStrFunc.Get_FirstName(_Fio)+'''';
+         }
+        '%GETPATRONYMIC(':{ // Извлечение отчества из заданной строки ФИО
+                var _Fio : string = ParseWord(_Parameter,1,',');
+               _res := ''''+_iStrFunc.GetPatronymic(_Fio)+'''';
+         }
+        '%GETFIOIN(':{ // ФИО в формате "Фамилия И.О."
+                var _Fio : string = ParseWord(_Parameter,1,',');
+                if _iStrFunc.GetFioIn(_Fio) then {
+                 _res := ''''+_Fio+'''';
+                }
+         }
+        '%GETFIO_ZAR(':{ // ФИО в формате, заданном настройкой "Настройки Галактики \ Управление персоналом \ Расчеты с персоналом \ Отчеты \ Вывод ФИО"
+                var _Fio : string = ParseWord(_Parameter,1,',');
+               _res := ''''+_iStrFunc.GetFIO_ZAR(_Fio)+'''';
+         }
+        '%GETRUB(':{ // Выделяет рубли из суммы
+                var _Sum : double = double(ParseWord(_Parameter,1,','));
+                var _okrug1 : double = double(ParseWord(_Parameter,2,','));
+               _res := ''''+_iStrFunc.GetRub(_Sum, _okrug1)+'''';
+         }
+        '%GETKOP(':{ // Выделяет копейки из суммы и округляет с указанной точностью
+                var _Sum : double = double(ParseWord(_Parameter,1,','));
+                var _okrug1 : double = double(ParseWord(_Parameter,2,','));
+               _res := ''''+_iStrFunc.GetKop(_Sum, _okrug1)+'''';
+         }
+        '%GETSUMRATE(':{ // Округляет сумму с указанной точностью и преобразует в строку
+                var _Sum : double = double(ParseWord(_Parameter,1,','));
+                var _okrug1 : double = double(ParseWord(_Parameter,2,','));
+               _res := ''''+_iStrFunc.GetSumRate(_Sum, _okrug1)+'''';
+         }
+         '%EXTERNALPARAMETER%':{
+           _res := ''''+_strParameter+'''';
+         }
+         upcase('%GetStreetStr('):{ //Выделяет улицу из строки GetStreetStr(str : string) : string;');
+           _res := ''''+iAddressFunc.GetStreetStr(_Parameter)+''''
+         }
+         upcase('%GetHouseStr('):{ //Выделяет дом из строки GetHouseStr(str : string) : string;');
+           _res := ''''+iAddressFunc.GetHouseStr(_Parameter)+''''
+         }
+         upcase('%GetCorpStr('):{ //Выделяет корпус из строки GetCorpStr(str : string) : string;)');
+           _res := ''''+iAddressFunc.GetCorpStr(_Parameter)+''''
+         }
+         upcase('%GetFlatStr('):{ //Выделяет квартиру из строки GetFlatStr(str : string) : string;');
+           _res := ''''+iAddressFunc.GetFlatStr(_Parameter)+''''
+         }
+         upcase('%GetStreetName('):{ //Возвращает название улицы GetStreetName(NRecAddress : comp) : string;');
+           _res := ''''+iAddressFunc.GetStreetName(comp(_Parameter))+''''
+         }
+         upcase('%GetHouse('):{ //Возвращает номер дома GetHouse(NRecAddress : comp) : string;');
+           _res := '''' + iAddressFunc.GetHouse(comp(_Parameter))+''''
+         }
+         upcase('%GetCorpus('):{ //Возвращает номер корпуса GetCorpus(NRecAddress : comp) : string;');
+           _res := '''' + iAddressFunc.GetCorpus(comp(_Parameter))+''''
+         }
+         upcase('%GetFlat('):{ //Возвращает номер квартиры GetFlat(NRecAddress : comp) : string;');
+           _res := '''' +iAddressFunc.GetFlat(comp(_Parameter))+''''
+         }
+         upcase('%GetATDName('):{ //Возвращает название текущего элемента АТД по NRec адреса GetATDName(NRecAddress : comp) : string;');
+           _res := ''''+iAddressFunc.GetATDName(comp(_Parameter))+''''
+         }
+         upcase('%GetFullTerrName('):{ //Формирование полного названия адм.-терр. деления GetFullTerrName(NRecTerrName : comp) : string;');
+           _res := ''''+iAddressFunc.GetFullTerrName(comp(_Parameter))+''''
+         }
+         upcase('%GetCountryName('):{ //Функция возвращает название страны с адресом NRecAddressN GetCountryName(NRecAddressN : comp) : string;');
+           _res := ''''+iAddressFunc.GetCountryName(comp(_Parameter))+''''
+         }
+         upcase('%GetCountryCode('):{ //Функция возвращает код страны с адресом NRecAddressN GetCountryCode(NRecAddressN : comp) : string;');
+           _res := ''''+iAddressFunc.GetCountryCode(comp(_Parameter))+''''
+         }
+         upcase('%GetCountryNameATD('):{ //Функция возвращает название страны  для элемента ATD с NRecATD GetCountryNameATD(NRecATD : comp) : string;');
+           _res := ''''+iAddressFunc.GetCountryNameATD(comp(_Parameter))+''''
+         }
+         upcase('%GetCountryCodeATD('):{ //Функция возвращает код страны для элемента ATD с NRecATD GetCountryCodeATD(NRecATD : comp) : string;');
+           _res := ''''+iAddressFunc.GetCountryCodeATD(comp(_Parameter))+''''
+         }
+         upcase('%GetFullAddress('):{ //Формирование полного адреса GetFullAddress(NRecAddressN : comp) : string;');
+           _res := ''''+iAddressFunc.GetFullAddress(comp(_Parameter))+''''
+         }
+         upcase('%GetFullAddressInd('):{ //Формирование полного адреса с индексом GetFullAddressInd(NRecAddressN : comp) : string;');
+           _res := ''''+ iAddressFunc.GetFullAddressInd(comp(_Parameter))+''''
+         }
+         upcase('%GetAddressInd('):{ //Возвращает индекс адреса GetAddressInd(NRecAddressN : comp) : string;');
+           _res := '''' +iAddressFunc.GetAddressInd(comp(_Parameter)) + ''''
+         }
+         upcase('%GetDateBeg('):{ //Возвращает дату начала действия этого адреса GetDateBeg(NRecAddressN : comp) : Date;');
+           _res := '''' + DateToStr(iAddressFunc.GetDateBeg(comp(_Parameter)), 'DD.MM.YYYY') + ''''
+         }
+         upcase('%GetDateEnd('):{ //Возвращает дату окончания действия этого адреса GetDateEnd(NRecAddressN : comp) : Date;');
+           _res := '''' + DateToStr(iAddressFunc.GetDateEnd(comp(_Parameter)), 'DD.MM.YYYY') + ''''
+         }
+         upcase('%GetAddressRegistr('):{ //Возвращает адрес временной регистрации GetAddressRegistr(NRecPersons : comp) : comp;');
+           _res := '''' + iAddressFunc.GetAddressRegistr(comp(_Parameter)) + ''''
+         }
+         upcase('%GetStreet('):{ //Возвращает строку: улица, дом, квартира GetStreet(NRecAddress : comp) : string;');
+           _res := '''' + iAddressFunc.GetStreet(comp(_Parameter))  + ''''
+         }
+         upcase('%GetNRecSity('):{ //Возвращает NRec населенного пункта по адресу GetNRecSity(NRecAddress : comp) : comp;');
+           _res := '''' + iAddressFunc.GetNRecSity(comp(_Parameter)) + ''''
+         }
+         upcase('%GetNameRegion('):{ //Возвращает название региона GetNameRegion(NRecATD : comp) : string;');
+           _res := '''' + iAddressFunc.GetNameRegion(comp(_Parameter))  + ''''
+         }
+         upcase('%GetCodeRegion('):{ //Возвращает код региона GetCodeRegion(NRecATD : comp) : string;');
+           _res := '''' + iAddressFunc.GetCodeRegion(comp(_Parameter)) + ''''
+         }
+         upcase('%GetNamePlace_City('):{ //Возвращает название населенного пункта или города GetNamePlace_City(NRecATD : comp) : string;');
+           _res := '''' + iAddressFunc.GetNamePlace_City(comp(_Parameter))+ ''''
+         }
+         upcase('%GetPostZipGni('):{ //Возвращает почтовый индекс из базы ГНИ для адреса NRecAddress GetPostZipGni(NRecAddress : comp) : string;');
+           _res := '''' + iAddressFunc.GetPostZipGni(comp(_Parameter)) + ''''
+         }
+         upcase('%GetStreetNRec('):{ //Возвращает NRec АТД по NRec адреса GetStreetNRec(NRecAddress : comp) : comp;');
+           _res := '''' + iAddressFunc.GetStreetNRec(comp(_Parameter))  + ''''
+         }
+         upcase('%GetRollCatalogsByPadeg('): {
+/*
+          Функция склоняет наименование записи справочника (Catalogs) с попутной проверкой на наличие
+          внешних атрибутов с соответствующими падежами, чтобы выводить в нужном.
+          cCat - nRec подразделения
+          WorkAddInfo - проверять внешние атрибуты по склонению
+          Pp - падеж. Нумерация с 1. Т.е. 1- ничего не делаем - именительный падеж, а вот остальные
+          будем искать по принципу наименования атрибута, где должно фигурировать часть падежа
+*/
+          var _cCatalogs : comp = comp(ParseWord(_Parameter,1,','));
+          var _WorkAddInfoStr : string = upcase(ParseWord(_Parameter,2,','));
+          var _WorkAddInfo : boolean = false;
+          if _WorkAddInfoStr = 'TRUE'
+           then {
+               _WorkAddInfo := True
+              } else {
+                   if _WorkAddInfoStr = 'FALSE'
+                   then{
+                    _WorkAddInfo := False
+                   }
+                   else {
+                    _WorkAddInfo := boolean(_WorkAddInfoStr)
+                   }
+             }
+
+
+          var _NCase   : word = word(ParseWord(_Parameter,3,','));
+          var  _iSPFG : SpecialPropetiesForG;
+          _res := _iSPFG.GetRollCatalogsByPadeg(_cCatalogs,_WorkAddInfo,_NCase); // в принципе норм функция работает, оставляем ее
+/*          mylog('GetRollCatalogsByPadeg _cCatalogs  =' +string(_cCatalogs));
+          mylog('GetRollCatalogsByPadeg _WorkAddInfo=' +string(_WorkAddInfo));
+          mylog('GetRollCatalogsByPadeg _NCase      =' +_NCase);
+
+          if GetFirst FastFirstRow cat_search where ((_cCatalogs == cat_search.NRec)) = tsOk {
+            Case _NCase of
+             1 : _res := cat_search.name
+             2 : _res := sgetattr(coCatalogs, cat_search.nrec, 'Родительный падеж')
+             3 : _res := sgetattr(coCatalogs, cat_search.nrec, 'Дательный падеж')
+             4 : _res := sgetattr(coCatalogs, cat_search.nrec, 'Винительный падеж')
+             5 : _res := sgetattr(coCatalogs, cat_search.nrec, 'Творительный падеж')
+             6 : _res := sgetattr(coCatalogs, cat_search.nrec, 'Предложный падеж')
+            end;
+
+           mylog('GetRollCatalogsByPadeg sgetattr =' +_res);
+
+          if _res = '' {
+                   if instr('-',cat_search.name) <> 0 { //для дефисов склоняем оба слова
+                      var _Name_for_Decl : string;
+                      var _i : byte = 0;
+                       do {
+                         _i++;
+                         _Name_for_Decl:= extractdelimitedword(cat_search.name,_i,' '); // перебираем слова и ищем -
+                          if _Name_for_Decl = '' then break;
+
+                          mylog('GetRollCatalogsByPadeg "-" _Name_for_Decl ="' +_Name_for_Decl+'"');
+
+                          if instr('-',_Name_for_Decl) <> 0 then {
+                            _Name_for_Decl := extractdelimitedword(_Name_for_Decl,1,'-')+'-'+extractdelimitedword(_Name_for_Decl,2,'-');
+                          }
+                         _res := _res + ' '+_Name_for_Decl;
+                       } while true
+                     _res := trim(_res);
+                   }
+                   else {
+                     var _Name_for_Decl: string = extractdelimitedword(cat_search.name,1,' '); //склоняем только первое слово
+                    _res := trim(Odecl.NameDeclension(_Name_for_Decl, 1, _NCase));
+                     mylog('GetRollCatalogsByPadeg "" _Name_for_Decl1 ="' +_Name_for_Decl+'"');
+                      var _i : byte = 1;
+                       do {
+                         _i++;
+                         _Name_for_Decl:= extractdelimitedword(cat_search.name,_i,' '); // перебираем слова и ищем -
+                          if _Name_for_Decl = '' then break;
+                          mylog('GetRollCatalogsByPadeg "" _Name_for_Decl ="' +_Name_for_Decl+'"');
+                         _res := _res + ' '+_Name_for_Decl;
+                       } while true
+                     _res := trim(_res);
+                   }
+                 }
+          }
+*/
+          _res := ''''+ _res+'''';
+
+         }
+         upcase('%GetMemoFrom_QRY_TEMPLATE('): { // Возвращает текст (до 2000 символов) секции WHERE шаблона запроса, в качестве входного параметра QRY_TEMPLATE.NREC');
+          var _crec : comp = comp(_Parameter);
+          if getfirst QRY_Template_Memo where ((_crec == QRY_Template_Memo.nrec)) = tsOK then {
+             var _FilePath : string = GenerateNewFile+'_QRY_Template_Memo.txt';
+             if ExportMemoToFile(QRY_Template_Memo.WhereTerms, _FilePath, false) {
+              _res := FillWideStringFromFile2000(_FilePath);
+             }
+          }
+          _res := ''''+ _res+''''
+         }
+         upcase('%GetMemoFrom_QRY_INSTANCE('): { //Возвращает текст (до 2000 символов) секции WHERE экземпляра запроса, в качестве входного параметра QRY_INSTANCE.NREC');
+          var _crec : comp = comp(_Parameter);
+          if getfirst QRY_Instance_Memo where ((_crec == QRY_Instance_Memo.nrec)) = tsOK then {
+             var _FilePath : string = GenerateNewFile+'_QRY_Template_Memo.txt';
+             if ExportMemoToFile(QRY_Instance_Memo.AddWhereTerms, _FilePath, false) {
+              _res := FillWideStringFromFile2000(_FilePath);
+             }
+          }
+          _res := ''''+ _res+''''
+         }
+        '%USER_INTERFACE(': {
+          var _par2:string;
+          _par2:=ParseWord(_Parameter,2,',');
+          _Parameter:=ParseWord(_Parameter,1,',');
+
+          var ww_num:word=0;
+          if Getfirst tmp_UserAlt where (( _Parameter == tmp_UserAlt.Name )) <> tsOk {
+            Insert into tmp_UserAlt set tmp_UserAlt.Name:=_Parameter;
+          }
+          else  {
+            ww_num:=tmp_UserAlt.num;
+           }
+
+          do
+          { if ww_num=0
+            { ww_num:=count(_arrQRY_USER_ALG)+1;
+              SetLimit(_arrQRY_USER_ALG,ww_num);
+              if LoadvipRef(_arrQRY_USER_ALG[ww_num], 'C_QRY::QRY_ALG_USER_'+_Parameter){
+               update current tmp_UserAlt set tmp_UserAlt.Num:=ww_num;
+              }
+              else break;
+            }
+            _Res:=_arrQRY_USER_ALG[ww_num].Calc(_Par2);
+            Break;
+          } while True;
+        }
+        //else break;
+        end;
+
+        Result:=Substr(Result,1,ii_first-1)
+               +_Res
+               +Substr(Result,ii_first+Length(_Key)+if(_len=0,0,_Len+2),255);
+        //Timelog('Result='+Result);
+        //подстрахуемся, если что то пойдет не так
+        _stop++;
+        //mylog('result = '+result)
+        if _stop>10 break;
+        //Break;
+      } while True;
+  } //_Loop Tmp_Alg ordered by Imdex Tmp_Alg02
+  mylog('ReplaceByValues Result = ' +Result);
+} //function ReplaceByValues(Formula:string):string;
+
+function ApplyFormulaToValue(_value, _Formula: string; _strParameter : string) : widestring[2000]; cacheable; {
+  //mylog('function ApplyFormulaToValue _value ='+_value+' _Formula = ' + _Formula);
+  result := _value;
+  if trim(_Formula)<> '' {
+    var _error : string = '';
+//    mylog('ApplyFormulaToValue _Formula = '+ _Formula);
+    var _ReplaceByValues : widestring[2000] = ReplaceByValues(_Formula, _value , _strParameter);
+//    mylog('ApplyFormulaToValue _ReplaceByValues = '+ _ReplaceByValues);
+    if _ReplaceByValues <> ''
+       then {
+            if length(_ReplaceByValues) <=256 // в случае если получили мемо-поле большое, то не надо LotExpressionFunc
+              then result := LotExpressionFunc(_ReplaceByValues, _error)
+              else result := _ReplaceByValues;
+            }
+       else result := '';
+    if trim(_error) <> '' then {
+         mylog('-----------------');
+         mylog('LotExpressionFunc Ошибка вычисления по формуле. Ошибка: '+_error);
+         mylog('_Formula = "'+_Formula+'"');
+         mylog('_value = "' + _value+'"');
+         mylog('_strParameter = "'+_strParameter+'"');
+         mylog('_ReplaceByValues = "' + _ReplaceByValues+'"');
+      }
+   }
+}
+function generateJSONByResultSet(_fQRY_INST_CODE : string; _iRes : iResultSet; var FNservice, JSONSJSON : TPtr;  var _err: string; _strParameter : string = ''): boolean; {
+
+ if VisualizationActive then setvisualheader('JSON формирование временной таблицы из результата запроса');
+
+ if getfirst QRY_Instance_1 where ((_fQRY_INST_CODE == QRY_Instance_1.code)) <> tsOK then {
+   _err := 'Не найден экземпляр запроса по коду "' + _fQRY_INST_CODE + '"';
+   mylog(_err);
+   exit;
+  }
+
+ if BoundActive(tbbyQRY_INSTNrec) {
+     popbounds(tbbyQRY_INSTNrec);
+ }
+ set _cQRY_INST := QRY_Instance_1.nrec;
+  pushbounds(tbbyQRY_INSTNrec);
+
+   if NullVipRef(_iRes) then {
+     _err := 'ОШИБКА ВЫПОЛНЕНИЯ ЗАПРОСА В БД';
+     mylog(_err);
+     result := false;
+     exit;
+    }
+
+   if _iRes.getFirst <>  tsOk {
+     _err := 'В результате запроса нет данных';
+     mylog(_err);
+     result := false;
+     exit;
+    }
+
+
+  Free_QRY_ALG_USER;
+  m_service := HttpConnect_CreateEx('http://ya.ru', '', '', true);
+  FNservice := m_service;
+
+
+    SetLimit(arrAbstrResultFldNames,0);
+    SetLimit(arrAbstrResultFldNames,1);
+    SetLimit(arrFldFormulas,0);
+    SetLimit(arrFldFormulas,1);
+
+   _loop QRY_INST_FLD {
+      arrAbstrResultFldNames[getlimit(arrAbstrResultFldNames)] := QRY_INST_FLD.FieldSynonim;
+      arrFldFormulas[getlimit(arrFldFormulas)] := QRY_INST_FLD.PostFunction;
+      SetLimit(arrAbstrResultFldNames, GetLimit(arrAbstrResultFldNames) + 1);
+      SetLimit(arrFldFormulas, GetLimit(arrFldFormulas) + 1);
+    }
+   SetLimit(arrAbstrResultFldNames, GetLimit(arrAbstrResultFldNames) - 1);
+   SetLimit(arrFldFormulas, GetLimit(arrFldFormulas) - 1);
+ if VisualizationActive then setvisualheader('JSON вычисление значений по пост-функциям');
+  mylog('start JSON вычисление значений по пост-функциям');
+  mylog('getlimit(arrAbstrResultFldNames)='+getlimit(arrAbstrResultFldNames));
+  delete all tAbstrResultValues;
+    do {
+        var _i : word = 1;
+        clearbuffer(tntAbstrResultValues);
+        for (_i := 1; _i<= getlimit(arrAbstrResultFldNames); _i++) {
+           tAbstrResultValues.value[_i] := ApplyFormulaToValue(_iRes.row.val(arrAbstrResultFldNames[_i]),arrFldFormulas[_i], _strParameter);
+           // mylog('_iRes.row.val('+arrAbstrResultFldNames[_i]+') =' + _iRes.row.val(arrAbstrResultFldNames[_i]));
+         }
+        insert current tAbstrResultValues;
+     } while _iRes.getNext = tsOk;
+  mylog('end JSON вычисление значений по пост-функциям');
+   var JSONObj_Array : tptr = 0;
+    JSONObj_Array := generateJSONFromtAbstrResultValues;
+
+   JSONSJSON := HttpConnect_JSONObjectToJSON(m_service,JSONObj_Array);
+//   HttpConnect_Free(m_service) ;
+
+   result := true;
+}
+
+function replaceMacro(_FieldName : string): string; {
+   result := replace(Upcase(_FieldName),UPCASE('%USERNAME%'),UserName);
+}
+function ExecuteQueryInstanceWithAddWhereString(_fQRY_INST_CODE : string; _addWhereString : string; var _iRes : iResultSet; var _err : string): boolean;{
+ result := false;
+ ClearFuncCache; // при каждом запросе будем очищать
+
+//  if getfirst tqryID where ((_fQRY_INST_CODE == tqryID.QRY_INST_CODE)) <> tsOK  { // тут проьблема с разедлямой поматью... не очищается объект
+       if getfirst fastfirstrow QRY_Instance_1 where ((_fQRY_INST_CODE == QRY_Instance_1.code)) <> tsOK then {
+         _err := 'Не найден экземпляр запроса по коду "' + _fQRY_INST_CODE + '"';
+         mylog(_err);
+         exit;
+        }
+
+       if BoundActive(tbbyQRY_INSTNrec) {
+           popbounds(tbbyQRY_INSTNrec);
+       }
+       set _cQRY_INST := QRY_Instance_1.nrec;
+        pushbounds(tbbyQRY_INSTNrec);
+
+       setFieldSynonims;
+
+       if not checkFieldsDuplicate(_err) {
+         mylog(_err);
+         result := false;
+         exit;
+       }
+
+       if getfirst QRY_INST <> tsOK {
+         _err := 'Не найден запрос ';
+         mylog(_err);
+         result := false;
+         exit;
+       }
+        if getfirst QRY_INST_FLD <> tsOK {
+         _err := 'Не найдены поля запроса ';
+         mylog(_err);
+         result := false;
+         exit;
+        }
+
+
+       if getfirst QRY_INST_TMPLT <> tsOK {
+         _err := 'Не найден шаблон в запросе';
+         mylog(_err);
+         result := false;
+         exit;
+       }
+
+        var _qryID   : tPtR = 0;
+
+        sqlFreeStr(_qryID);
+        _qryID := 0;
+          if VisualizationActive then setvisualheader('заполнение полей запроса');
+        MysqlAddStr(_qryID, ' select ');
+         var _isFirstStep : boolean = True;
+        _loop QRY_INST_FLD {
+           MysqlAddStr(_qryID, if(_isFirstStep,'',',')+replaceMacro(QRY_INST_FLD.FieldName)  + if(trim(QRY_INST_FLD.FieldSynonim) <> '',' as "'  +trim(QRY_INST_FLD.FieldSynonim)+'"',''));
+          _isFirstStep := false;
+        }
+
+
+        MysqlAddStr(_qryID, ' from '+GetTableNameByCode(QRY_INST_TMPLT.TABLECODE));
+        _loop QRY_INST_TMPLTSP {
+           if QRY_INST_TMPLTSP.TABLECODE > 0 //  на случай, если нет спецификации т.е. JOIN
+            MysqlAddStr(_qryID, QRY_INST_TMPLTSP.join_type + ' ' +TblINST_TMPLTSP.XF$NAME + ' ' + QRY_INST_TMPLTSP.SynonimName + ' on ' + QRY_INST_TMPLTSP.JoinTerms);
+          }
+        MysqlAddStr(_qryID, ' where');
+        MysqlAddStr(_qryID, '(');
+        //условия в секцию WHERE из шаблона
+         MemoFile.OpenMemo(QRY_INST_TMPLT.WhereTerms);
+         do {
+            var StringValue1 : string = '';
+            MemoFile.readln(StringValue1);
+            MysqlAddStr(_qryID, StringValue1);
+          } while (not MemoFile.EOF);
+         MemoFile.Close;
+
+        // добавляем условия в секцию WHERE из экземпляра
+         MemoFile.OpenMemo(QRY_INST.AddWhereTerms);
+         do {
+            var StringValue1 : string = '';
+            MemoFile.readln(StringValue1);
+            MysqlAddStr(_qryID, StringValue1);
+          } while (not MemoFile.EOF);
+         MemoFile.Close;
+        MysqlAddStr(_qryID, ')');
+
+/*
+       setlimit(_arrQryId,getlimit(_arrQryId) + 1);
+        insert tqryID set
+          tqryID.QRY_INST_CODE := _fQRY_INST_CODE
+         ,tqryID.npp       := getlimit(_arrQryId)
+        ;
+     _arrQryId[tqryID.npp] := _qryID;
+   }
+*/
+
+  var _qryID_from_arrQry : tptr = _arrQryId[tqryID.npp];
+  var _qryID_new : tptr;
+  sqlFreeStr(_qryID_new);
+/*
+  sqlAddStr(_qryID_new, _qryID_from_arrQry);
+  MysqlAddStr(_qryID_new, _addWhereString);
+*/
+
+  sqlAddStr(_qryID_new, _qryID);
+  MysqlAddStr(_qryID_new, _addWhereString);
+
+  var objQuery: iQuery new;
+
+  if VisualizationActive then setvisualheader('SQL проверка запроса');
+var queryManager1 : IQueryManager(vipQueryManager) new;
+  objQuery := queryManager1.createQuery(_qryID_new);
+  if (objQuery.execute.errorCode != tsOk) then {
+    _err := 'Ошибка проверки записей в запросе '+ objQuery.ErrorCode;
+    mylog(_err);
+    sqlFreeStr(_qryID_new);
+    Exit;
+  }
+  if VisualizationActive then setvisualheader('SQL передача запроса в объект');
+ _iRes := objQuery.getResultSet;
+// freevipinterface(objQuery);
+ sqlFreeStr(_qryID_new);
+ result := true;
+}
+function ExecuteQueryInstanceWithAddNrecRootTable(_fQRY_INST_CODE : string; _RootTableNrec : comp; var _iRes : iResultSet; var _err : string): boolean;{
+
+ if getfirst QRY_Instance_1 where ((_fQRY_INST_CODE == QRY_Instance_1.code)) <> tsOK then {
+   _err := 'Не найден экземпляр запроса по коду "' + _fQRY_INST_CODE + '"';
+   mylog(_err);
+   exit;
+  }
+
+ if BoundActive(tbbyQRY_INSTNrec) {
+     popbounds(tbbyQRY_INSTNrec);
+ }
+ set _cQRY_INST := QRY_Instance_1.nrec;
+  pushbounds(tbbyQRY_INSTNrec);
+
+   var _addWhereString : string = 'and ' + GetTableNameByCode(QRY_INST_TMPLT.TABLECODE) + '.nrec = ' + string(_RootTableNrec);
+   result := ExecuteQueryInstanceWithAddWhereString(_fQRY_INST_CODE, _addWhereString,_iRes,_err);
+}
+
+function TestQueryInstance(_fQRY_INST_CODE : string; var _err : string): boolean;{
+  StartNewVisual(vtRotateVisual, vfTimer,'Выполнение запроса',0);
+  var _iRes : iResultSet new;
+  result := false;
+
+  if not ExecuteQueryInstanceWithAddWhereString(_fQRY_INST_CODE, '',_iRes,_err) then exit;
+
+  var _JSON : tptr;
+
+  var FNservice : tptr;
+  if not generateJSONByResultSet(_fQRY_INST_CODE, _iRes, FNservice, _JSON, _err) then {
+    stopvisual('',0);
+    exit;
+  }
+  var _file : string = GenerateNewFile+'.json';
+  HttpConnect_SaveToFileEx(FNservice, _JSON, _file, cpUTF8, false);
+  stopvisual('',0);
+  putfiletoclient(_file,false);
+  result := true;
+}
+
+
+function GenerateJSONFromQueryInstanceByNrecRootTable(_fQRY_INST_CODE : string; _RootTableNrec : comp; var FNservice, _JSON : tptr; var _err : string; _strParameter : string = ''): boolean;{
+  var _iRes : iResultSet new;
+  result := false;
+
+  if not ExecuteQueryInstanceWithAddNrecRootTable(_fQRY_INST_CODE, _RootTableNrec, _iRes, _err) then exit;
+
+  if not generateJSONByResultSet(_fQRY_INST_CODE, _iRes, FNservice, _JSON, _err, _strParameter) then exit;
+
+  freevipinterface(_iRes);
+  result := true;
+}
+
+function GenerateJSONFromQueryInstanceWithAddWhereString(_fQRY_INST_CODE : string; _addWhereString : string; var FNservice, _JSON : tptr; var _err : string; _strParameter : string = ''): boolean;{
+  var _iRes : iResultSet new;
+  result := false;
+
+  if not ExecuteQueryInstanceWithAddWhereString(_fQRY_INST_CODE, _addWhereString, _iRes, _err) then exit;
+
+  if not generateJSONByResultSet(_fQRY_INST_CODE, _iRes, FNservice, _JSON, _err, _strParameter) then exit;
+  freevipinterface(_iRes);
+  result := true;
+}
+
+
+
+handleevent // фейса
+
+end;
+end.

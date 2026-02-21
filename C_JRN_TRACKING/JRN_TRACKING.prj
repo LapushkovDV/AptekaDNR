@@ -1,0 +1,40 @@
+//------------------------------------------------------------------------------
+// JRN_TRACKING
+//------------------------------------------------------------------------------
+
+#statusline "statgal"
+
+#include GalNet.inc end;
+#include GloVars.inc
+// #include galaktika.vil
+
+#component "C_JRN_TRACKING"
+#define CompTitle Отслеживание событий изменений
+#doc
+  #CompTitle
+#end
+#params
+[vip]
+LicenseControlInclude=""
+#end
+#include JRN_TRACKING.ver
+
+#make "vip\JRN_TRACKING_BASE.vip"
+#make "vip\JRN_TRACKING_PUBLICATION_TERMS.vip"
+#make "vip\JRN_TRACKING_TEST.vip"
+#make "vip\BSIAtl_JRN_TRACKING.vip"
+
+/*
+
+to do
+ придумать логирование как сделать ну и так чтобы искать можно было
+ возможно процедуру из субд дергать надо будет для скорости
+
+to do
+ изменить структуру QUE_ENTRIESFORREVIEW для того, чтобы туда можно было не только конструктор JSON использовать (QRY)
+
+to do
+ добавить таблицу хешей и функционал добавления полей для расчета хеша + функционал по сравнению
+ хеша будет два
+
+*/

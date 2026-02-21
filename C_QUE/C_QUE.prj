@@ -1,0 +1,53 @@
+//------------------------------------------------------------------------------
+// C_QUE
+//------------------------------------------------------------------------------
+
+#statusline "statgal"
+
+#include GalNet.inc end;
+#include GloVars.inc
+// #include galaktika.vil
+
+#component "C_QUE"
+#define CompTitle Очередь исходящих сообщений
+#doc
+  #CompTitle
+#end
+#params
+[vip]
+LicenseControlInclude=""
+#end
+
+#include C_QUE.ver
+#include bmp\QUE_BASE.bmc
+#include inc\C_QUE.inc
+
+#make "vip\CreateTune_C_QUE.vip"
+
+#make "vip\QUE_BASE.vip"
+#make "vip\QUE_View_QUE_EntriesForReview.vip"
+#make "vip\QUE_View_QUE_OUT.vip"
+
+#make "vip\QUE_RecipientSystems.vip"
+
+#make "vip\QUE_TEST.vip"
+// пример использования #make "vip\QUE_exmpl.vip"
+
+#make "vip\QUE_REST.vip"
+#make "vip\QUE_INCOME_BASE.vip"
+#make "vip\QUE_SenderSystems.vip"
+#make "vip\QUE_View_QUE_INCOME.vip"
+
+#make "vip\QUE_INCOME_TEST.vip"
+#make "vip\QUE_ProcessMessIncomeQueue_Galaktika.vip"
+#make "vip\QUE_ProcessMessIncomeQueue_testInsertKAU.vip"
+
+#make "vip\QUE_Process_QRY_TEMPLATE.vip"
+//#make "vip\QUE_Process_QRY_INSTANCE.vip"
+
+#make "vip\QUE_SendMessToExtSys_galaktika.vip"
+
+#include epSystem.vih
+#make "vip\BSIAtl_QUE_EntriesForReview.vip"
+#make "vip\BSIAtl_QUE_OUT.vip"
+#make "vip\BSIAtl_QUE_INCOME.vip"
