@@ -428,8 +428,10 @@ _logFile := GetStringParameter('Files', 'OutputFilesDirectory', 0) + 'LoadDeclen
             mylog('Обрабатываем штатные должности');
            _loop cat_ststr {
             setvisualheader('Просмотр справочника' +
-             + ''#13'' + cat_ststr.longname);
-            if getfirst tDeclension where ((cat_ststr.longname == tDeclension.name)) = tsOK {
+             + ''#13'' + cat_ststr.SNAMEST);
+            //if getfirst tDeclension where ((cat_ststr.longname == tDeclension.name)) = tsOK {
+            if getfirst tDeclension where ((cat_ststr.SNAMEST == tDeclension.name)) = tsOK {
+
               #updatedeclension(ststr,rp_ststr,Родительный падеж,rp)
               #updatedeclension(ststr,dp_ststr,Дательный падеж,dp)
               #updatedeclension(ststr,vp_ststr,Винительный падеж,vp)
