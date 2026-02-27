@@ -1,0 +1,594 @@
+22.02.2026 14:27:17.579 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:17.579 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:17.675 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:17.675 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:17.787 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:17.787 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:17.897 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:17.897 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:17.992 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:17.992 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:18.105 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:18.105 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:18.308 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:18.308 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:18.405 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:18.405 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:18.500 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:18.500 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:18.707 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:18.707 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:18.914 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:18.914 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:19.117 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:19.117 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:19.217 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:19.217 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:19.320 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:19.320 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:19.417 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:19.417 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:19.513 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:19.513 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:19.723 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:19.723 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:19.819 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:19.819 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:19.917 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:19.917 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:20.023 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:20.023 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:20.119 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:20.119 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:20.214 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:20.214 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:20.310 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:20.310 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:20.531 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:20.531 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:20.627 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:20.627 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:20.726 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:20.726 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:20.822 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:20.822 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:20.927 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:20.927 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:21.021 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:21.021 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:21.238 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:21.238 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:21.334 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:21.334 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:21.554 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:21.554 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:21.654 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:21.654 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:21.748 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:21.748 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:21.852 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:21.854 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:21.953 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:21.953 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:22.052 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:22.052 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:22.155 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:22.155 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:22.251 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:22.251 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:22.454 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:22.454 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:22.546 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:22.546 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:22.651 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:22.651 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:22.750 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:22.750 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:22.849 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:22.849 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:22.947 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:22.947 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:23.051 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:23.051 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:23.152 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:23.153 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:23.249 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:23.249 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:23.350 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:23.350 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:23.438 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:23.438 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:23.554 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:23.554 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:23.654 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:23.654 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:23.870 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:23.872 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:23.965 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:23.965 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:24.058 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:24.058 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:24.162 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:24.162 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:24.263 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:24.263 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:24.363 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:24.363 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:24.455 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:24.455 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:24.555 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:24.555 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:24.655 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:24.655 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:24.740 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:24.754 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:24.850 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:24.850 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:24.944 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:24.944 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:25.039 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:25.039 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:25.151 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:25.151 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:25.249 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:25.249 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:25.350 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:25.350 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:25.451 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:25.451 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:25.550 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:25.550 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:25.643 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:25.643 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:25.749 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:25.749 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:25.845 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:25.848 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:26.056 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:26.056 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:26.157 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:26.157 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:26.251 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:26.256 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:26.350 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:26.356 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:26.456 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:26.456 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:26.556 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:26.556 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:26.656 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:26.656 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:26.757 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:26.757 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:26.857 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:26.857 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:26.951 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:26.951 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:27.051 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:27.051 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:27.156 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:27.156 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:27.254 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:27.254 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:27.350 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:27.350 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:27.556 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:27.558 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:27.651 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:27.651 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:27.750 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:27.750 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:27.852 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:27.852 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:27.948 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:27.948 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:28.053 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:28.053 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:28.154 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:28.154 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:28.253 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:28.253 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:28.356 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:28.356 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:28.456 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:28.456 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:28.554 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:28.554 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:28.662 || Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+
+22.02.2026 14:27:28.663 || 
+FAILED: SQLConnect()
+Error code 08001 with message connection to server at "localhost" (::1), port 5432 failed: ВАЖНО:  пользователь "sng1$sng1$atlantis" не прошёл проверку подлинности (по паролю)
+

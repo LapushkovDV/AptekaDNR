@@ -1,0 +1,1365 @@
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+▓▓▓▓▓ Запишите следующую информацию об ошибке и отошлите ее разработчикам ▓▓▓▓▓
+▓ вместе с описанием ситуации, названием, версией и датой EXE-файла программы ▓
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+
+
+▓ Программа: "vip.exe"  Время запуска: 14:27:16 22/02/2026
+▓ Исполняемый модуль: "C:\Galaktika\ATL6\Update_11400\support\exe\vip.exe"
+▓ Система: Windows NT  Логин: "Дмитрий"  Станция: "LAPUS-VICTUS"
+
+Необработанная исключительная ситуация
+Код исключения: C0000005 (Общее нарушение защиты доступа к памяти)
+Параметры исключения (2): 00000000 00000089
+Адрес исключения: 01022C0D atlantis.rtl.1:00051C0D
+Содержимое регистров процессора
+ EAX = 00000005
+ EBX = 0C8E88EC
+ ECX = 02CE38C4
+ EDX = 0019D550
+ ESI = 00000089
+ EDI = 0019D550
+ EBP = 00000089
+ ESP = 0019D534
+ EIP = 01022C0D atlantis.rtl.1:00051C0D
+ CS = 0023 База: 00000000 Размер: FFFFFFFF Флаги: CFB
+ DS = 002B База: 00000000 Размер: FFFFFFFF Флаги: CF3
+ SS = 002B База: 00000000 Размер: FFFFFFFF Флаги: CF3
+ ES = 002B База: 00000000 Размер: FFFFFFFF Флаги: CF3
+ FS = 0053 База: 003FD000 Размер: 00000FFF Флаги: 4F3
+ GS = 002B База: 00000000 Размер: FFFFFFFF Флаги: CF3
+Содержимое стека
+ 0019D54C: 010E6627 base.dll.1:00025627
+ 0019D568: 0102229B atlantis.rtl.1:0005129B
+ 0019D578: 00770000 vip.exe.3:00026000
+ 0019D57C: 00770000 vip.exe.3:00026000
+ 0019D584: 01181CF2 streams_.dll.1:00040CF2
+ 0019D588: 00770000 vip.exe.3:00026000
+ 0019D58C: 007763C0 vip.exe.3:0002C3C0
+ 0019D5A0: 10012750 atllib_.dll.1:00011750
+ 0019D5B8: 0119C90F streams_.dll.1:0005B90F
+ 0019D5E4: 01017491 atlantis.rtl.1:00046491
+ 0019D5F8: 0103F907 atlantis.rtl.1:0006E907
+ 0019D614: 01116480 base.dll.2:00004480
+ 0019D618: 0103FCE1 atlantis.rtl.1:0006ECE1
+ 0019D61C: 00FED258 atlantis.rtl.1:0001C258
+ 0019D620: 01111581 base.dll.1:00050581
+Текущее время
+ 22-02-2026 14:27:28.7569150
+Параметры программы
+ "C:\Galaktika\ATL6\Update_11400\support\exe\vip.exe  C_QRY.prj /r:C_QRY.res /c:vip.cfg /u:lapus /p:Zraeqw123 /def:Atl60"
+Переменные окружения
+ =::=::\
+ =C:=C:\Galaktika\_git\AptekaDNR\C_QRY
+ ALLUSERSPROFILE=C:\ProgramData
+ APPDATA=C:\Users\─ьшЄЁшщ\AppData\Roaming
+ CommonProgramFiles=C:\Program Files (x86)\Common Files
+ CommonProgramFiles(x86)=C:\Program Files (x86)\Common Files
+ CommonProgramW6432=C:\Program Files\Common Files
+ COMPUTERNAME=LAPUS-VICTUS
+ ComSpec=C:\WINDOWS\system32\cmd.exe
+ DD=20260222
+ DriverData=C:\Windows\System32\Drivers\DriverData
+ EFC_13464_1592913036=1
+ exedir=C:\Galaktika\ATL6\Update_11400\support\exe
+ HOMEDRIVE=C:
+ HOMEPATH=\Users\─ьшЄЁшщ
+ LOCALAPPDATA=C:\Users\─ьшЄЁшщ\AppData\Local
+ LOGONSERVER=\\LAPUS-VICTUS
+ NUMBER_OF_PROCESSORS=16
+ OneDrive=C:\Users\─ьшЄЁшщ\OneDrive
+ OPENSSL_CONF=C:\Program Files\PostgreSQL\psqlODBC\etc\openssl.cnf
+ OS=Windows_NT
+ Path=C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Program Files\Microsoft\jdk-11.0.16.101-hotspot\bin;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\;C:\Program Files (x86)\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\150\DTS\Binn\;C:\Program Files (x86)\Microsoft SQL Server\150\DTS\Binn\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\dotnet\;C:\Program Files (x86)\dotnet\;C:\Program Files\PuTTY\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\130\Tools\Binn\;C:\Galaktika\ATL6\Libs\;C:\Galaktika\ATL6\Libs\x64;C:\Program Files (x86)\Microsoft SQL Server\160\DTS\Binn\;C:\Program Files\GitExtensions\;C:\Program Files\Git\cmd;C:\Users\─ьшЄЁшщ\AppData\Local\Programs\Python\Python311\Scripts\;C:\Users\─ьшЄЁшщ\AppData\Local\Programs\Python\Python311\;C:\Users\─ьшЄЁшщ\AppData\Local\Microsoft\WindowsApps;C:\Program Files\Azure Data Studio\bin;C:\Users\─ьшЄЁшщ\.dotnet\tools;C:\SRCFlutter\flutter\bin;;C:\Users\─ьшЄЁшщ\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\─ьшЄЁшщ\AppData\Local\JetBrains\PyCharm Community Edition 2022.3.2\bin;
+ PATHEXT=.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC
+ PROCESSOR_ARCHITECTURE=x86
+ PROCESSOR_ARCHITEW6432=AMD64
+ PROCESSOR_IDENTIFIER=AMD64 Family 25 Model 80 Stepping 0, AuthenticAMD
+ PROCESSOR_LEVEL=25
+ PROCESSOR_REVISION=5000
+ ProgramData=C:\ProgramData
+ ProgramFiles=C:\Program Files (x86)
+ ProgramFiles(x86)=C:\Program Files (x86)
+ ProgramW6432=C:\Program Files
+ PROMPT=$P$G
+ PSModulePath=C:\Program Files\WindowsPowerShell\Modules;C:\WINDOWS\system32\WindowsPowerShell\v1.0\Modules;C:\Program Files (x86)\Microsoft SQL Server\150\Tools\PowerShell\Modules\
+ PUBLIC=C:\Users\Public
+ PyCharm Community Edition=C:\Users\─ьшЄЁшщ\AppData\Local\JetBrains\PyCharm Community Edition 2022.3.2\bin;
+ SESSIONNAME=Console
+ SystemDrive=C:
+ SystemRoot=C:\WINDOWS
+ TEMP=C:\Users\AACE~1\AppData\Local\Temp
+ TMP=C:\Users\AACE~1\AppData\Local\Temp
+ USERDOMAIN=LAPUS-VICTUS
+ USERDOMAIN_ROAMINGPROFILE=LAPUS-VICTUS
+ USERNAME=─ьшЄЁшщ
+ USERPROFILE=C:\Users\─ьшЄЁшщ
+ windir=C:\WINDOWS
+ _ExceptModuleDesc=Borland Component Package
+ _ExceptModuleName=vcl60.bpl
+ _ExceptModuleVer=6.0.6.240
+ _ExceptMsg=Out of system resources.
+ _LineBreak=
+
+ _MainModuleDesc=
+ _MainModuleName=Frigate3.exe
+ _MainModuleVer=3.36.0.9
+ __PSLockDownPolicy=0
+Список загруженных модулей
+ vip.exe              00400000 00426000 65535/65535 17/май/2024 15:21:59 C:\Galaktika\ATL6\Update_11400\support\exe\vip.exe *6.0.5.0
+ ntdll.dll            776B0000 001BE000 65535/65535 30/авг/2025 07:55:58 C:\WINDOWS\SYSTEM32\ntdll.dll *10.0.26100.5074
+ KERNEL32.DLL         77170000 000F0000 65535/65535 30/авг/2025 07:55:55 C:\WINDOWS\System32\KERNEL32.DLL *10.0.26100.5074
+ KERNELBASE.dll       76420000 002CB000 65535/65535 30/авг/2025 07:55:55 C:\WINDOWS\System32\KERNELBASE.dll *10.0.26100.5074
+ ole32.dll            76EF0000 00154000     2/2     30/авг/2025 07:55:50 C:\WINDOWS\System32\ole32.dll *10.0.26100.5074
+ msvcp_win.dll        753A0000 00085000     3/3     30/авг/2025 07:56:06 C:\WINDOWS\System32\msvcp_win.dll *10.0.26100.5074
+ ucrtbase.dll         77050000 00110000     9/9     30/авг/2025 07:56:06 C:\WINDOWS\System32\ucrtbase.dll *10.0.26100.5074
+ GDI32.dll            76380000 00023000     7/7     30/авг/2025 07:55:53 C:\WINDOWS\System32\GDI32.dll *10.0.26100.5074
+ win32u.dll           75580000 0001A000     1/1     30/авг/2025 07:56:08 C:\WINDOWS\System32\win32u.dll *10.0.26100.5074
+ gdi32full.dll        75790000 000EC000     7/7     30/авг/2025 07:55:53 C:\WINDOWS\System32\gdi32full.dll *10.0.26100.5074
+ USER32.dll           77340000 001C5000     7/7     30/авг/2025 07:56:06 C:\WINDOWS\System32\USER32.dll *10.0.26100.5074
+ combase.dll          76040000 00285000     4/4     30/авг/2025 07:55:50 C:\WINDOWS\System32\combase.dll *10.0.26100.5074
+ RPCRT4.dll           754C0000 000BC000     6/6     30/авг/2025 07:55:59 C:\WINDOWS\System32\RPCRT4.dll *10.0.26100.5074
+ atllib_.dll          10000000 00037000    13/13    17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\atllib_.dll *6.0.5.0
+ oleaut32.dll         76E40000 0009F000     2/2     30/авг/2025 07:55:58 C:\WINDOWS\System32\oleaut32.dll *10.0.26100.5074
+ libxml2.dll          6AC00000 003F4000     2/2     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\libxml2.dll *2.9.7.0
+ winspool.drv         65EB0000 0008B000     2/2     30/авг/2025 07:55:59 C:\WINDOWS\SYSTEM32\winspool.drv *10.0.26100.5074
+ msvcrt.dll           77270000 000C7000     3/3     30/авг/2025 07:55:57 C:\WINDOWS\System32\msvcrt.dll *7.0.26100.5074/10.0.26100.5074
+ WS2_32.dll           755A0000 00061000     2/2     30/авг/2025 07:56:08 C:\WINDOWS\System32\WS2_32.dll *10.0.26100.5074
+ shcore.dll           76C60000 000CD000     1/1     30/авг/2025 07:56:02 C:\WINDOWS\System32\shcore.dll *10.0.26100.5074
+ cfgmgr32.dll         747C0000 00043000     1/1     29/авг/2025 18:53:22 C:\WINDOWS\SYSTEM32\cfgmgr32.dll *10.0.26100.4202
+ WSOCK32.DLL          73910000 00008000     2/2     01/апр/2024 10:22:15 C:\WINDOWS\SYSTEM32\WSOCK32.DLL *10.0.26100.1
+ atlantis.rtl         00FD0000 000EA000    15/15    17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\atlantis.rtl *6.0.5.0
+ ADVAPI32.DLL         75430000 0007F000     3/3     30/авг/2025 07:55:47 C:\WINDOWS\System32\ADVAPI32.DLL *10.0.26100.5074
+ sechost.dll          75310000 00083000     1/1     30/авг/2025 07:56:00 C:\WINDOWS\System32\sechost.dll *10.0.26100.5074
+ base.dll             010C0000 0007E000     4/4     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\base.dll *6.0.5.0
+ streams_.dll         01140000 000FC000    12/12    17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\streams_.dll *6.0.5.0
+ ecc_.dll             01240000 00031000     4/4     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\ecc_.dll *6.0.5.0
+ editor_.dll          01280000 0002A000     1/1     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\editor_.dll *6.0.5.0
+ forms_.dll           012B0000 000AA000     2/2     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\forms_.dll *6.0.5.0
+ lotdll_.dll          01360000 00039000     1/1     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\lotdll_.dll *6.0.5.0
+ _cfg.dll             013A0000 00018000     1/1     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\_cfg.dll *6.0.5.0
+ atvipobj.dll         013C0000 0001A000     1/1     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\atvipobj.dll *6.0.5.0
+ protect_.dll         00B00000 0000F000     4/4     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\protect_.dll *6.0.5.0
+ jitvip.dll           013E0000 0001D000     1/1     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\jitvip.dll *6.0.5.0
+ ifcobjs_.dll         01400000 00011000     1/1     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\ifcobjs_.dll *6.0.5.0
+ nation_.dll          01420000 00009000     1/1     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\nation_.dll *6.0.5.0
+ atlpop.dll           01430000 00056000     1/1     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\atlpop.dll *6.0.5.0
+ IMM32.DLL            76340000 00025000     1/1     29/авг/2025 18:53:22 C:\WINDOWS\System32\IMM32.DLL *10.0.26100.4484
+ SspiCli.dll          736C0000 0002B000     4/4     29/авг/2025 18:53:20 C:\WINDOWS\SYSTEM32\SspiCli.dll *10.0.26100.4484
+ libeay32.dll         034D0000 0012D000     2/2     06/мар/2024 15:57:12 C:\Galaktika\ATL6\Update_11400\support\exe\libeay32.dll *0.9.8.7
+ ssleay32.dll         02C60000 00040000     1/1     06/мар/2024 15:57:12 C:\Galaktika\ATL6\Update_11400\support\exe\ssleay32.dll *0.9.8.7
+ CRYPTSP.dll          730B0000 00014000     1/1     30/авг/2025 07:55:50 C:\WINDOWS\SYSTEM32\CRYPTSP.dll *10.0.26100.5074
+ rsaenh.dll           73070000 00033000     2/2     30/авг/2025 07:55:59 C:\WINDOWS\system32\rsaenh.dll *10.0.26100.5074
+ CRYPTBASE.dll        73060000 0000A000     2/2     30/авг/2025 07:55:50 C:\WINDOWS\SYSTEM32\CRYPTBASE.dll *10.0.26100.5074
+ bcryptPrimitives.dll 763B0000 00069000 65535/65535 30/авг/2025 07:55:49 C:\WINDOWS\System32\bcryptPrimitives.dll *10.0.26100.5074
+ mpr.dll              722F0000 00019000     1/1     29/авг/2025 18:53:22 C:\WINDOWS\SYSTEM32\mpr.dll *10.0.26100.1882
+ vision_w.dll         03B90000 0026A000     1/1     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\vision_w.dll *6.0.5.0
+ SHELL32.DLL          75A10000 00627000     3/3     30/авг/2025 07:56:03 C:\WINDOWS\System32\SHELL32.DLL *10.0.26100.5074
+ wintypes.dll         76D30000 000FB000     1/1     30/авг/2025 07:55:50 C:\WINDOWS\System32\wintypes.dll *10.0.26100.5074
+ gdesk.dll            03E00000 0001D000     1/1     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\gdesk.dll *6.0.5.0
+ uxtheme.dll          70700000 0007E000     3/3     30/авг/2025 07:56:07 C:\WINDOWS\system32\uxtheme.dll *10.0.26100.5074
+ MSCTF.dll            77510000 00116000     1/1     30/авг/2025 07:56:05 C:\WINDOWS\System32\MSCTF.dll *10.0.26100.5074
+ dwmapi.dll           70170000 00023000     1/1     30/авг/2025 07:55:51 C:\WINDOWS\SYSTEM32\dwmapi.dll *10.0.26100.5074
+ zprint_w.dll         03E60000 00026000     2/2     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\zprint_w.dll *6.0.5.0
+ pg90drv.dll          03E90000 002EE000     1/1     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\pg90drv.dll *6.0.5.0
+ ODBC32.dll           72DE0000 000A7000     2/2     30/авг/2025 07:55:57 C:\WINDOWS\SYSTEM32\ODBC32.dll *10.0.26100.5074
+ CRYPT32.dll          766F0000 00107000 65535/65535 30/авг/2025 07:55:50 C:\WINDOWS\System32\CRYPT32.dll *10.0.26100.5074
+ DPAPI.DLL            72DD0000 00009000     1/1     01/апр/2024 10:22:15 C:\WINDOWS\SYSTEM32\DPAPI.DLL *10.0.26100.1
+ bcrypt.dll           74E90000 0001A000 65535/65535 30/авг/2025 07:55:49 C:\WINDOWS\SYSTEM32\bcrypt.dll *10.0.26100.5074
+ psqlodbc35w.dll      5C610000 000AB000     1/1     11/июн/2025 16:40:02 C:\Program Files (x86)\psqlODBC\1500\bin\psqlodbc35w.dll *17.0.0.6
+ WINMM.dll            6FC10000 00033000     1/1     30/авг/2025 07:55:48 C:\WINDOWS\SYSTEM32\WINMM.dll *10.0.26100.5074
+ VCRUNTIME140.dll     71EE0000 00015000 65535/65535 03/июн/2025 06:00:02 C:\Program Files (x86)\psqlODBC\1500\bin\VCRUNTIME140.dll *14.42.34438.0
+ libpq.dll            5D6C0000 0004E000     1/1     10/июн/2025 12:30:10 C:\Program Files (x86)\psqlODBC\1500\bin\libpq.dll *17.0.5.0
+ MSVCP140.dll         5C720000 0006D000     1/1     03/июн/2025 06:00:02 C:\Program Files (x86)\psqlODBC\1500\bin\MSVCP140.dll *14.42.34438.0
+ WLDAP32.dll          77630000 00063000     1/1     30/авг/2025 07:55:55 C:\WINDOWS\System32\WLDAP32.dll *10.0.26100.5074
+ Secur32.dll          73A10000 0000A000     1/1     01/апр/2024 10:22:14 C:\WINDOWS\SYSTEM32\Secur32.dll *10.0.26100.1
+ libssl-3.dll         5C130000 000FC000     1/1     11/фев/2025 16:06:44 C:\Program Files (x86)\psqlODBC\1500\bin\libssl-3.dll *3.3.3.0
+ libcrypto-3.dll      5C230000 003DB000 65535/65535 11/фев/2025 16:06:44 C:\Program Files (x86)\psqlODBC\1500\bin\libcrypto-3.dll *3.3.3.0
+ odbccp32.dll         72CE0000 00021000     1/1     30/авг/2025 07:55:56 C:\WINDOWS\SYSTEM32\odbccp32.dll *10.0.26100.5074
+ VERSION.dll          72EB0000 00008000     1/1     01/апр/2024 10:22:14 C:\WINDOWS\SYSTEM32\VERSION.dll *10.0.26100.1
+ mswsock.dll          744D0000 00054000     5/5     30/авг/2025 07:56:08 C:\WINDOWS\system32\mswsock.dll *10.0.26100.5074
+ DNSAPI.dll           73160000 000DC000 65535/65535 30/авг/2025 07:55:52 C:\WINDOWS\SYSTEM32\DNSAPI.dll *10.0.26100.5074
+ IPHLPAPI.DLL         74880000 00027000 65535/65535 30/авг/2025 07:56:05 C:\WINDOWS\SYSTEM32\IPHLPAPI.DLL *10.0.26100.5074
+ NSI.dll              76E30000 00007000 65535/65535 30/авг/2025 07:56:07 C:\WINDOWS\System32\NSI.dll *10.0.26100.5074
+ rasadhlp.dll         72BD0000 00008000     1/1     01/апр/2024 10:22:34 C:\Windows\System32\rasadhlp.dll *10.0.26100.1
+ fwpuclnt.dll         74810000 00062000     1/1     30/авг/2025 07:55:57 C:\WINDOWS\System32\fwpuclnt.dll *10.0.26100.5074
+
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+
+
+
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+▓▓▓▓▓ Запишите следующую информацию об ошибке и отошлите ее разработчикам ▓▓▓▓▓
+▓ вместе с описанием ситуации, названием, версией и датой EXE-файла программы ▓
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+
+
+▓ Программа: "vip.exe"  Время запуска: 14:28:16 22/02/2026
+▓ Исполняемый модуль: "C:\Galaktika\ATL6\Update_11400\support\exe\vip.exe"
+▓ Система: Windows NT  Логин: "Дмитрий"  Станция: "LAPUS-VICTUS"
+
+Необработанная исключительная ситуация
+Код исключения: C0000005 (Общее нарушение защиты доступа к памяти)
+Параметры исключения (2): 00000000 00000089
+Адрес исключения: 01012C0D atlantis.rtl.1:00051C0D
+Содержимое регистров процессора
+ EAX = 00000005
+ EBX = 0C8E88EC
+ ECX = 02E238C4
+ EDX = 0019D550
+ ESI = 00000089
+ EDI = 0019D550
+ EBP = 00000089
+ ESP = 0019D534
+ EIP = 01012C0D atlantis.rtl.1:00051C0D
+ CS = 0023 База: 00000000 Размер: FFFFFFFF Флаги: CFB
+ DS = 002B База: 00000000 Размер: FFFFFFFF Флаги: CF3
+ SS = 002B База: 00000000 Размер: FFFFFFFF Флаги: CF3
+ ES = 002B База: 00000000 Размер: FFFFFFFF Флаги: CF3
+ FS = 0053 База: 0024D000 Размер: 00000FFF Флаги: 4F3
+ GS = 002B База: 00000000 Размер: FFFFFFFF Флаги: CF3
+Содержимое стека
+ 0019D54C: 10026627 base.dll.1:00025627
+ 0019D568: 0101229B atlantis.rtl.1:0005129B
+ 0019D578: 00770000 vip.exe.3:00026000
+ 0019D57C: 00770000 vip.exe.3:00026000
+ 0019D584: 010F1CF2 streams_.dll.1:00040CF2
+ 0019D588: 00770000 vip.exe.3:00026000
+ 0019D58C: 007763C0 vip.exe.3:0002C3C0
+ 0019D5A0: 01202750 atllib_.dll.1:00011750
+ 0019D5B8: 0110C90F streams_.dll.1:0005B90F
+ 0019D5E4: 01007491 atlantis.rtl.1:00046491
+ 0019D5F8: 0102F907 atlantis.rtl.1:0006E907
+ 0019D614: 10056480 base.dll.2:00004480
+ 0019D618: 0102FCE1 atlantis.rtl.1:0006ECE1
+ 0019D61C: 00FDD258 atlantis.rtl.1:0001C258
+ 0019D620: 10051581 base.dll.1:00050581
+Текущее время
+ 22-02-2026 14:28:28.5346400
+Параметры программы
+ "C:\Galaktika\ATL6\Update_11400\support\exe\vip.exe  C_QRY.prj /r:C_QRY.res /c:vip.cfg /u:lapus /p:Zraeqw123 /def:Atl60"
+Переменные окружения
+ =::=::\
+ =C:=C:\Galaktika\_git\AptekaDNR\C_QRY
+ ALLUSERSPROFILE=C:\ProgramData
+ APPDATA=C:\Users\─ьшЄЁшщ\AppData\Roaming
+ CommonProgramFiles=C:\Program Files (x86)\Common Files
+ CommonProgramFiles(x86)=C:\Program Files (x86)\Common Files
+ CommonProgramW6432=C:\Program Files\Common Files
+ COMPUTERNAME=LAPUS-VICTUS
+ ComSpec=C:\WINDOWS\system32\cmd.exe
+ DD=20260222
+ DriverData=C:\Windows\System32\Drivers\DriverData
+ EFC_13464_1592913036=1
+ exedir=C:\Galaktika\ATL6\Update_11400\support\exe
+ HOMEDRIVE=C:
+ HOMEPATH=\Users\─ьшЄЁшщ
+ LOCALAPPDATA=C:\Users\─ьшЄЁшщ\AppData\Local
+ LOGONSERVER=\\LAPUS-VICTUS
+ NUMBER_OF_PROCESSORS=16
+ OneDrive=C:\Users\─ьшЄЁшщ\OneDrive
+ OPENSSL_CONF=C:\Program Files\PostgreSQL\psqlODBC\etc\openssl.cnf
+ OS=Windows_NT
+ Path=C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Program Files\Microsoft\jdk-11.0.16.101-hotspot\bin;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\;C:\Program Files (x86)\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\150\DTS\Binn\;C:\Program Files (x86)\Microsoft SQL Server\150\DTS\Binn\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\dotnet\;C:\Program Files (x86)\dotnet\;C:\Program Files\PuTTY\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\130\Tools\Binn\;C:\Galaktika\ATL6\Libs\;C:\Galaktika\ATL6\Libs\x64;C:\Program Files (x86)\Microsoft SQL Server\160\DTS\Binn\;C:\Program Files\GitExtensions\;C:\Program Files\Git\cmd;C:\Users\─ьшЄЁшщ\AppData\Local\Programs\Python\Python311\Scripts\;C:\Users\─ьшЄЁшщ\AppData\Local\Programs\Python\Python311\;C:\Users\─ьшЄЁшщ\AppData\Local\Microsoft\WindowsApps;C:\Program Files\Azure Data Studio\bin;C:\Users\─ьшЄЁшщ\.dotnet\tools;C:\SRCFlutter\flutter\bin;;C:\Users\─ьшЄЁшщ\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\─ьшЄЁшщ\AppData\Local\JetBrains\PyCharm Community Edition 2022.3.2\bin;
+ PATHEXT=.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC
+ PROCESSOR_ARCHITECTURE=x86
+ PROCESSOR_ARCHITEW6432=AMD64
+ PROCESSOR_IDENTIFIER=AMD64 Family 25 Model 80 Stepping 0, AuthenticAMD
+ PROCESSOR_LEVEL=25
+ PROCESSOR_REVISION=5000
+ ProgramData=C:\ProgramData
+ ProgramFiles=C:\Program Files (x86)
+ ProgramFiles(x86)=C:\Program Files (x86)
+ ProgramW6432=C:\Program Files
+ PROMPT=$P$G
+ PSModulePath=C:\Program Files\WindowsPowerShell\Modules;C:\WINDOWS\system32\WindowsPowerShell\v1.0\Modules;C:\Program Files (x86)\Microsoft SQL Server\150\Tools\PowerShell\Modules\
+ PUBLIC=C:\Users\Public
+ PyCharm Community Edition=C:\Users\─ьшЄЁшщ\AppData\Local\JetBrains\PyCharm Community Edition 2022.3.2\bin;
+ SESSIONNAME=Console
+ SystemDrive=C:
+ SystemRoot=C:\WINDOWS
+ TEMP=C:\Users\AACE~1\AppData\Local\Temp
+ TMP=C:\Users\AACE~1\AppData\Local\Temp
+ USERDOMAIN=LAPUS-VICTUS
+ USERDOMAIN_ROAMINGPROFILE=LAPUS-VICTUS
+ USERNAME=─ьшЄЁшщ
+ USERPROFILE=C:\Users\─ьшЄЁшщ
+ windir=C:\WINDOWS
+ _ExceptModuleDesc=Borland Component Package
+ _ExceptModuleName=vcl60.bpl
+ _ExceptModuleVer=6.0.6.240
+ _ExceptMsg=Out of system resources.
+ _LineBreak=
+
+ _MainModuleDesc=
+ _MainModuleName=Frigate3.exe
+ _MainModuleVer=3.36.0.9
+ __PSLockDownPolicy=0
+Список загруженных модулей
+ vip.exe              00400000 00426000 65535/65535 17/май/2024 15:21:59 C:\Galaktika\ATL6\Update_11400\support\exe\vip.exe *6.0.5.0
+ ntdll.dll            776B0000 001BE000 65535/65535 30/авг/2025 07:55:58 C:\WINDOWS\SYSTEM32\ntdll.dll *10.0.26100.5074
+ KERNEL32.DLL         77170000 000F0000 65535/65535 30/авг/2025 07:55:55 C:\WINDOWS\System32\KERNEL32.DLL *10.0.26100.5074
+ KERNELBASE.dll       76420000 002CB000 65535/65535 30/авг/2025 07:55:55 C:\WINDOWS\System32\KERNELBASE.dll *10.0.26100.5074
+ ole32.dll            76EF0000 00154000     2/2     30/авг/2025 07:55:50 C:\WINDOWS\System32\ole32.dll *10.0.26100.5074
+ msvcp_win.dll        753A0000 00085000     3/3     30/авг/2025 07:56:06 C:\WINDOWS\System32\msvcp_win.dll *10.0.26100.5074
+ ucrtbase.dll         77050000 00110000     9/9     30/авг/2025 07:56:06 C:\WINDOWS\System32\ucrtbase.dll *10.0.26100.5074
+ GDI32.dll            76380000 00023000     7/7     30/авг/2025 07:55:53 C:\WINDOWS\System32\GDI32.dll *10.0.26100.5074
+ win32u.dll           75580000 0001A000     1/1     30/авг/2025 07:56:08 C:\WINDOWS\System32\win32u.dll *10.0.26100.5074
+ gdi32full.dll        75790000 000EC000     7/7     30/авг/2025 07:55:53 C:\WINDOWS\System32\gdi32full.dll *10.0.26100.5074
+ USER32.dll           77340000 001C5000     7/7     30/авг/2025 07:56:06 C:\WINDOWS\System32\USER32.dll *10.0.26100.5074
+ combase.dll          76040000 00285000     4/4     30/авг/2025 07:55:50 C:\WINDOWS\System32\combase.dll *10.0.26100.5074
+ RPCRT4.dll           754C0000 000BC000     6/6     30/авг/2025 07:55:59 C:\WINDOWS\System32\RPCRT4.dll *10.0.26100.5074
+ base.dll             10000000 0007E000     4/4     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\base.dll *6.0.5.0
+ winspool.drv         65EB0000 0008B000     2/2     30/авг/2025 07:55:59 C:\WINDOWS\SYSTEM32\winspool.drv *10.0.26100.5074
+ libxml2.dll          6AC00000 003F4000     2/2     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\libxml2.dll *2.9.7.0
+ shcore.dll           76C60000 000CD000     1/1     30/авг/2025 07:56:02 C:\WINDOWS\System32\shcore.dll *10.0.26100.5074
+ msvcrt.dll           77270000 000C7000     3/3     30/авг/2025 07:55:57 C:\WINDOWS\System32\msvcrt.dll *7.0.26100.5074/10.0.26100.5074
+ WS2_32.dll           755A0000 00061000     2/2     30/авг/2025 07:56:08 C:\WINDOWS\System32\WS2_32.dll *10.0.26100.5074
+ cfgmgr32.dll         747C0000 00043000     1/1     29/авг/2025 18:53:22 C:\WINDOWS\SYSTEM32\cfgmgr32.dll *10.0.26100.4202
+ WSOCK32.DLL          73910000 00008000     2/2     01/апр/2024 10:22:15 C:\WINDOWS\SYSTEM32\WSOCK32.DLL *10.0.26100.1
+ atlantis.rtl         00FC0000 000EA000    15/15    17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\atlantis.rtl *6.0.5.0
+ ADVAPI32.DLL         75430000 0007F000     3/3     30/авг/2025 07:55:47 C:\WINDOWS\System32\ADVAPI32.DLL *10.0.26100.5074
+ sechost.dll          75310000 00083000     1/1     30/авг/2025 07:56:00 C:\WINDOWS\System32\sechost.dll *10.0.26100.5074
+ streams_.dll         010B0000 000FC000    12/12    17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\streams_.dll *6.0.5.0
+ atllib_.dll          011F0000 00037000    13/13    17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\atllib_.dll *6.0.5.0
+ ecc_.dll             011B0000 00031000     4/4     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\ecc_.dll *6.0.5.0
+ editor_.dll          01230000 0002A000     1/1     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\editor_.dll *6.0.5.0
+ forms_.dll           01260000 000AA000     2/2     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\forms_.dll *6.0.5.0
+ lotdll_.dll          01310000 00039000     1/1     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\lotdll_.dll *6.0.5.0
+ oleaut32.dll         76E40000 0009F000     2/2     30/авг/2025 07:55:58 C:\WINDOWS\System32\oleaut32.dll *10.0.26100.5074
+ protect_.dll         01350000 0000F000     4/4     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\protect_.dll *6.0.5.0
+ atvipobj.dll         01360000 0001A000     1/1     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\atvipobj.dll *6.0.5.0
+ jitvip.dll           01380000 0001D000     1/1     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\jitvip.dll *6.0.5.0
+ ifcobjs_.dll         013A0000 00011000     1/1     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\ifcobjs_.dll *6.0.5.0
+ _cfg.dll             013C0000 00018000     1/1     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\_cfg.dll *6.0.5.0
+ atlpop.dll           013E0000 00056000     1/1     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\atlpop.dll *6.0.5.0
+ nation_.dll          01440000 00009000     1/1     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\nation_.dll *6.0.5.0
+ IMM32.DLL            76340000 00025000     1/1     29/авг/2025 18:53:22 C:\WINDOWS\System32\IMM32.DLL *10.0.26100.4484
+ SspiCli.dll          736C0000 0002B000     4/4     29/авг/2025 18:53:20 C:\WINDOWS\SYSTEM32\SspiCli.dll *10.0.26100.4484
+ libeay32.dll         02C80000 0012D000     2/2     06/мар/2024 15:57:12 C:\Galaktika\ATL6\Update_11400\support\exe\libeay32.dll *0.9.8.7
+ ssleay32.dll         01670000 00040000     1/1     06/мар/2024 15:57:12 C:\Galaktika\ATL6\Update_11400\support\exe\ssleay32.dll *0.9.8.7
+ CRYPTSP.dll          730B0000 00014000     1/1     30/авг/2025 07:55:50 C:\WINDOWS\SYSTEM32\CRYPTSP.dll *10.0.26100.5074
+ rsaenh.dll           73070000 00033000     2/2     30/авг/2025 07:55:59 C:\WINDOWS\system32\rsaenh.dll *10.0.26100.5074
+ CRYPTBASE.dll        73060000 0000A000     2/2     30/авг/2025 07:55:50 C:\WINDOWS\SYSTEM32\CRYPTBASE.dll *10.0.26100.5074
+ bcryptPrimitives.dll 763B0000 00069000 65535/65535 30/авг/2025 07:55:49 C:\WINDOWS\System32\bcryptPrimitives.dll *10.0.26100.5074
+ mpr.dll              722F0000 00019000     1/1     29/авг/2025 18:53:22 C:\WINDOWS\SYSTEM32\mpr.dll *10.0.26100.1882
+ vision_w.dll         03B50000 0026A000     1/1     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\vision_w.dll *6.0.5.0
+ SHELL32.DLL          75A10000 00627000     3/3     30/авг/2025 07:56:03 C:\WINDOWS\System32\SHELL32.DLL *10.0.26100.5074
+ wintypes.dll         76D30000 000FB000     1/1     30/авг/2025 07:55:50 C:\WINDOWS\System32\wintypes.dll *10.0.26100.5074
+ gdesk.dll            03DC0000 0001D000     1/1     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\gdesk.dll *6.0.5.0
+ uxtheme.dll          70700000 0007E000     3/3     30/авг/2025 07:56:07 C:\WINDOWS\system32\uxtheme.dll *10.0.26100.5074
+ MSCTF.dll            77510000 00116000     1/1     30/авг/2025 07:56:05 C:\WINDOWS\System32\MSCTF.dll *10.0.26100.5074
+ dwmapi.dll           70170000 00023000     1/1     30/авг/2025 07:55:51 C:\WINDOWS\SYSTEM32\dwmapi.dll *10.0.26100.5074
+ zprint_w.dll         03DF0000 00026000     2/2     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\zprint_w.dll *6.0.5.0
+ pg90drv.dll          03E90000 002EE000     1/1     17/май/2024 16:04:10 C:\Galaktika\ATL6\Update_11400\support\exe\pg90drv.dll *6.0.5.0
+ ODBC32.dll           72DE0000 000A7000     2/2     30/авг/2025 07:55:57 C:\WINDOWS\SYSTEM32\ODBC32.dll *10.0.26100.5074
+ CRYPT32.dll          766F0000 00107000 65535/65535 30/авг/2025 07:55:50 C:\WINDOWS\System32\CRYPT32.dll *10.0.26100.5074
+ DPAPI.DLL            72DD0000 00009000     1/1     01/апр/2024 10:22:15 C:\WINDOWS\SYSTEM32\DPAPI.DLL *10.0.26100.1
+ bcrypt.dll           74E90000 0001A000 65535/65535 30/авг/2025 07:55:49 C:\WINDOWS\SYSTEM32\bcrypt.dll *10.0.26100.5074
+ psqlodbc35w.dll      5C610000 000AB000     1/1     11/июн/2025 16:40:02 C:\Program Files (x86)\psqlODBC\1500\bin\psqlodbc35w.dll *17.0.0.6
+ libpq.dll            5D6C0000 0004E000     1/1     10/июн/2025 12:30:10 C:\Program Files (x86)\psqlODBC\1500\bin\libpq.dll *17.0.5.0
+ VCRUNTIME140.dll     71EE0000 00015000 65535/65535 03/июн/2025 06:00:02 C:\Program Files (x86)\psqlODBC\1500\bin\VCRUNTIME140.dll *14.42.34438.0
+ WINMM.dll            6FC10000 00033000     1/1     30/авг/2025 07:55:48 C:\WINDOWS\SYSTEM32\WINMM.dll *10.0.26100.5074
+ MSVCP140.dll         5C720000 0006D000     1/1     03/июн/2025 06:00:02 C:\Program Files (x86)\psqlODBC\1500\bin\MSVCP140.dll *14.42.34438.0
+ WLDAP32.dll          77630000 00063000     1/1     30/авг/2025 07:55:55 C:\WINDOWS\System32\WLDAP32.dll *10.0.26100.5074
+ Secur32.dll          73A10000 0000A000     1/1     01/апр/2024 10:22:14 C:\WINDOWS\SYSTEM32\Secur32.dll *10.0.26100.1
+ libssl-3.dll         5C510000 000FC000     1/1     11/фев/2025 16:06:44 C:\Program Files (x86)\psqlODBC\1500\bin\libssl-3.dll *3.3.3.0
+ libcrypto-3.dll      5C130000 003DB000 65535/65535 11/фев/2025 16:06:44 C:\Program Files (x86)\psqlODBC\1500\bin\libcrypto-3.dll *3.3.3.0
+ odbccp32.dll         72CE0000 00021000     1/1     30/авг/2025 07:55:56 C:\WINDOWS\SYSTEM32\odbccp32.dll *10.0.26100.5074
+ VERSION.dll          72EB0000 00008000     1/1     01/апр/2024 10:22:14 C:\WINDOWS\SYSTEM32\VERSION.dll *10.0.26100.1
+ mswsock.dll          744D0000 00054000     5/5     30/авг/2025 07:56:08 C:\WINDOWS\system32\mswsock.dll *10.0.26100.5074
+ DNSAPI.dll           73160000 000DC000 65535/65535 30/авг/2025 07:55:52 C:\WINDOWS\SYSTEM32\DNSAPI.dll *10.0.26100.5074
+ IPHLPAPI.DLL         74880000 00027000 65535/65535 30/авг/2025 07:56:05 C:\WINDOWS\SYSTEM32\IPHLPAPI.DLL *10.0.26100.5074
+ NSI.dll              76E30000 00007000 65535/65535 30/авг/2025 07:56:07 C:\WINDOWS\System32\NSI.dll *10.0.26100.5074
+ rasadhlp.dll         72BD0000 00008000     1/1     01/апр/2024 10:22:34 C:\Windows\System32\rasadhlp.dll *10.0.26100.1
+ fwpuclnt.dll         74810000 00062000     1/1     30/авг/2025 07:55:57 C:\WINDOWS\System32\fwpuclnt.dll *10.0.26100.5074
+
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+
+
+
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+▓▓▓▓▓ Запишите следующую информацию об ошибке и отошлите ее разработчикам ▓▓▓▓▓
+▓ вместе с описанием ситуации, названием, версией и датой EXE-файла программы ▓
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+
+
+▓ Программа: "vip64x.exe"  Время запуска: 14:29:06 22/02/2026
+▓ Исполняемый модуль: "C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\vip64x.exe"
+▓ Система: Windows NT  Логин: "Дмитрий"  Станция: "LAPUS-VICTUS"
+
+Необработанная исключительная ситуация
+Код исключения: C0000005 (Общее нарушение защиты доступа к памяти)
+Параметры исключения (2): 0000000000000000 000000000000000A
+Адрес исключения: 000000007398F966 pg90drv64x.dll.1:0007E966
+Содержимое регистров процессора
+ RAX = 0000000000000000
+ RBX = 000000000000000F
+ RCX = 0000000000000002
+ RDX = 0000000000000001
+ RSI = 0000000003790F44
+ RDI = 000000001531F830
+ RBP = 0000000073AA6060 pg90drv64x.dll.2:00003060
+ RSP = 000000001531F810
+ RIP = 000000007398F966 pg90drv64x.dll.1:0007E966
+ R8  = 7FFFFFFFFFFFFFFC
+ R9  = 0000000014D8BE98
+ R10 = 0000000000110000
+ R11 = 0000000000000246
+ R12 = 0000000002B452BC
+ R13 = 0000000073910000
+ R14 = 0000000002B63440
+ R15 = 0000000073910000
+Содержимое стека
+ 000000001531F830: 0000000073AE1160 pg90drv64x.dll.3:0003A160
+ 000000001531F868: 000000007398F76D pg90drv64x.dll.1:0007E76D
+ 000000001531F898: 000000007396AC43 pg90drv64x.dll.1:00059C43
+ 000000001531F8D8: 000000007394DCD8 pg90drv64x.dll.1:0003CCD8
+ 000000001531F8F8: 000000007394DCA0 pg90drv64x.dll.1:0003CCA0
+ 000000001531F900: 000000007394DCA0 pg90drv64x.dll.1:0003CCA0
+ 000000001531F908: 00000001024D1312 atlantis64x.rtl.1:000D0312
+ 000000001531F928: 000000007394DCA0 pg90drv64x.dll.1:0003CCA0
+ 000000001531F970: 000000007394DCA0 pg90drv64x.dll.1:0003CCA0
+ 000000001531F9D8: 000000007394DCA0 pg90drv64x.dll.1:0003CCA0
+Текущее время
+ 22-02-2026 14:29:11.4265567
+Параметры программы
+ "C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\vip64x.exe  C_QRY.prj /r:AVAZ_Logistics.res /c:vip.cfg /u:SUPERVISOR /#user:SUPERVISOR"
+Переменные окружения
+ =::=::\
+ =C:=C:\Galaktika\_git\AptekaDNR\C_QRY
+ ALLUSERSPROFILE=C:\ProgramData
+ APPDATA=C:\Users\─ьшЄЁшщ\AppData\Roaming
+ CommonProgramFiles=C:\Program Files\Common Files
+ CommonProgramFiles(x86)=C:\Program Files (x86)\Common Files
+ CommonProgramW6432=C:\Program Files\Common Files
+ COMPUTERNAME=LAPUS-VICTUS
+ ComSpec=C:\WINDOWS\system32\cmd.exe
+ DD=20260222
+ DriverData=C:\Windows\System32\Drivers\DriverData
+ EFC_13464_1592913036=1
+ exedir=C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe
+ HOMEDRIVE=C:
+ HOMEPATH=\Users\─ьшЄЁшщ
+ LOCALAPPDATA=C:\Users\─ьшЄЁшщ\AppData\Local
+ LOGONSERVER=\\LAPUS-VICTUS
+ NUMBER_OF_PROCESSORS=16
+ OneDrive=C:\Users\─ьшЄЁшщ\OneDrive
+ OPENSSL_CONF=C:\Program Files\PostgreSQL\psqlODBC\etc\openssl.cnf
+ OS=Windows_NT
+ Path=C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Program Files\Microsoft\jdk-11.0.16.101-hotspot\bin;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\;C:\Program Files (x86)\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\150\DTS\Binn\;C:\Program Files (x86)\Microsoft SQL Server\150\DTS\Binn\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\dotnet\;C:\Program Files (x86)\dotnet\;C:\Program Files\PuTTY\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\130\Tools\Binn\;C:\Galaktika\ATL6\Libs\;C:\Galaktika\ATL6\Libs\x64;C:\Program Files (x86)\Microsoft SQL Server\160\DTS\Binn\;C:\Program Files\GitExtensions\;C:\Program Files\Git\cmd;C:\Users\─ьшЄЁшщ\AppData\Local\Programs\Python\Python311\Scripts\;C:\Users\─ьшЄЁшщ\AppData\Local\Programs\Python\Python311\;C:\Users\─ьшЄЁшщ\AppData\Local\Microsoft\WindowsApps;C:\Program Files\Azure Data Studio\bin;C:\Users\─ьшЄЁшщ\.dotnet\tools;C:\SRCFlutter\flutter\bin;;C:\Users\─ьшЄЁшщ\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\─ьшЄЁшщ\AppData\Local\JetBrains\PyCharm Community Edition 2022.3.2\bin;
+ PATHEXT=.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC
+ PROCESSOR_ARCHITECTURE=AMD64
+ PROCESSOR_IDENTIFIER=AMD64 Family 25 Model 80 Stepping 0, AuthenticAMD
+ PROCESSOR_LEVEL=25
+ PROCESSOR_REVISION=5000
+ ProgramData=C:\ProgramData
+ ProgramFiles=C:\Program Files
+ ProgramFiles(x86)=C:\Program Files (x86)
+ ProgramW6432=C:\Program Files
+ PROMPT=$P$G
+ PSModulePath=C:\Program Files\WindowsPowerShell\Modules;C:\WINDOWS\system32\WindowsPowerShell\v1.0\Modules;C:\Program Files (x86)\Microsoft SQL Server\150\Tools\PowerShell\Modules\
+ PUBLIC=C:\Users\Public
+ PyCharm Community Edition=C:\Users\─ьшЄЁшщ\AppData\Local\JetBrains\PyCharm Community Edition 2022.3.2\bin;
+ SESSIONNAME=Console
+ SystemDrive=C:
+ SystemRoot=C:\WINDOWS
+ TEMP=C:\Users\AACE~1\AppData\Local\Temp
+ TMP=C:\Users\AACE~1\AppData\Local\Temp
+ USERDOMAIN=LAPUS-VICTUS
+ USERDOMAIN_ROAMINGPROFILE=LAPUS-VICTUS
+ USERNAME=─ьшЄЁшщ
+ USERPROFILE=C:\Users\─ьшЄЁшщ
+ windir=C:\WINDOWS
+ _ExceptModuleDesc=Borland Component Package
+ _ExceptModuleName=vcl60.bpl
+ _ExceptModuleVer=6.0.6.240
+ _ExceptMsg=Out of system resources.
+ _LineBreak=
+
+ _MainModuleDesc=
+ _MainModuleName=Frigate3.exe
+ _MainModuleVer=3.36.0.9
+ __PSLockDownPolicy=0
+Список загруженных модулей
+ vip64x.exe           0000000100000000 00000000005A0000 65535/65535 19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\vip64x.exe *6.0.9.0
+ ntdll.dll            00007FFE03440000 0000000000269000 65535/65535 30/авг/2025 07:55:58 C:\WINDOWS\SYSTEM32\ntdll.dll *10.0.26100.5074
+ KERNEL32.DLL         00007FFE01EC0000 00000000000C9000 65535/65535 30/авг/2025 07:55:55 C:\WINDOWS\System32\KERNEL32.DLL *10.0.26100.5074
+ KERNELBASE.dll       00007FFE005D0000 00000000003F3000 65535/65535 30/авг/2025 07:55:55 C:\WINDOWS\System32\KERNELBASE.dll *10.0.26100.5074
+ ole32.dll            00007FFE025B0000 0000000000198000     1/1     30/авг/2025 07:55:50 C:\WINDOWS\System32\ole32.dll *10.0.26100.5074
+ msvcp_win.dll        00007FFE01030000 00000000000A3000     3/3     30/авг/2025 07:56:06 C:\WINDOWS\System32\msvcp_win.dll *10.0.26100.5074
+ atlantis64x.rtl      0000000102400000 0000000000184000    14/14    19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\atlantis64x.rtl *6.0.9.0
+ ADVAPI32.dll         00007FFE02AD0000 00000000000B4000     3/3     30/авг/2025 07:55:47 C:\WINDOWS\System32\ADVAPI32.dll *10.0.26100.5074
+ ucrtbase.dll         00007FFE009D0000 000000000014B000     9/9     30/авг/2025 07:56:06 C:\WINDOWS\System32\ucrtbase.dll *10.0.26100.5074
+ msvcrt.dll           00007FFE01E10000 00000000000A9000     5/5     30/авг/2025 07:55:57 C:\WINDOWS\System32\msvcrt.dll *7.0.26100.5074/10.0.26100.5074
+ sechost.dll          00007FFE01FD0000 00000000000A6000     1/1     30/авг/2025 07:56:00 C:\WINDOWS\System32\sechost.dll *10.0.26100.5074
+ GDI32.dll            00007FFE02C00000 000000000002B000     7/7     30/авг/2025 07:55:53 C:\WINDOWS\System32\GDI32.dll *10.0.26100.5074
+ win32u.dll           00007FFE00DC0000 0000000000027000     1/1     30/авг/2025 07:56:08 C:\WINDOWS\System32\win32u.dll *10.0.26100.5074
+ RPCRT4.dll           00007FFE02120000 0000000000118000     6/6     30/авг/2025 07:55:59 C:\WINDOWS\System32\RPCRT4.dll *10.0.26100.5074
+ gdi32full.dll        00007FFE010E0000 000000000012D000     7/7     30/авг/2025 07:55:53 C:\WINDOWS\System32\gdi32full.dll *10.0.26100.5074
+ OLEAUT32.dll         00007FFE01790000 00000000000D7000     3/3     30/авг/2025 07:55:58 C:\WINDOWS\System32\OLEAUT32.dll *10.0.26100.5074
+ USER32.dll           00007FFE01210000 00000000001C4000     7/7     30/авг/2025 07:56:06 C:\WINDOWS\System32\USER32.dll *10.0.26100.5074
+ combase.dll          00007FFE02750000 000000000037B000     4/4     30/авг/2025 07:55:50 C:\WINDOWS\System32\combase.dll *10.0.26100.5074
+ base64x.dll          0000000110000000 000000000009A000     4/4     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\base64x.dll *6.0.9.0
+ _cfg64x.dll          0000000062580000 000000000003A000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\_cfg64x.dll *6.0.9.0
+ winspool.drv         00007FFDE30D0000 00000000000B2000     1/1     30/авг/2025 07:55:59 C:\WINDOWS\SYSTEM32\winspool.drv *10.0.26100.5074
+ libxml264x.dll       0000000065100000 0000000000442000     2/2     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\libxml264x.dll *2.9.7.0
+ WS2_32.dll           00007FFE02C30000 0000000000074000     2/2     30/авг/2025 07:56:08 C:\WINDOWS\System32\WS2_32.dll *10.0.26100.5074
+ shcore.dll           00007FFE024B0000 00000000000F0000     1/1     30/авг/2025 07:56:02 C:\WINDOWS\System32\shcore.dll *10.0.26100.5074
+ cfgmgr32.dll         00007FFE00280000 0000000000057000     1/1     29/авг/2025 18:53:21 C:\WINDOWS\SYSTEM32\cfgmgr32.dll *10.0.26100.4202
+ WSOCK32.dll          00007FFDE9940000 000000000000A000     2/2     01/апр/2024 10:22:14 C:\WINDOWS\SYSTEM32\WSOCK32.dll *10.0.26100.1
+ atllib_64x.dll       0000000000E20000 0000000000047000    13/13    19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\atllib_64x.dll *6.0.9.0
+ streams_64x.dll      0000000000E70000 000000000015D000    12/12    19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\streams_64x.dll *6.0.9.0
+ ecc_64x.dll          0000000000600000 000000000003D000     4/4     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\ecc_64x.dll *6.0.9.0
+ editor_64x.dll       0000000000FD0000 0000000000033000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\editor_64x.dll *6.0.9.0
+ forms_64x.dll        0000000001010000 00000000000D1000     2/2     30/сен/2025 20:24:00 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\forms_64x.dll *6.0.9.0
+ lotdll_64x.dll       00000000010F0000 0000000000048000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\lotdll_64x.dll *6.0.9.0
+ protect_64x.dll      00000000001D0000 0000000000017000     4/4     29/сен/2025 16:58:29 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\protect_64x.dll *6.0.9.0
+ atvipobj64x.dll      0000000001140000 0000000000021000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\atvipobj64x.dll *6.0.9.0
+ ifcobjs_64x.dll      0000000001170000 0000000000014000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\ifcobjs_64x.dll *6.0.9.0
+ atlpop64x.dll        0000000001190000 000000000008B000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\atlpop64x.dll *6.0.9.0
+ jitvip64x.dll        0000000001220000 0000000000027000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\jitvip64x.dll *6.0.9.0
+ nation_64x.dll       00000000001F0000 000000000000B000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\nation_64x.dll *6.0.9.0
+ IMM32.DLL            00007FFE01F90000 000000000002F000     1/1     29/авг/2025 18:53:19 C:\WINDOWS\System32\IMM32.DLL *10.0.26100.4484
+ SspiCli.dll          00007FFDFF730000 0000000000049000     4/4     29/авг/2025 18:53:33 C:\WINDOWS\SYSTEM32\SspiCli.dll *10.0.26100.4484
+ libeay32.dll         00007FFD8CBC0000 0000000000207000     2/2     23/сен/2025 16:27:09 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\SSL64\libeay32.dll *1.0.2.14
+ VCRUNTIME140.dll     00007FFDE37B0000 000000000001E000 65535/65535 03/июн/2025 06:00:00 C:\WINDOWS\SYSTEM32\VCRUNTIME140.dll *14.42.34438.0
+ ssleay32.dll         00007FFDCDA70000 000000000005B000     1/1     23/сен/2025 16:27:09 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\SSL64\ssleay32.dll *1.0.2.14
+ CRYPTSP.dll          00007FFDFFDC0000 000000000001B000     1/1     30/авг/2025 07:55:50 C:\WINDOWS\SYSTEM32\CRYPTSP.dll *10.0.26100.5074
+ rsaenh.dll           00007FFDFF410000 000000000003B000     2/2     30/авг/2025 07:55:59 C:\WINDOWS\system32\rsaenh.dll *10.0.26100.5074
+ CRYPTBASE.dll        00007FFDFFC20000 000000000000C000     2/2     30/авг/2025 07:55:50 C:\WINDOWS\SYSTEM32\CRYPTBASE.dll *10.0.26100.5074
+ bcryptPrimitives.dll 00007FFE00B20000 0000000000099000 65535/65535 30/авг/2025 07:55:49 C:\WINDOWS\System32\bcryptPrimitives.dll *10.0.26100.5074
+ asmuser64x.dll       0000000001320000 0000000000023000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\asmuser64x.dll *6.0.9.0
+ mpr.dll              00007FFDF8470000 0000000000021000     1/1     29/авг/2025 18:53:19 C:\WINDOWS\SYSTEM32\mpr.dll *10.0.26100.1882
+ vision_w64x.dll      000000006A880000 0000000000332000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\vision_w64x.dll *6.0.9.0
+ SHELL32.dll          00007FFE02CB0000 000000000074D000     3/3     30/авг/2025 07:56:03 C:\WINDOWS\System32\SHELL32.dll *10.0.26100.5074
+ gdesk64x.dll         000000006DB40000 0000000000042000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\gdesk64x.dll *6.0.9.0
+ wintypes.dll         00007FFE00C50000 000000000016C000     1/1     30/авг/2025 07:55:50 C:\WINDOWS\System32\wintypes.dll *10.0.26100.5074
+ uxtheme.dll          00007FFDFD7E0000 00000000000A8000     3/3     30/авг/2025 07:56:07 C:\WINDOWS\SYSTEM32\uxtheme.dll *10.0.26100.5074
+ dwmapi.dll           00007FFDFDAF0000 000000000002B000     1/1     30/авг/2025 07:55:51 C:\WINDOWS\SYSTEM32\dwmapi.dll *10.0.26100.5074
+ MSCTF.dll            00007FFE02340000 0000000000158000     1/1     30/авг/2025 07:56:05 C:\WINDOWS\System32\MSCTF.dll *10.0.26100.5074
+ zprint_w64x.dll      000000006C700000 0000000000048000     2/2     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\zprint_w64x.dll *6.0.9.0
+ pg90drv64x.dll       0000000073910000 0000000000224000     1/1     02/окт/2025 14:51:31 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\pg90drv64x.dll *6.0.9.0
+ ODBC32.dll           00007FFDF42E0000 00000000000C4000     2/2     30/авг/2025 07:55:57 C:\WINDOWS\SYSTEM32\ODBC32.dll *10.0.26100.5074
+ CRYPT32.dll          00007FFE00EB0000 0000000000177000 65535/65535 30/авг/2025 07:55:50 C:\WINDOWS\System32\CRYPT32.dll *10.0.26100.5074
+ DPAPI.DLL            00007FFE00300000 000000000000A000     1/1     01/апр/2024 10:22:15 C:\WINDOWS\SYSTEM32\DPAPI.DLL *10.0.26100.1
+ bcrypt.dll           00007FFE004C0000 0000000000026000 65535/65535 30/авг/2025 07:55:49 C:\WINDOWS\SYSTEM32\bcrypt.dll *10.0.26100.5074
+ podbc35w.dll         00007FFDC12C0000 00000000000ED000     1/1     11/июн/2025 16:40:38 C:\WINDOWS\system32\podbc35w.dll *17.0.0.6
+ WINMM.dll            00007FFDF6540000 0000000000035000     1/1     30/авг/2025 07:55:48 C:\WINDOWS\system32\WINMM.dll *10.0.26100.5074
+ MSVCP140.dll         00007FFDE31D0000 000000000008D000     1/1     03/июн/2025 06:00:00 C:\WINDOWS\system32\MSVCP140.dll *14.42.34438.0
+ libpq.dll            00007FFDCD0D0000 000000000005A000     1/1     10/июн/2025 12:34:12 C:\WINDOWS\system32\libpq.dll *17.0.5.0
+ VCRUNTIME140_1.dll   00007FFDE3050000 000000000000C000     2/2     27/апр/2024 23:20:22 C:\WINDOWS\system32\VCRUNTIME140_1.dll *14.40.33810.0
+ WLDAP32.dll          00007FFE01D00000 0000000000075000     1/1     30/авг/2025 07:55:55 C:\WINDOWS\System32\WLDAP32.dll *10.0.26100.5074
+ Secur32.dll          00007FFDFD6D0000 000000000000D000     1/1     01/апр/2024 10:22:11 C:\WINDOWS\system32\Secur32.dll *10.0.26100.1
+ libssl-3-x64.dll     00007FFD9C230000 0000000000136000     1/1     11/фев/2025 16:05:16 C:\WINDOWS\system32\libssl-3-x64.dll *3.3.3.0
+ libcrypto-3-x64.dll  00007FFD7A6F0000 0000000000625000 65535/65535 11/фев/2025 16:05:16 C:\WINDOWS\system32\libcrypto-3-x64.dll *3.3.3.0
+ odbccp32.dll         00007FFDEE6F0000 0000000000025000     1/1     30/авг/2025 07:55:56 C:\WINDOWS\SYSTEM32\odbccp32.dll *10.0.26100.5074
+ VERSION.dll          00007FFDF9530000 000000000000B000     1/1     29/авг/2025 18:53:19 C:\WINDOWS\SYSTEM32\VERSION.dll *10.0.26100.1150
+ mswsock.dll          00007FFDFF9F0000 000000000006B000     6/6     30/авг/2025 07:56:08 C:\WINDOWS\system32\mswsock.dll *10.0.26100.5074
+ DNSAPI.dll           00007FFDFEEF0000 0000000000126000 65535/65535 30/авг/2025 07:55:52 C:\WINDOWS\SYSTEM32\DNSAPI.dll *10.0.26100.5074
+ IPHLPAPI.DLL         00007FFDFEE00000 0000000000034000 65535/65535 30/авг/2025 07:56:05 C:\WINDOWS\SYSTEM32\IPHLPAPI.DLL *10.0.26100.5074
+ NSI.dll              00007FFE024A0000 000000000000A000 65535/65535 30/авг/2025 07:56:07 C:\WINDOWS\System32\NSI.dll *10.0.26100.5074
+ rasadhlp.dll         00007FFDF8660000 000000000000B000     1/1     29/авг/2025 18:53:34 C:\Windows\System32\rasadhlp.dll *10.0.26100.1150
+ fwpuclnt.dll         00007FFDF7E80000 0000000000086000     1/1     30/авг/2025 07:55:57 C:\WINDOWS\System32\fwpuclnt.dll *10.0.26100.5074
+ dhcpcsvc.DLL         00007FFDF9260000 0000000000023000     1/1     30/авг/2025 07:55:51 C:\WINDOWS\SYSTEM32\dhcpcsvc.DLL *10.0.26100.5074
+ atlsock64x.dll       000000006DC80000 000000000002C000     2/2     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\atlsock64x.dll *6.0.9.0
+ NETAPI32.DLL         00007FFDF7100000 000000000001A000     1/1     29/авг/2025 18:53:17 C:\WINDOWS\SYSTEM32\NETAPI32.DLL *10.0.26100.1150
+ SRVCLI.DLL           00007FFDF8420000 0000000000029000     1/1     29/авг/2025 18:53:22 C:\WINDOWS\SYSTEM32\SRVCLI.DLL *10.0.26100.1150
+ NETUTILS.DLL         00007FFDFEDC0000 000000000000D000     1/1     29/авг/2025 18:53:22 C:\WINDOWS\SYSTEM32\NETUTILS.DLL *10.0.26100.1882
+ SAMCLI.DLL           00007FFDFEDA0000 000000000001B000     1/1     29/авг/2025 18:53:22 C:\WINDOWS\SYSTEM32\SAMCLI.DLL *10.0.26100.4768
+ napinsp.dll          00007FFDF8C30000 0000000000018000     1/1     29/авг/2025 18:53:18 C:\WINDOWS\system32\napinsp.dll *10.0.26100.1150
+ winrnr.dll           00007FFDF8C10000 0000000000012000     1/1     29/авг/2025 18:53:21 C:\WINDOWS\System32\winrnr.dll *10.0.26100.1882
+ nlansp_c.dll         00007FFDFA7B0000 0000000000028000     1/1     30/авг/2025 07:55:58 C:\WINDOWS\system32\nlansp_c.dll *10.0.26100.5074
+ wshbth.dll           00007FFDF9220000 0000000000016000     1/1     30/авг/2025 07:55:47 C:\WINDOWS\system32\wshbth.dll *10.0.26100.5074
+ mt_drv64x.dll        0000000012C00000 0000000000111000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\mt_drv64x.dll *6.0.9.0
+
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+
+
+
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+▓▓▓▓▓ Запишите следующую информацию об ошибке и отошлите ее разработчикам ▓▓▓▓▓
+▓ вместе с описанием ситуации, названием, версией и датой EXE-файла программы ▓
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+
+
+▓ Программа: "vip64x.exe"  Время запуска: 14:29:48 22/02/2026
+▓ Исполняемый модуль: "C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\vip64x.exe"
+▓ Система: Windows NT  Логин: "Дмитрий"  Станция: "LAPUS-VICTUS"
+
+Необработанная исключительная ситуация
+Код исключения: C0000005 (Общее нарушение защиты доступа к памяти)
+Параметры исключения (2): 0000000000000000 FFFFFFFFFFFFFFFF
+Адрес исключения: 000000010011F46B vip64x.exe.1:0011E46B
+Содержимое регистров процессора
+ RAX = 7845693A3A535341
+ RBX = 0000000000000000
+ RCX = 0000000014F68478
+ RDX = 0000000000000000
+ RSI = 00000000005FBBE0
+ RDI = 0000000002B7A374
+ RBP = 00000000005FBEE0
+ RSP = 00000000005FACA0
+ RIP = 000000010011F46B vip64x.exe.1:0011E46B
+ R8  = 0000000014F68478
+ R9  = 0000000014F66980
+ R10 = 0000000002F64374
+ R11 = FFFFFFFFEB1048FF
+ R12 = 0000000000000000
+ R13 = 00000000005FB888
+ R14 = 00000000005FBBE0
+ R15 = 0000000014F66E34
+Содержимое стека
+ 00000000005FACA8: 000000010248C45A atlantis64x.rtl.1:0008B45A
+ 00000000005FACF8: 0000000102464D15 atlantis64x.rtl.1:00063D15
+ 00000000005FAD08: 0000000102468D6A atlantis64x.rtl.1:00067D6A
+ 00000000005FAD38: 0000000000F0EC98 ecc_64x.dll.1:0001DC98
+ 00000000005FAD88: 00000001100742BC streams_64x.dll.1:000732BC
+ 00000000005FAD98: 00000001100742BC streams_64x.dll.1:000732BC
+ 00000000005FADD8: 0000000110011E77 streams_64x.dll.1:00010E77
+ 00000000005FADE8: 0000000110011E77 streams_64x.dll.1:00010E77
+ 00000000005FAE08: 0000000110011CD4 streams_64x.dll.1:00010CD4
+ 00000000005FAE18: 0000000110011CD4 streams_64x.dll.1:00010CD4
+ 00000000005FAE28: 0000000102421BA2 atlantis64x.rtl.1:00020BA2
+ 00000000005FAE68: 00000001100DC25A streams_64x.dll.1:000DB25A
+ 00000000005FAE78: 0000000110011D7C streams_64x.dll.1:00010D7C
+ 00000000005FAE88: 0000000110011D7C streams_64x.dll.1:00010D7C
+ 00000000005FAE98: 0000000110077157 streams_64x.dll.1:00076157
+Текущее время
+ 22-02-2026 14:29:51.3090555
+Параметры программы
+ "C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\vip64x.exe  C_QRY.prj /r:AVAZ_Logistics.res /c:vip.cfg /u:SUPERVISOR /#user:SUPERVISOR"
+Переменные окружения
+ =::=::\
+ =C:=C:\Galaktika\_git\AptekaDNR\C_QRY
+ ALLUSERSPROFILE=C:\ProgramData
+ APPDATA=C:\Users\─ьшЄЁшщ\AppData\Roaming
+ CommonProgramFiles=C:\Program Files\Common Files
+ CommonProgramFiles(x86)=C:\Program Files (x86)\Common Files
+ CommonProgramW6432=C:\Program Files\Common Files
+ COMPUTERNAME=LAPUS-VICTUS
+ ComSpec=C:\WINDOWS\system32\cmd.exe
+ DD=20260222
+ DriverData=C:\Windows\System32\Drivers\DriverData
+ EFC_13464_1592913036=1
+ exedir=C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe
+ HOMEDRIVE=C:
+ HOMEPATH=\Users\─ьшЄЁшщ
+ LOCALAPPDATA=C:\Users\─ьшЄЁшщ\AppData\Local
+ LOGONSERVER=\\LAPUS-VICTUS
+ NUMBER_OF_PROCESSORS=16
+ OneDrive=C:\Users\─ьшЄЁшщ\OneDrive
+ OPENSSL_CONF=C:\Program Files\PostgreSQL\psqlODBC\etc\openssl.cnf
+ OS=Windows_NT
+ Path=C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Program Files\Microsoft\jdk-11.0.16.101-hotspot\bin;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\;C:\Program Files (x86)\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\150\DTS\Binn\;C:\Program Files (x86)\Microsoft SQL Server\150\DTS\Binn\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\dotnet\;C:\Program Files (x86)\dotnet\;C:\Program Files\PuTTY\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\130\Tools\Binn\;C:\Galaktika\ATL6\Libs\;C:\Galaktika\ATL6\Libs\x64;C:\Program Files (x86)\Microsoft SQL Server\160\DTS\Binn\;C:\Program Files\GitExtensions\;C:\Program Files\Git\cmd;C:\Users\─ьшЄЁшщ\AppData\Local\Programs\Python\Python311\Scripts\;C:\Users\─ьшЄЁшщ\AppData\Local\Programs\Python\Python311\;C:\Users\─ьшЄЁшщ\AppData\Local\Microsoft\WindowsApps;C:\Program Files\Azure Data Studio\bin;C:\Users\─ьшЄЁшщ\.dotnet\tools;C:\SRCFlutter\flutter\bin;;C:\Users\─ьшЄЁшщ\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\─ьшЄЁшщ\AppData\Local\JetBrains\PyCharm Community Edition 2022.3.2\bin;
+ PATHEXT=.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC
+ PROCESSOR_ARCHITECTURE=AMD64
+ PROCESSOR_IDENTIFIER=AMD64 Family 25 Model 80 Stepping 0, AuthenticAMD
+ PROCESSOR_LEVEL=25
+ PROCESSOR_REVISION=5000
+ ProgramData=C:\ProgramData
+ ProgramFiles=C:\Program Files
+ ProgramFiles(x86)=C:\Program Files (x86)
+ ProgramW6432=C:\Program Files
+ PROMPT=$P$G
+ PSModulePath=C:\Program Files\WindowsPowerShell\Modules;C:\WINDOWS\system32\WindowsPowerShell\v1.0\Modules;C:\Program Files (x86)\Microsoft SQL Server\150\Tools\PowerShell\Modules\
+ PUBLIC=C:\Users\Public
+ PyCharm Community Edition=C:\Users\─ьшЄЁшщ\AppData\Local\JetBrains\PyCharm Community Edition 2022.3.2\bin;
+ SESSIONNAME=Console
+ SystemDrive=C:
+ SystemRoot=C:\WINDOWS
+ TEMP=C:\Users\AACE~1\AppData\Local\Temp
+ TMP=C:\Users\AACE~1\AppData\Local\Temp
+ USERDOMAIN=LAPUS-VICTUS
+ USERDOMAIN_ROAMINGPROFILE=LAPUS-VICTUS
+ USERNAME=─ьшЄЁшщ
+ USERPROFILE=C:\Users\─ьшЄЁшщ
+ windir=C:\WINDOWS
+ _ExceptModuleDesc=Borland Component Package
+ _ExceptModuleName=vcl60.bpl
+ _ExceptModuleVer=6.0.6.240
+ _ExceptMsg=Out of system resources.
+ _LineBreak=
+
+ _MainModuleDesc=
+ _MainModuleName=Frigate3.exe
+ _MainModuleVer=3.36.0.9
+ __PSLockDownPolicy=0
+Список загруженных модулей
+ vip64x.exe           0000000100000000 00000000005A0000 65535/65535 19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\vip64x.exe *6.0.9.0
+ ntdll.dll            00007FFE03440000 0000000000269000 65535/65535 30/авг/2025 07:55:58 C:\WINDOWS\SYSTEM32\ntdll.dll *10.0.26100.5074
+ KERNEL32.DLL         00007FFE01EC0000 00000000000C9000 65535/65535 30/авг/2025 07:55:55 C:\WINDOWS\System32\KERNEL32.DLL *10.0.26100.5074
+ KERNELBASE.dll       00007FFE005D0000 00000000003F3000 65535/65535 30/авг/2025 07:55:55 C:\WINDOWS\System32\KERNELBASE.dll *10.0.26100.5074
+ ole32.dll            00007FFE025B0000 0000000000198000     1/1     30/авг/2025 07:55:50 C:\WINDOWS\System32\ole32.dll *10.0.26100.5074
+ msvcp_win.dll        00007FFE01030000 00000000000A3000     3/3     30/авг/2025 07:56:06 C:\WINDOWS\System32\msvcp_win.dll *10.0.26100.5074
+ atlantis64x.rtl      0000000102400000 0000000000184000    14/14    19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\atlantis64x.rtl *6.0.9.0
+ ucrtbase.dll         00007FFE009D0000 000000000014B000     9/9     30/авг/2025 07:56:06 C:\WINDOWS\System32\ucrtbase.dll *10.0.26100.5074
+ ADVAPI32.dll         00007FFE02AD0000 00000000000B4000     3/3     30/авг/2025 07:55:47 C:\WINDOWS\System32\ADVAPI32.dll *10.0.26100.5074
+ msvcrt.dll           00007FFE01E10000 00000000000A9000     5/5     30/авг/2025 07:55:57 C:\WINDOWS\System32\msvcrt.dll *7.0.26100.5074/10.0.26100.5074
+ GDI32.dll            00007FFE02C00000 000000000002B000     7/7     30/авг/2025 07:55:53 C:\WINDOWS\System32\GDI32.dll *10.0.26100.5074
+ sechost.dll          00007FFE01FD0000 00000000000A6000     1/1     30/авг/2025 07:56:00 C:\WINDOWS\System32\sechost.dll *10.0.26100.5074
+ win32u.dll           00007FFE00DC0000 0000000000027000     1/1     30/авг/2025 07:56:08 C:\WINDOWS\System32\win32u.dll *10.0.26100.5074
+ gdi32full.dll        00007FFE010E0000 000000000012D000     7/7     30/авг/2025 07:55:53 C:\WINDOWS\System32\gdi32full.dll *10.0.26100.5074
+ RPCRT4.dll           00007FFE02120000 0000000000118000     6/6     30/авг/2025 07:55:59 C:\WINDOWS\System32\RPCRT4.dll *10.0.26100.5074
+ USER32.dll           00007FFE01210000 00000000001C4000     7/7     30/авг/2025 07:56:06 C:\WINDOWS\System32\USER32.dll *10.0.26100.5074
+ OLEAUT32.dll         00007FFE01790000 00000000000D7000     3/3     30/авг/2025 07:55:58 C:\WINDOWS\System32\OLEAUT32.dll *10.0.26100.5074
+ combase.dll          00007FFE02750000 000000000037B000     4/4     30/авг/2025 07:55:50 C:\WINDOWS\System32\combase.dll *10.0.26100.5074
+ streams_64x.dll      0000000110000000 000000000015D000    12/12    19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\streams_64x.dll *6.0.9.0
+ _cfg64x.dll          0000000062580000 000000000003A000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\_cfg64x.dll *6.0.9.0
+ libxml264x.dll       0000000065100000 0000000000442000     2/2     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\libxml264x.dll *2.9.7.0
+ winspool.drv         00007FFDE30D0000 00000000000B2000     1/1     30/авг/2025 07:55:59 C:\WINDOWS\SYSTEM32\winspool.drv *10.0.26100.5074
+ WS2_32.dll           00007FFE02C30000 0000000000074000     2/2     30/авг/2025 07:56:08 C:\WINDOWS\System32\WS2_32.dll *10.0.26100.5074
+ shcore.dll           00007FFE024B0000 00000000000F0000     1/1     30/авг/2025 07:56:02 C:\WINDOWS\System32\shcore.dll *10.0.26100.5074
+ cfgmgr32.dll         00007FFE00280000 0000000000057000     1/1     29/авг/2025 18:53:21 C:\WINDOWS\SYSTEM32\cfgmgr32.dll *10.0.26100.4202
+ WSOCK32.dll          00007FFDE9940000 000000000000A000     2/2     01/апр/2024 10:22:14 C:\WINDOWS\SYSTEM32\WSOCK32.dll *10.0.26100.1
+ atllib_64x.dll       0000000000600000 0000000000047000    13/13    19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\atllib_64x.dll *6.0.9.0
+ ecc_64x.dll          0000000000EF0000 000000000003D000     4/4     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\ecc_64x.dll *6.0.9.0
+ base64x.dll          0000000000E50000 000000000009A000     4/4     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\base64x.dll *6.0.9.0
+ forms_64x.dll        0000000000F30000 00000000000D1000     2/2     30/сен/2025 20:24:00 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\forms_64x.dll *6.0.9.0
+ editor_64x.dll       0000000001010000 0000000000033000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\editor_64x.dll *6.0.9.0
+ protect_64x.dll      00000000001D0000 0000000000017000     4/4     29/сен/2025 16:58:29 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\protect_64x.dll *6.0.9.0
+ lotdll_64x.dll       0000000001050000 0000000000048000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\lotdll_64x.dll *6.0.9.0
+ atvipobj64x.dll      00000000010A0000 0000000000021000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\atvipobj64x.dll *6.0.9.0
+ ifcobjs_64x.dll      0000000000650000 0000000000014000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\ifcobjs_64x.dll *6.0.9.0
+ jitvip64x.dll        00000000010D0000 0000000000027000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\jitvip64x.dll *6.0.9.0
+ atlpop64x.dll        0000000001100000 000000000008B000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\atlpop64x.dll *6.0.9.0
+ nation_64x.dll       00000000001F0000 000000000000B000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\nation_64x.dll *6.0.9.0
+ IMM32.DLL            00007FFE01F90000 000000000002F000     1/1     29/авг/2025 18:53:19 C:\WINDOWS\System32\IMM32.DLL *10.0.26100.4484
+ SspiCli.dll          00007FFDFF730000 0000000000049000     4/4     29/авг/2025 18:53:33 C:\WINDOWS\SYSTEM32\SspiCli.dll *10.0.26100.4484
+ libeay32.dll         00007FFD86430000 0000000000207000     2/2     23/сен/2025 16:27:09 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\SSL64\libeay32.dll *1.0.2.14
+ VCRUNTIME140.dll     00007FFDE37B0000 000000000001E000 65535/65535 03/июн/2025 06:00:00 C:\WINDOWS\SYSTEM32\VCRUNTIME140.dll *14.42.34438.0
+ ssleay32.dll         00007FFDCB440000 000000000005B000     1/1     23/сен/2025 16:27:09 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\SSL64\ssleay32.dll *1.0.2.14
+ CRYPTSP.dll          00007FFDFFDC0000 000000000001B000     1/1     30/авг/2025 07:55:50 C:\WINDOWS\SYSTEM32\CRYPTSP.dll *10.0.26100.5074
+ rsaenh.dll           00007FFDFF410000 000000000003B000     2/2     30/авг/2025 07:55:59 C:\WINDOWS\system32\rsaenh.dll *10.0.26100.5074
+ CRYPTBASE.dll        00007FFDFFC20000 000000000000C000     2/2     30/авг/2025 07:55:50 C:\WINDOWS\SYSTEM32\CRYPTBASE.dll *10.0.26100.5074
+ bcryptPrimitives.dll 00007FFE00B20000 0000000000099000 65535/65535 30/авг/2025 07:55:49 C:\WINDOWS\System32\bcryptPrimitives.dll *10.0.26100.5074
+ asmuser64x.dll       00000000016F0000 0000000000023000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\asmuser64x.dll *6.0.9.0
+ mpr.dll              00007FFDF8470000 0000000000021000     1/1     29/авг/2025 18:53:19 C:\WINDOWS\SYSTEM32\mpr.dll *10.0.26100.1882
+ vision_w64x.dll      000000006A880000 0000000000332000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\vision_w64x.dll *6.0.9.0
+ SHELL32.dll          00007FFE02CB0000 000000000074D000     3/3     30/авг/2025 07:56:03 C:\WINDOWS\System32\SHELL32.dll *10.0.26100.5074
+ gdesk64x.dll         000000006DB40000 0000000000042000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\gdesk64x.dll *6.0.9.0
+ wintypes.dll         00007FFE00C50000 000000000016C000     1/1     30/авг/2025 07:55:50 C:\WINDOWS\System32\wintypes.dll *10.0.26100.5074
+ uxtheme.dll          00007FFDFD7E0000 00000000000A8000     3/3     30/авг/2025 07:56:07 C:\WINDOWS\SYSTEM32\uxtheme.dll *10.0.26100.5074
+ dwmapi.dll           00007FFDFDAF0000 000000000002B000     1/1     30/авг/2025 07:55:51 C:\WINDOWS\SYSTEM32\dwmapi.dll *10.0.26100.5074
+ MSCTF.dll            00007FFE02340000 0000000000158000     1/1     30/авг/2025 07:56:05 C:\WINDOWS\System32\MSCTF.dll *10.0.26100.5074
+ zprint_w64x.dll      000000006C700000 0000000000048000     2/2     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\zprint_w64x.dll *6.0.9.0
+ pg90drv64x.dll       0000000073910000 0000000000224000     1/1     02/окт/2025 14:51:31 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\pg90drv64x.dll *6.0.9.0
+ ODBC32.dll           00007FFDF42E0000 00000000000C4000     2/2     30/авг/2025 07:55:57 C:\WINDOWS\SYSTEM32\ODBC32.dll *10.0.26100.5074
+ CRYPT32.dll          00007FFE00EB0000 0000000000177000 65535/65535 30/авг/2025 07:55:50 C:\WINDOWS\System32\CRYPT32.dll *10.0.26100.5074
+ DPAPI.DLL            00007FFE00300000 000000000000A000     1/1     01/апр/2024 10:22:15 C:\WINDOWS\SYSTEM32\DPAPI.DLL *10.0.26100.1
+ bcrypt.dll           00007FFE004C0000 0000000000026000 65535/65535 30/авг/2025 07:55:49 C:\WINDOWS\SYSTEM32\bcrypt.dll *10.0.26100.5074
+ podbc35w.dll         00007FFDC12C0000 00000000000ED000     1/1     11/июн/2025 16:40:38 C:\WINDOWS\system32\podbc35w.dll *17.0.0.6
+ VCRUNTIME140_1.dll   00007FFDE3050000 000000000000C000     2/2     27/апр/2024 23:20:22 C:\WINDOWS\system32\VCRUNTIME140_1.dll *14.40.33810.0
+ libpq.dll            00007FFDCD0D0000 000000000005A000     1/1     10/июн/2025 12:34:12 C:\WINDOWS\system32\libpq.dll *17.0.5.0
+ WINMM.dll            00007FFDF6540000 0000000000035000     1/1     30/авг/2025 07:55:48 C:\WINDOWS\system32\WINMM.dll *10.0.26100.5074
+ MSVCP140.dll         00007FFDE31D0000 000000000008D000     1/1     03/июн/2025 06:00:00 C:\WINDOWS\system32\MSVCP140.dll *14.42.34438.0
+ WLDAP32.dll          00007FFE01D00000 0000000000075000     1/1     30/авг/2025 07:55:55 C:\WINDOWS\System32\WLDAP32.dll *10.0.26100.5074
+ Secur32.dll          00007FFDFD6D0000 000000000000D000     1/1     01/апр/2024 10:22:11 C:\WINDOWS\system32\Secur32.dll *10.0.26100.1
+ libcrypto-3-x64.dll  00007FFD7A6F0000 0000000000625000 65535/65535 11/фев/2025 16:05:16 C:\WINDOWS\system32\libcrypto-3-x64.dll *3.3.3.0
+ libssl-3-x64.dll     00007FFD9C230000 0000000000136000     1/1     11/фев/2025 16:05:16 C:\WINDOWS\system32\libssl-3-x64.dll *3.3.3.0
+ odbccp32.dll         00007FFDEE6F0000 0000000000025000     1/1     30/авг/2025 07:55:56 C:\WINDOWS\SYSTEM32\odbccp32.dll *10.0.26100.5074
+ VERSION.dll          00007FFDF9530000 000000000000B000     1/1     29/авг/2025 18:53:19 C:\WINDOWS\SYSTEM32\VERSION.dll *10.0.26100.1150
+ mswsock.dll          00007FFDFF9F0000 000000000006B000     6/6     30/авг/2025 07:56:08 C:\WINDOWS\system32\mswsock.dll *10.0.26100.5074
+ DNSAPI.dll           00007FFDFEEF0000 0000000000126000 65535/65535 30/авг/2025 07:55:52 C:\WINDOWS\SYSTEM32\DNSAPI.dll *10.0.26100.5074
+ IPHLPAPI.DLL         00007FFDFEE00000 0000000000034000 65535/65535 30/авг/2025 07:56:05 C:\WINDOWS\SYSTEM32\IPHLPAPI.DLL *10.0.26100.5074
+ NSI.dll              00007FFE024A0000 000000000000A000 65535/65535 30/авг/2025 07:56:07 C:\WINDOWS\System32\NSI.dll *10.0.26100.5074
+ rasadhlp.dll         00007FFDF8660000 000000000000B000     1/1     29/авг/2025 18:53:34 C:\Windows\System32\rasadhlp.dll *10.0.26100.1150
+ fwpuclnt.dll         00007FFDF7E80000 0000000000086000     1/1     30/авг/2025 07:55:57 C:\WINDOWS\System32\fwpuclnt.dll *10.0.26100.5074
+ dhcpcsvc.DLL         00007FFDF9260000 0000000000023000     1/1     30/авг/2025 07:55:51 C:\WINDOWS\SYSTEM32\dhcpcsvc.DLL *10.0.26100.5074
+ atlsock64x.dll       000000006DC80000 000000000002C000     2/2     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\atlsock64x.dll *6.0.9.0
+ NETAPI32.DLL         00007FFDF7100000 000000000001A000     1/1     29/авг/2025 18:53:17 C:\WINDOWS\SYSTEM32\NETAPI32.DLL *10.0.26100.1150
+ SRVCLI.DLL           00007FFDF8420000 0000000000029000     1/1     29/авг/2025 18:53:22 C:\WINDOWS\SYSTEM32\SRVCLI.DLL *10.0.26100.1150
+ NETUTILS.DLL         00007FFDFEDC0000 000000000000D000     1/1     29/авг/2025 18:53:22 C:\WINDOWS\SYSTEM32\NETUTILS.DLL *10.0.26100.1882
+ SAMCLI.DLL           00007FFDFEDA0000 000000000001B000     1/1     29/авг/2025 18:53:22 C:\WINDOWS\SYSTEM32\SAMCLI.DLL *10.0.26100.4768
+ napinsp.dll          00007FFDF8C30000 0000000000018000     1/1     29/авг/2025 18:53:18 C:\WINDOWS\system32\napinsp.dll *10.0.26100.1150
+ winrnr.dll           00007FFDF8C10000 0000000000012000     1/1     29/авг/2025 18:53:21 C:\WINDOWS\System32\winrnr.dll *10.0.26100.1882
+ nlansp_c.dll         00007FFDFA7B0000 0000000000028000     1/1     30/авг/2025 07:55:58 C:\WINDOWS\system32\nlansp_c.dll *10.0.26100.5074
+ wshbth.dll           00007FFDF9220000 0000000000016000     1/1     30/авг/2025 07:55:47 C:\WINDOWS\system32\wshbth.dll *10.0.26100.5074
+ mt_drv64x.dll        0000000012A40000 0000000000111000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\mt_drv64x.dll *6.0.9.0
+
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+
+
+
+Необработанная исключительная ситуация
+Код исключения: C0000005 (Общее нарушение защиты доступа к памяти)
+Параметры исключения (2): 0000000000000000 000000000000000A
+Адрес исключения: 000000007398F966 pg90drv64x.dll.1:0007E966
+Содержимое регистров процессора
+ RAX = 0000000000000000
+ RBX = 000000000000000F
+ RCX = 0000000000000001
+ RDX = 0000000000000001
+ RSI = 00000000036B0F44
+ RDI = 00000000005FF760
+ RBP = 0000000073AA6060 pg90drv64x.dll.2:00003060
+ RSP = 00000000005FF740
+ RIP = 000000007398F966 pg90drv64x.dll.1:0007E966
+ R8  = 7FFFFFFFFFFFFFFC
+ R9  = 00000000014A4E60
+ R10 = 0000000000110000
+ R11 = 0000000000000246
+ R12 = 0000000002B652BC
+ R13 = 0000000073910000
+ R14 = 0000000002B83440
+ R15 = 0000000073910000
+Содержимое стека
+ 00000000005FF760: 0000000073AE1160 pg90drv64x.dll.3:0003A160
+ 00000000005FF798: 000000007398F76D pg90drv64x.dll.1:0007E76D
+ 00000000005FF7C8: 000000007396AC43 pg90drv64x.dll.1:00059C43
+ 00000000005FF808: 000000007394DCD8 pg90drv64x.dll.1:0003CCD8
+ 00000000005FF828: 000000007394DCA0 pg90drv64x.dll.1:0003CCA0
+ 00000000005FF830: 000000007394DCA0 pg90drv64x.dll.1:0003CCA0
+ 00000000005FF838: 00000001024D1312 atlantis64x.rtl.1:000D0312
+ 00000000005FF858: 000000007394DCA0 pg90drv64x.dll.1:0003CCA0
+ 00000000005FF8A0: 000000007394DCA0 pg90drv64x.dll.1:0003CCA0
+ 00000000005FF908: 000000007394DCA0 pg90drv64x.dll.1:0003CCA0
+Текущее время
+ 22-02-2026 14:29:51.3398314
+Параметры программы
+ "C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\vip64x.exe  C_QRY.prj /r:AVAZ_Logistics.res /c:vip.cfg /u:SUPERVISOR /#user:SUPERVISOR"
+Переменные окружения
+ =::=::\
+ =C:=C:\Galaktika\_git\AptekaDNR\C_QRY
+ ALLUSERSPROFILE=C:\ProgramData
+ APPDATA=C:\Users\─ьшЄЁшщ\AppData\Roaming
+ CommonProgramFiles=C:\Program Files\Common Files
+ CommonProgramFiles(x86)=C:\Program Files (x86)\Common Files
+ CommonProgramW6432=C:\Program Files\Common Files
+ COMPUTERNAME=LAPUS-VICTUS
+ ComSpec=C:\WINDOWS\system32\cmd.exe
+ DD=20260222
+ DriverData=C:\Windows\System32\Drivers\DriverData
+ EFC_13464_1592913036=1
+ exedir=C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe
+ HOMEDRIVE=C:
+ HOMEPATH=\Users\─ьшЄЁшщ
+ LOCALAPPDATA=C:\Users\─ьшЄЁшщ\AppData\Local
+ LOGONSERVER=\\LAPUS-VICTUS
+ NUMBER_OF_PROCESSORS=16
+ OneDrive=C:\Users\─ьшЄЁшщ\OneDrive
+ OPENSSL_CONF=C:\Program Files\PostgreSQL\psqlODBC\etc\openssl.cnf
+ OS=Windows_NT
+ Path=C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Program Files\Microsoft\jdk-11.0.16.101-hotspot\bin;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\;C:\Program Files (x86)\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\150\DTS\Binn\;C:\Program Files (x86)\Microsoft SQL Server\150\DTS\Binn\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\dotnet\;C:\Program Files (x86)\dotnet\;C:\Program Files\PuTTY\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\130\Tools\Binn\;C:\Galaktika\ATL6\Libs\;C:\Galaktika\ATL6\Libs\x64;C:\Program Files (x86)\Microsoft SQL Server\160\DTS\Binn\;C:\Program Files\GitExtensions\;C:\Program Files\Git\cmd;C:\Users\─ьшЄЁшщ\AppData\Local\Programs\Python\Python311\Scripts\;C:\Users\─ьшЄЁшщ\AppData\Local\Programs\Python\Python311\;C:\Users\─ьшЄЁшщ\AppData\Local\Microsoft\WindowsApps;C:\Program Files\Azure Data Studio\bin;C:\Users\─ьшЄЁшщ\.dotnet\tools;C:\SRCFlutter\flutter\bin;;C:\Users\─ьшЄЁшщ\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\─ьшЄЁшщ\AppData\Local\JetBrains\PyCharm Community Edition 2022.3.2\bin;
+ PATHEXT=.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC
+ PROCESSOR_ARCHITECTURE=AMD64
+ PROCESSOR_IDENTIFIER=AMD64 Family 25 Model 80 Stepping 0, AuthenticAMD
+ PROCESSOR_LEVEL=25
+ PROCESSOR_REVISION=5000
+ ProgramData=C:\ProgramData
+ ProgramFiles=C:\Program Files
+ ProgramFiles(x86)=C:\Program Files (x86)
+ ProgramW6432=C:\Program Files
+ PROMPT=$P$G
+ PSModulePath=C:\Program Files\WindowsPowerShell\Modules;C:\WINDOWS\system32\WindowsPowerShell\v1.0\Modules;C:\Program Files (x86)\Microsoft SQL Server\150\Tools\PowerShell\Modules\
+ PUBLIC=C:\Users\Public
+ PyCharm Community Edition=C:\Users\─ьшЄЁшщ\AppData\Local\JetBrains\PyCharm Community Edition 2022.3.2\bin;
+ SESSIONNAME=Console
+ SystemDrive=C:
+ SystemRoot=C:\WINDOWS
+ TEMP=C:\Users\AACE~1\AppData\Local\Temp
+ TMP=C:\Users\AACE~1\AppData\Local\Temp
+ USERDOMAIN=LAPUS-VICTUS
+ USERDOMAIN_ROAMINGPROFILE=LAPUS-VICTUS
+ USERNAME=─ьшЄЁшщ
+ USERPROFILE=C:\Users\─ьшЄЁшщ
+ windir=C:\WINDOWS
+ _ExceptModuleDesc=Borland Component Package
+ _ExceptModuleName=vcl60.bpl
+ _ExceptModuleVer=6.0.6.240
+ _ExceptMsg=Out of system resources.
+ _LineBreak=
+
+ _MainModuleDesc=
+ _MainModuleName=Frigate3.exe
+ _MainModuleVer=3.36.0.9
+ __PSLockDownPolicy=0
+Список загруженных модулей
+ vip64x.exe           0000000100000000 00000000005A0000 65535/65535 19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\vip64x.exe *6.0.9.0
+ ntdll.dll            00007FFE03440000 0000000000269000 65535/65535 30/авг/2025 07:55:58 C:\WINDOWS\SYSTEM32\ntdll.dll *10.0.26100.5074
+ KERNEL32.DLL         00007FFE01EC0000 00000000000C9000 65535/65535 30/авг/2025 07:55:55 C:\WINDOWS\System32\KERNEL32.DLL *10.0.26100.5074
+ KERNELBASE.dll       00007FFE005D0000 00000000003F3000 65535/65535 30/авг/2025 07:55:55 C:\WINDOWS\System32\KERNELBASE.dll *10.0.26100.5074
+ ole32.dll            00007FFE025B0000 0000000000198000     1/1     30/авг/2025 07:55:50 C:\WINDOWS\System32\ole32.dll *10.0.26100.5074
+ msvcp_win.dll        00007FFE01030000 00000000000A3000     3/3     30/авг/2025 07:56:06 C:\WINDOWS\System32\msvcp_win.dll *10.0.26100.5074
+ atlantis64x.rtl      0000000102400000 0000000000184000    14/14    19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\atlantis64x.rtl *6.0.9.0
+ ucrtbase.dll         00007FFE009D0000 000000000014B000     9/9     30/авг/2025 07:56:06 C:\WINDOWS\System32\ucrtbase.dll *10.0.26100.5074
+ ADVAPI32.dll         00007FFE02AD0000 00000000000B4000     3/3     30/авг/2025 07:55:47 C:\WINDOWS\System32\ADVAPI32.dll *10.0.26100.5074
+ msvcrt.dll           00007FFE01E10000 00000000000A9000     5/5     30/авг/2025 07:55:57 C:\WINDOWS\System32\msvcrt.dll *7.0.26100.5074/10.0.26100.5074
+ GDI32.dll            00007FFE02C00000 000000000002B000     7/7     30/авг/2025 07:55:53 C:\WINDOWS\System32\GDI32.dll *10.0.26100.5074
+ sechost.dll          00007FFE01FD0000 00000000000A6000     1/1     30/авг/2025 07:56:00 C:\WINDOWS\System32\sechost.dll *10.0.26100.5074
+ win32u.dll           00007FFE00DC0000 0000000000027000     1/1     30/авг/2025 07:56:08 C:\WINDOWS\System32\win32u.dll *10.0.26100.5074
+ gdi32full.dll        00007FFE010E0000 000000000012D000     7/7     30/авг/2025 07:55:53 C:\WINDOWS\System32\gdi32full.dll *10.0.26100.5074
+ RPCRT4.dll           00007FFE02120000 0000000000118000     6/6     30/авг/2025 07:55:59 C:\WINDOWS\System32\RPCRT4.dll *10.0.26100.5074
+ USER32.dll           00007FFE01210000 00000000001C4000     7/7     30/авг/2025 07:56:06 C:\WINDOWS\System32\USER32.dll *10.0.26100.5074
+ OLEAUT32.dll         00007FFE01790000 00000000000D7000     3/3     30/авг/2025 07:55:58 C:\WINDOWS\System32\OLEAUT32.dll *10.0.26100.5074
+ combase.dll          00007FFE02750000 000000000037B000     4/4     30/авг/2025 07:55:50 C:\WINDOWS\System32\combase.dll *10.0.26100.5074
+ streams_64x.dll      0000000110000000 000000000015D000    12/12    19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\streams_64x.dll *6.0.9.0
+ _cfg64x.dll          0000000062580000 000000000003A000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\_cfg64x.dll *6.0.9.0
+ libxml264x.dll       0000000065100000 0000000000442000     2/2     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\libxml264x.dll *2.9.7.0
+ winspool.drv         00007FFDE30D0000 00000000000B2000     1/1     30/авг/2025 07:55:59 C:\WINDOWS\SYSTEM32\winspool.drv *10.0.26100.5074
+ WS2_32.dll           00007FFE02C30000 0000000000074000     2/2     30/авг/2025 07:56:08 C:\WINDOWS\System32\WS2_32.dll *10.0.26100.5074
+ shcore.dll           00007FFE024B0000 00000000000F0000     1/1     30/авг/2025 07:56:02 C:\WINDOWS\System32\shcore.dll *10.0.26100.5074
+ cfgmgr32.dll         00007FFE00280000 0000000000057000     1/1     29/авг/2025 18:53:21 C:\WINDOWS\SYSTEM32\cfgmgr32.dll *10.0.26100.4202
+ WSOCK32.dll          00007FFDE9940000 000000000000A000     2/2     01/апр/2024 10:22:14 C:\WINDOWS\SYSTEM32\WSOCK32.dll *10.0.26100.1
+ atllib_64x.dll       0000000000600000 0000000000047000    13/13    19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\atllib_64x.dll *6.0.9.0
+ ecc_64x.dll          0000000000EF0000 000000000003D000     4/4     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\ecc_64x.dll *6.0.9.0
+ base64x.dll          0000000000E50000 000000000009A000     4/4     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\base64x.dll *6.0.9.0
+ forms_64x.dll        0000000000F30000 00000000000D1000     2/2     30/сен/2025 20:24:00 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\forms_64x.dll *6.0.9.0
+ editor_64x.dll       0000000001010000 0000000000033000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\editor_64x.dll *6.0.9.0
+ protect_64x.dll      00000000001D0000 0000000000017000     4/4     29/сен/2025 16:58:29 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\protect_64x.dll *6.0.9.0
+ lotdll_64x.dll       0000000001050000 0000000000048000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\lotdll_64x.dll *6.0.9.0
+ atvipobj64x.dll      00000000010A0000 0000000000021000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\atvipobj64x.dll *6.0.9.0
+ ifcobjs_64x.dll      0000000000650000 0000000000014000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\ifcobjs_64x.dll *6.0.9.0
+ jitvip64x.dll        00000000010D0000 0000000000027000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\jitvip64x.dll *6.0.9.0
+ atlpop64x.dll        0000000001100000 000000000008B000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\atlpop64x.dll *6.0.9.0
+ nation_64x.dll       00000000001F0000 000000000000B000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\nation_64x.dll *6.0.9.0
+ IMM32.DLL            00007FFE01F90000 000000000002F000     1/1     29/авг/2025 18:53:19 C:\WINDOWS\System32\IMM32.DLL *10.0.26100.4484
+ SspiCli.dll          00007FFDFF730000 0000000000049000     4/4     29/авг/2025 18:53:33 C:\WINDOWS\SYSTEM32\SspiCli.dll *10.0.26100.4484
+ libeay32.dll         00007FFD86430000 0000000000207000     2/2     23/сен/2025 16:27:09 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\SSL64\libeay32.dll *1.0.2.14
+ VCRUNTIME140.dll     00007FFDE37B0000 000000000001E000 65535/65535 03/июн/2025 06:00:00 C:\WINDOWS\SYSTEM32\VCRUNTIME140.dll *14.42.34438.0
+ ssleay32.dll         00007FFDCB440000 000000000005B000     1/1     23/сен/2025 16:27:09 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\SSL64\ssleay32.dll *1.0.2.14
+ CRYPTSP.dll          00007FFDFFDC0000 000000000001B000     1/1     30/авг/2025 07:55:50 C:\WINDOWS\SYSTEM32\CRYPTSP.dll *10.0.26100.5074
+ rsaenh.dll           00007FFDFF410000 000000000003B000     2/2     30/авг/2025 07:55:59 C:\WINDOWS\system32\rsaenh.dll *10.0.26100.5074
+ CRYPTBASE.dll        00007FFDFFC20000 000000000000C000     2/2     30/авг/2025 07:55:50 C:\WINDOWS\SYSTEM32\CRYPTBASE.dll *10.0.26100.5074
+ bcryptPrimitives.dll 00007FFE00B20000 0000000000099000 65535/65535 30/авг/2025 07:55:49 C:\WINDOWS\System32\bcryptPrimitives.dll *10.0.26100.5074
+ asmuser64x.dll       00000000016F0000 0000000000023000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\asmuser64x.dll *6.0.9.0
+ mpr.dll              00007FFDF8470000 0000000000021000     1/1     29/авг/2025 18:53:19 C:\WINDOWS\SYSTEM32\mpr.dll *10.0.26100.1882
+ vision_w64x.dll      000000006A880000 0000000000332000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\vision_w64x.dll *6.0.9.0
+ SHELL32.dll          00007FFE02CB0000 000000000074D000     3/3     30/авг/2025 07:56:03 C:\WINDOWS\System32\SHELL32.dll *10.0.26100.5074
+ gdesk64x.dll         000000006DB40000 0000000000042000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\gdesk64x.dll *6.0.9.0
+ wintypes.dll         00007FFE00C50000 000000000016C000     1/1     30/авг/2025 07:55:50 C:\WINDOWS\System32\wintypes.dll *10.0.26100.5074
+ uxtheme.dll          00007FFDFD7E0000 00000000000A8000     3/3     30/авг/2025 07:56:07 C:\WINDOWS\SYSTEM32\uxtheme.dll *10.0.26100.5074
+ dwmapi.dll           00007FFDFDAF0000 000000000002B000     1/1     30/авг/2025 07:55:51 C:\WINDOWS\SYSTEM32\dwmapi.dll *10.0.26100.5074
+ MSCTF.dll            00007FFE02340000 0000000000158000     1/1     30/авг/2025 07:56:05 C:\WINDOWS\System32\MSCTF.dll *10.0.26100.5074
+ zprint_w64x.dll      000000006C700000 0000000000048000     2/2     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\zprint_w64x.dll *6.0.9.0
+ pg90drv64x.dll       0000000073910000 0000000000224000     1/1     02/окт/2025 14:51:31 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\pg90drv64x.dll *6.0.9.0
+ ODBC32.dll           00007FFDF42E0000 00000000000C4000     2/2     30/авг/2025 07:55:57 C:\WINDOWS\SYSTEM32\ODBC32.dll *10.0.26100.5074
+ CRYPT32.dll          00007FFE00EB0000 0000000000177000 65535/65535 30/авг/2025 07:55:50 C:\WINDOWS\System32\CRYPT32.dll *10.0.26100.5074
+ DPAPI.DLL            00007FFE00300000 000000000000A000     1/1     01/апр/2024 10:22:15 C:\WINDOWS\SYSTEM32\DPAPI.DLL *10.0.26100.1
+ bcrypt.dll           00007FFE004C0000 0000000000026000 65535/65535 30/авг/2025 07:55:49 C:\WINDOWS\SYSTEM32\bcrypt.dll *10.0.26100.5074
+ podbc35w.dll         00007FFDC12C0000 00000000000ED000     1/1     11/июн/2025 16:40:38 C:\WINDOWS\system32\podbc35w.dll *17.0.0.6
+ VCRUNTIME140_1.dll   00007FFDE3050000 000000000000C000     2/2     27/апр/2024 23:20:22 C:\WINDOWS\system32\VCRUNTIME140_1.dll *14.40.33810.0
+ libpq.dll            00007FFDCD0D0000 000000000005A000     1/1     10/июн/2025 12:34:12 C:\WINDOWS\system32\libpq.dll *17.0.5.0
+ WINMM.dll            00007FFDF6540000 0000000000035000     1/1     30/авг/2025 07:55:48 C:\WINDOWS\system32\WINMM.dll *10.0.26100.5074
+ MSVCP140.dll         00007FFDE31D0000 000000000008D000     1/1     03/июн/2025 06:00:00 C:\WINDOWS\system32\MSVCP140.dll *14.42.34438.0
+ WLDAP32.dll          00007FFE01D00000 0000000000075000     1/1     30/авг/2025 07:55:55 C:\WINDOWS\System32\WLDAP32.dll *10.0.26100.5074
+ Secur32.dll          00007FFDFD6D0000 000000000000D000     1/1     01/апр/2024 10:22:11 C:\WINDOWS\system32\Secur32.dll *10.0.26100.1
+ libcrypto-3-x64.dll  00007FFD7A6F0000 0000000000625000 65535/65535 11/фев/2025 16:05:16 C:\WINDOWS\system32\libcrypto-3-x64.dll *3.3.3.0
+ libssl-3-x64.dll     00007FFD9C230000 0000000000136000     1/1     11/фев/2025 16:05:16 C:\WINDOWS\system32\libssl-3-x64.dll *3.3.3.0
+ odbccp32.dll         00007FFDEE6F0000 0000000000025000     1/1     30/авг/2025 07:55:56 C:\WINDOWS\SYSTEM32\odbccp32.dll *10.0.26100.5074
+ VERSION.dll          00007FFDF9530000 000000000000B000     1/1     29/авг/2025 18:53:19 C:\WINDOWS\SYSTEM32\VERSION.dll *10.0.26100.1150
+ mswsock.dll          00007FFDFF9F0000 000000000006B000     6/6     30/авг/2025 07:56:08 C:\WINDOWS\system32\mswsock.dll *10.0.26100.5074
+ DNSAPI.dll           00007FFDFEEF0000 0000000000126000 65535/65535 30/авг/2025 07:55:52 C:\WINDOWS\SYSTEM32\DNSAPI.dll *10.0.26100.5074
+ IPHLPAPI.DLL         00007FFDFEE00000 0000000000034000 65535/65535 30/авг/2025 07:56:05 C:\WINDOWS\SYSTEM32\IPHLPAPI.DLL *10.0.26100.5074
+ NSI.dll              00007FFE024A0000 000000000000A000 65535/65535 30/авг/2025 07:56:07 C:\WINDOWS\System32\NSI.dll *10.0.26100.5074
+ rasadhlp.dll         00007FFDF8660000 000000000000B000     1/1     29/авг/2025 18:53:34 C:\Windows\System32\rasadhlp.dll *10.0.26100.1150
+ fwpuclnt.dll         00007FFDF7E80000 0000000000086000     1/1     30/авг/2025 07:55:57 C:\WINDOWS\System32\fwpuclnt.dll *10.0.26100.5074
+ dhcpcsvc.DLL         00007FFDF9260000 0000000000023000     1/1     30/авг/2025 07:55:51 C:\WINDOWS\SYSTEM32\dhcpcsvc.DLL *10.0.26100.5074
+ atlsock64x.dll       000000006DC80000 000000000002C000     2/2     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\atlsock64x.dll *6.0.9.0
+ NETAPI32.DLL         00007FFDF7100000 000000000001A000     1/1     29/авг/2025 18:53:17 C:\WINDOWS\SYSTEM32\NETAPI32.DLL *10.0.26100.1150
+ SRVCLI.DLL           00007FFDF8420000 0000000000029000     1/1     29/авг/2025 18:53:22 C:\WINDOWS\SYSTEM32\SRVCLI.DLL *10.0.26100.1150
+ NETUTILS.DLL         00007FFDFEDC0000 000000000000D000     1/1     29/авг/2025 18:53:22 C:\WINDOWS\SYSTEM32\NETUTILS.DLL *10.0.26100.1882
+ SAMCLI.DLL           00007FFDFEDA0000 000000000001B000     1/1     29/авг/2025 18:53:22 C:\WINDOWS\SYSTEM32\SAMCLI.DLL *10.0.26100.4768
+ napinsp.dll          00007FFDF8C30000 0000000000018000     1/1     29/авг/2025 18:53:18 C:\WINDOWS\system32\napinsp.dll *10.0.26100.1150
+ winrnr.dll           00007FFDF8C10000 0000000000012000     1/1     29/авг/2025 18:53:21 C:\WINDOWS\System32\winrnr.dll *10.0.26100.1882
+ nlansp_c.dll         00007FFDFA7B0000 0000000000028000     1/1     30/авг/2025 07:55:58 C:\WINDOWS\system32\nlansp_c.dll *10.0.26100.5074
+ wshbth.dll           00007FFDF9220000 0000000000016000     1/1     30/авг/2025 07:55:47 C:\WINDOWS\system32\wshbth.dll *10.0.26100.5074
+ mt_drv64x.dll        0000000012A40000 0000000000111000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\mt_drv64x.dll *6.0.9.0
+
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+
+
+
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+▓▓▓▓▓ Запишите следующую информацию об ошибке и отошлите ее разработчикам ▓▓▓▓▓
+▓ вместе с описанием ситуации, названием, версией и датой EXE-файла программы ▓
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+
+
+▓ Программа: "vip64x.exe"  Время запуска: 16:18:16 22/02/2026
+▓ Исполняемый модуль: "C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\vip64x.exe"
+▓ Система: Windows NT  Логин: "Дмитрий"  Станция: "LAPUS-VICTUS"
+
+Необработанная исключительная ситуация
+Код исключения: C0000005 (Общее нарушение защиты доступа к памяти)
+Параметры исключения (2): 0000000000000000 FFFFFFFFFFFFFFFF
+Адрес исключения: 000000010011F46B vip64x.exe.1:0011E46B
+Содержимое регистров процессора
+ RAX = 7845693A3A535341
+ RBX = 0000000000000000
+ RCX = 000000001509C734
+ RDX = 0000000000000000
+ RSI = 00000000005FBBE0
+ RDI = 0000000002C0A36C
+ RBP = 00000000005FBEE0
+ RSP = 00000000005FACA0
+ RIP = 000000010011F46B vip64x.exe.1:0011E46B
+ R8  = 000000001509C734
+ R9  = 000000001509C74C
+ R10 = 0000000002FF4374
+ R11 = FFFFFFFFEAFE5A8F
+ R12 = 0000000000000000
+ R13 = 00000000005FB888
+ R14 = 00000000005FBBE0
+ R15 = 0000000015029D38
+Содержимое стека
+ 00000000005FACA8: 0000000102421A6A atlantis64x.rtl.1:00020A6A
+ 00000000005FACF8: 0000000102464D15 atlantis64x.rtl.1:00063D15
+ 00000000005FAD08: 0000000102468D6A atlantis64x.rtl.1:00067D6A
+ 00000000005FAD38: 00000000006FEC98 ecc_64x.dll.1:0001DC98
+ 00000000005FAD88: 0000000000EE42BC streams_64x.dll.1:000732BC
+ 00000000005FAD98: 0000000000EE42BC streams_64x.dll.1:000732BC
+ 00000000005FADD8: 0000000000E81E77 streams_64x.dll.1:00010E77
+ 00000000005FADE8: 0000000000E81E77 streams_64x.dll.1:00010E77
+ 00000000005FAE08: 0000000000E81CD4 streams_64x.dll.1:00010CD4
+ 00000000005FAE18: 0000000000E81CD4 streams_64x.dll.1:00010CD4
+ 00000000005FAE28: 0000000102421BA2 atlantis64x.rtl.1:00020BA2
+ 00000000005FAE68: 0000000000F4C25A streams_64x.dll.1:000DB25A
+ 00000000005FAE78: 0000000000E81D7C streams_64x.dll.1:00010D7C
+ 00000000005FAE88: 0000000000E81D7C streams_64x.dll.1:00010D7C
+ 00000000005FAE98: 0000000000EE7157 streams_64x.dll.1:00076157
+Текущее время
+ 22-02-2026 16:18:18.7602521
+Параметры программы
+ "C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\vip64x.exe  C_QRY.prj /r:c_qry.res /c:vip.cfg /u:SUPERVISOR /#user:SUPERVISOR"
+Переменные окружения
+ =::=::\
+ =C:=C:\Galaktika\_git\AptekaDNR\C_QRY
+ ALLUSERSPROFILE=C:\ProgramData
+ APPDATA=C:\Users\─ьшЄЁшщ\AppData\Roaming
+ CommonProgramFiles=C:\Program Files\Common Files
+ CommonProgramFiles(x86)=C:\Program Files (x86)\Common Files
+ CommonProgramW6432=C:\Program Files\Common Files
+ COMPUTERNAME=LAPUS-VICTUS
+ ComSpec=C:\WINDOWS\system32\cmd.exe
+ DD=20260222
+ DriverData=C:\Windows\System32\Drivers\DriverData
+ EFC_13464_1592913036=1
+ exedir=C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe
+ HOMEDRIVE=C:
+ HOMEPATH=\Users\─ьшЄЁшщ
+ LOCALAPPDATA=C:\Users\─ьшЄЁшщ\AppData\Local
+ LOGONSERVER=\\LAPUS-VICTUS
+ NUMBER_OF_PROCESSORS=16
+ OneDrive=C:\Users\─ьшЄЁшщ\OneDrive
+ OPENSSL_CONF=C:\Program Files\PostgreSQL\psqlODBC\etc\openssl.cnf
+ OS=Windows_NT
+ Path=C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Program Files\Microsoft\jdk-11.0.16.101-hotspot\bin;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\;C:\Program Files (x86)\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\150\DTS\Binn\;C:\Program Files (x86)\Microsoft SQL Server\150\DTS\Binn\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\dotnet\;C:\Program Files (x86)\dotnet\;C:\Program Files\PuTTY\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\130\Tools\Binn\;C:\Galaktika\ATL6\Libs\;C:\Galaktika\ATL6\Libs\x64;C:\Program Files (x86)\Microsoft SQL Server\160\DTS\Binn\;C:\Program Files\GitExtensions\;C:\Program Files\Git\cmd;C:\Users\─ьшЄЁшщ\AppData\Local\Programs\Python\Python311\Scripts\;C:\Users\─ьшЄЁшщ\AppData\Local\Programs\Python\Python311\;C:\Users\─ьшЄЁшщ\AppData\Local\Microsoft\WindowsApps;C:\Program Files\Azure Data Studio\bin;C:\Users\─ьшЄЁшщ\.dotnet\tools;C:\SRCFlutter\flutter\bin;;C:\Users\─ьшЄЁшщ\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\─ьшЄЁшщ\AppData\Local\JetBrains\PyCharm Community Edition 2022.3.2\bin;
+ PATHEXT=.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC
+ PROCESSOR_ARCHITECTURE=AMD64
+ PROCESSOR_IDENTIFIER=AMD64 Family 25 Model 80 Stepping 0, AuthenticAMD
+ PROCESSOR_LEVEL=25
+ PROCESSOR_REVISION=5000
+ ProgramData=C:\ProgramData
+ ProgramFiles=C:\Program Files
+ ProgramFiles(x86)=C:\Program Files (x86)
+ ProgramW6432=C:\Program Files
+ PROMPT=$P$G
+ PSModulePath=C:\Program Files\WindowsPowerShell\Modules;C:\WINDOWS\system32\WindowsPowerShell\v1.0\Modules;C:\Program Files (x86)\Microsoft SQL Server\150\Tools\PowerShell\Modules\
+ PUBLIC=C:\Users\Public
+ PyCharm Community Edition=C:\Users\─ьшЄЁшщ\AppData\Local\JetBrains\PyCharm Community Edition 2022.3.2\bin;
+ SESSIONNAME=Console
+ SystemDrive=C:
+ SystemRoot=C:\WINDOWS
+ TEMP=C:\Users\AACE~1\AppData\Local\Temp
+ TMP=C:\Users\AACE~1\AppData\Local\Temp
+ USERDOMAIN=LAPUS-VICTUS
+ USERDOMAIN_ROAMINGPROFILE=LAPUS-VICTUS
+ USERNAME=─ьшЄЁшщ
+ USERPROFILE=C:\Users\─ьшЄЁшщ
+ windir=C:\WINDOWS
+ _ExceptModuleDesc=Borland Component Package
+ _ExceptModuleName=vcl60.bpl
+ _ExceptModuleVer=6.0.6.240
+ _ExceptMsg=Out of system resources.
+ _LineBreak=
+
+ _MainModuleDesc=
+ _MainModuleName=Frigate3.exe
+ _MainModuleVer=3.36.0.9
+ __PSLockDownPolicy=0
+Список загруженных модулей
+ vip64x.exe           0000000100000000 00000000005A0000 65535/65535 19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\vip64x.exe *6.0.9.0
+ ntdll.dll            00007FFE03440000 0000000000269000 65535/65535 30/авг/2025 07:55:58 C:\WINDOWS\SYSTEM32\ntdll.dll *10.0.26100.5074
+ KERNEL32.DLL         00007FFE01EC0000 00000000000C9000 65535/65535 30/авг/2025 07:55:55 C:\WINDOWS\System32\KERNEL32.DLL *10.0.26100.5074
+ KERNELBASE.dll       00007FFE005D0000 00000000003F3000 65535/65535 30/авг/2025 07:55:55 C:\WINDOWS\System32\KERNELBASE.dll *10.0.26100.5074
+ ole32.dll            00007FFE025B0000 0000000000198000     1/1     30/авг/2025 07:55:50 C:\WINDOWS\System32\ole32.dll *10.0.26100.5074
+ msvcp_win.dll        00007FFE01030000 00000000000A3000     3/3     30/авг/2025 07:56:06 C:\WINDOWS\System32\msvcp_win.dll *10.0.26100.5074
+ atlantis64x.rtl      0000000102400000 0000000000184000    14/14    19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\atlantis64x.rtl *6.0.9.0
+ ADVAPI32.dll         00007FFE02AD0000 00000000000B4000     3/3     30/авг/2025 07:55:47 C:\WINDOWS\System32\ADVAPI32.dll *10.0.26100.5074
+ ucrtbase.dll         00007FFE009D0000 000000000014B000     9/9     30/авг/2025 07:56:06 C:\WINDOWS\System32\ucrtbase.dll *10.0.26100.5074
+ msvcrt.dll           00007FFE01E10000 00000000000A9000     5/5     30/авг/2025 07:55:57 C:\WINDOWS\System32\msvcrt.dll *7.0.26100.5074/10.0.26100.5074
+ GDI32.dll            00007FFE02C00000 000000000002B000     7/7     30/авг/2025 07:55:53 C:\WINDOWS\System32\GDI32.dll *10.0.26100.5074
+ sechost.dll          00007FFE01FD0000 00000000000A6000     1/1     30/авг/2025 07:56:00 C:\WINDOWS\System32\sechost.dll *10.0.26100.5074
+ win32u.dll           00007FFE00DC0000 0000000000027000     1/1     30/авг/2025 07:56:08 C:\WINDOWS\System32\win32u.dll *10.0.26100.5074
+ RPCRT4.dll           00007FFE02120000 0000000000118000     6/6     30/авг/2025 07:55:59 C:\WINDOWS\System32\RPCRT4.dll *10.0.26100.5074
+ gdi32full.dll        00007FFE010E0000 000000000012D000     7/7     30/авг/2025 07:55:53 C:\WINDOWS\System32\gdi32full.dll *10.0.26100.5074
+ USER32.dll           00007FFE01210000 00000000001C4000     7/7     30/авг/2025 07:56:06 C:\WINDOWS\System32\USER32.dll *10.0.26100.5074
+ OLEAUT32.dll         00007FFE01790000 00000000000D7000     3/3     30/авг/2025 07:55:58 C:\WINDOWS\System32\OLEAUT32.dll *10.0.26100.5074
+ combase.dll          00007FFE02750000 000000000037B000     4/4     30/авг/2025 07:55:50 C:\WINDOWS\System32\combase.dll *10.0.26100.5074
+ atllib_64x.dll       0000000110000000 0000000000047000    13/13    19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\atllib_64x.dll *6.0.9.0
+ _cfg64x.dll          0000000062580000 000000000003A000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\_cfg64x.dll *6.0.9.0
+ libxml264x.dll       0000000065100000 0000000000442000     2/2     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\libxml264x.dll *2.9.7.0
+ WS2_32.dll           00007FFE02C30000 0000000000074000     2/2     30/авг/2025 07:56:08 C:\WINDOWS\System32\WS2_32.dll *10.0.26100.5074
+ winspool.drv         00007FFDE30D0000 00000000000B2000     1/1     30/авг/2025 07:55:59 C:\WINDOWS\SYSTEM32\winspool.drv *10.0.26100.5074
+ shcore.dll           00007FFE024B0000 00000000000F0000     1/1     30/авг/2025 07:56:02 C:\WINDOWS\System32\shcore.dll *10.0.26100.5074
+ cfgmgr32.dll         00007FFE00280000 0000000000057000     1/1     29/авг/2025 18:53:21 C:\WINDOWS\SYSTEM32\cfgmgr32.dll *10.0.26100.4202
+ WSOCK32.dll          00007FFDE9940000 000000000000A000     2/2     01/апр/2024 10:22:14 C:\WINDOWS\SYSTEM32\WSOCK32.dll *10.0.26100.1
+ streams_64x.dll      0000000000E70000 000000000015D000    12/12    19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\streams_64x.dll *6.0.9.0
+ ecc_64x.dll          00000000006E0000 000000000003D000     4/4     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\ecc_64x.dll *6.0.9.0
+ base64x.dll          0000000000FD0000 000000000009A000     4/4     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\base64x.dll *6.0.9.0
+ forms_64x.dll        0000000001070000 00000000000D1000     2/2     30/сен/2025 20:24:00 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\forms_64x.dll *6.0.9.0
+ editor_64x.dll       0000000000720000 0000000000033000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\editor_64x.dll *6.0.9.0
+ lotdll_64x.dll       0000000001150000 0000000000048000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\lotdll_64x.dll *6.0.9.0
+ protect_64x.dll      00000000001D0000 0000000000017000     4/4     29/сен/2025 16:58:29 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\protect_64x.dll *6.0.9.0
+ atvipobj64x.dll      00000000011A0000 0000000000021000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\atvipobj64x.dll *6.0.9.0
+ ifcobjs_64x.dll      00000000011D0000 0000000000014000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\ifcobjs_64x.dll *6.0.9.0
+ jitvip64x.dll        00000000011F0000 0000000000027000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\jitvip64x.dll *6.0.9.0
+ atlpop64x.dll        0000000001220000 000000000008B000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\atlpop64x.dll *6.0.9.0
+ nation_64x.dll       00000000001F0000 000000000000B000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\nation_64x.dll *6.0.9.0
+ IMM32.DLL            00007FFE01F90000 000000000002F000     1/1     29/авг/2025 18:53:19 C:\WINDOWS\System32\IMM32.DLL *10.0.26100.4484
+ SspiCli.dll          00007FFDFF730000 0000000000049000     4/4     29/авг/2025 18:53:33 C:\WINDOWS\SYSTEM32\SspiCli.dll *10.0.26100.4484
+ libeay32.dll         00007FFD86430000 0000000000207000     2/2     23/сен/2025 16:27:09 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\SSL64\libeay32.dll *1.0.2.14
+ VCRUNTIME140.dll     00007FFDE37B0000 000000000001E000 65535/65535 03/июн/2025 06:00:00 C:\WINDOWS\SYSTEM32\VCRUNTIME140.dll *14.42.34438.0
+ ssleay32.dll         00007FFDCB440000 000000000005B000     1/1     23/сен/2025 16:27:09 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\SSL64\ssleay32.dll *1.0.2.14
+ CRYPTSP.dll          00007FFDFFDC0000 000000000001B000     1/1     30/авг/2025 07:55:50 C:\WINDOWS\SYSTEM32\CRYPTSP.dll *10.0.26100.5074
+ rsaenh.dll           00007FFDFF410000 000000000003B000     2/2     30/авг/2025 07:55:59 C:\WINDOWS\system32\rsaenh.dll *10.0.26100.5074
+ CRYPTBASE.dll        00007FFDFFC20000 000000000000C000     2/2     30/авг/2025 07:55:50 C:\WINDOWS\SYSTEM32\CRYPTBASE.dll *10.0.26100.5074
+ bcryptPrimitives.dll 00007FFE00B20000 0000000000099000 65535/65535 30/авг/2025 07:55:49 C:\WINDOWS\System32\bcryptPrimitives.dll *10.0.26100.5074
+ asmuser64x.dll       0000000001390000 0000000000023000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\asmuser64x.dll *6.0.9.0
+ mpr.dll              00007FFDF8470000 0000000000021000     1/1     29/авг/2025 18:53:19 C:\WINDOWS\SYSTEM32\mpr.dll *10.0.26100.1882
+ vision_w64x.dll      000000006A880000 0000000000332000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\vision_w64x.dll *6.0.9.0
+ SHELL32.dll          00007FFE02CB0000 000000000074D000     3/3     30/авг/2025 07:56:03 C:\WINDOWS\System32\SHELL32.dll *10.0.26100.5074
+ gdesk64x.dll         000000006DB40000 0000000000042000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\gdesk64x.dll *6.0.9.0
+ wintypes.dll         00007FFE00C50000 000000000016C000     1/1     30/авг/2025 07:55:50 C:\WINDOWS\System32\wintypes.dll *10.0.26100.5074
+ uxtheme.dll          00007FFDFD7E0000 00000000000A8000     3/3     30/авг/2025 07:56:07 C:\WINDOWS\SYSTEM32\uxtheme.dll *10.0.26100.5074
+ dwmapi.dll           00007FFDFDAF0000 000000000002B000     1/1     30/авг/2025 07:55:51 C:\WINDOWS\SYSTEM32\dwmapi.dll *10.0.26100.5074
+ MSCTF.dll            00007FFE02340000 0000000000158000     1/1     30/авг/2025 07:56:05 C:\WINDOWS\System32\MSCTF.dll *10.0.26100.5074
+ zprint_w64x.dll      000000006C700000 0000000000048000     2/2     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\zprint_w64x.dll *6.0.9.0
+ pg90drv64x.dll       0000000073910000 0000000000224000     1/1     02/окт/2025 14:51:31 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\pg90drv64x.dll *6.0.9.0
+ ODBC32.dll           00007FFDF42E0000 00000000000C4000     2/2     30/авг/2025 07:55:57 C:\WINDOWS\SYSTEM32\ODBC32.dll *10.0.26100.5074
+ CRYPT32.dll          00007FFE00EB0000 0000000000177000 65535/65535 30/авг/2025 07:55:50 C:\WINDOWS\System32\CRYPT32.dll *10.0.26100.5074
+ DPAPI.DLL            00007FFE00300000 000000000000A000     1/1     01/апр/2024 10:22:15 C:\WINDOWS\SYSTEM32\DPAPI.DLL *10.0.26100.1
+ bcrypt.dll           00007FFE004C0000 0000000000026000 65535/65535 30/авг/2025 07:55:49 C:\WINDOWS\SYSTEM32\bcrypt.dll *10.0.26100.5074
+ podbc35w.dll         00007FFDC12C0000 00000000000ED000     1/1     11/июн/2025 16:40:38 C:\WINDOWS\system32\podbc35w.dll *17.0.0.6
+ VCRUNTIME140_1.dll   00007FFDE3050000 000000000000C000     2/2     27/апр/2024 23:20:22 C:\WINDOWS\system32\VCRUNTIME140_1.dll *14.40.33810.0
+ libpq.dll            00007FFDCD0D0000 000000000005A000     1/1     10/июн/2025 12:34:12 C:\WINDOWS\system32\libpq.dll *17.0.5.0
+ MSVCP140.dll         00007FFDE31D0000 000000000008D000     1/1     03/июн/2025 06:00:00 C:\WINDOWS\system32\MSVCP140.dll *14.42.34438.0
+ WINMM.dll            00007FFDF6540000 0000000000035000     1/1     30/авг/2025 07:55:48 C:\WINDOWS\system32\WINMM.dll *10.0.26100.5074
+ WLDAP32.dll          00007FFE01D00000 0000000000075000     1/1     30/авг/2025 07:55:55 C:\WINDOWS\System32\WLDAP32.dll *10.0.26100.5074
+ Secur32.dll          00007FFDFD6D0000 000000000000D000     1/1     01/апр/2024 10:22:11 C:\WINDOWS\system32\Secur32.dll *10.0.26100.1
+ libcrypto-3-x64.dll  00007FFD7A6F0000 0000000000625000 65535/65535 11/фев/2025 16:05:16 C:\WINDOWS\system32\libcrypto-3-x64.dll *3.3.3.0
+ libssl-3-x64.dll     00007FFD9C230000 0000000000136000     1/1     11/фев/2025 16:05:16 C:\WINDOWS\system32\libssl-3-x64.dll *3.3.3.0
+ odbccp32.dll         00007FFDEE6F0000 0000000000025000     1/1     30/авг/2025 07:55:56 C:\WINDOWS\SYSTEM32\odbccp32.dll *10.0.26100.5074
+ VERSION.dll          00007FFDF9530000 000000000000B000     1/1     29/авг/2025 18:53:19 C:\WINDOWS\SYSTEM32\VERSION.dll *10.0.26100.1150
+ mswsock.dll          00007FFDFF9F0000 000000000006B000     6/6     30/авг/2025 07:56:08 C:\WINDOWS\system32\mswsock.dll *10.0.26100.5074
+ DNSAPI.dll           00007FFDFEEF0000 0000000000126000 65535/65535 30/авг/2025 07:55:52 C:\WINDOWS\SYSTEM32\DNSAPI.dll *10.0.26100.5074
+ IPHLPAPI.DLL         00007FFDFEE00000 0000000000034000 65535/65535 30/авг/2025 07:56:05 C:\WINDOWS\SYSTEM32\IPHLPAPI.DLL *10.0.26100.5074
+ NSI.dll              00007FFE024A0000 000000000000A000 65535/65535 30/авг/2025 07:56:07 C:\WINDOWS\System32\NSI.dll *10.0.26100.5074
+ rasadhlp.dll         00007FFDF8660000 000000000000B000     1/1     29/авг/2025 18:53:34 C:\Windows\System32\rasadhlp.dll *10.0.26100.1150
+ fwpuclnt.dll         00007FFDF7E80000 0000000000086000     1/1     30/авг/2025 07:55:57 C:\WINDOWS\System32\fwpuclnt.dll *10.0.26100.5074
+ dhcpcsvc.DLL         00007FFDF9260000 0000000000023000     1/1     30/авг/2025 07:55:51 C:\WINDOWS\SYSTEM32\dhcpcsvc.DLL *10.0.26100.5074
+ atlsock64x.dll       000000006DC80000 000000000002C000     2/2     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\atlsock64x.dll *6.0.9.0
+ NETAPI32.DLL         00007FFDF7100000 000000000001A000     1/1     29/авг/2025 18:53:17 C:\WINDOWS\SYSTEM32\NETAPI32.DLL *10.0.26100.1150
+ SRVCLI.DLL           00007FFDF8420000 0000000000029000     1/1     29/авг/2025 18:53:22 C:\WINDOWS\SYSTEM32\SRVCLI.DLL *10.0.26100.1150
+ NETUTILS.DLL         00007FFDFEDC0000 000000000000D000     1/1     29/авг/2025 18:53:22 C:\WINDOWS\SYSTEM32\NETUTILS.DLL *10.0.26100.1882
+ SAMCLI.DLL           00007FFDFEDA0000 000000000001B000     1/1     29/авг/2025 18:53:22 C:\WINDOWS\SYSTEM32\SAMCLI.DLL *10.0.26100.4768
+ napinsp.dll          00007FFDF8C30000 0000000000018000     1/1     29/авг/2025 18:53:18 C:\WINDOWS\system32\napinsp.dll *10.0.26100.1150
+ winrnr.dll           00007FFDF8C10000 0000000000012000     1/1     29/авг/2025 18:53:21 C:\WINDOWS\System32\winrnr.dll *10.0.26100.1882
+ nlansp_c.dll         00007FFDFA7B0000 0000000000028000     1/1     30/авг/2025 07:55:58 C:\WINDOWS\system32\nlansp_c.dll *10.0.26100.5074
+ wshbth.dll           00007FFDF9220000 0000000000016000     1/1     30/авг/2025 07:55:47 C:\WINDOWS\system32\wshbth.dll *10.0.26100.5074
+ mt_drv64x.dll        0000000012B70000 0000000000111000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\mt_drv64x.dll *6.0.9.0
+
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+
+
+
+Необработанная исключительная ситуация
+Код исключения: C0000005 (Общее нарушение защиты доступа к памяти)
+Параметры исключения (2): 0000000000000000 000000000000000A
+Адрес исключения: 000000007398F966 pg90drv64x.dll.1:0007E966
+Содержимое регистров процессора
+ RAX = 0000000000000000
+ RBX = 000000000000000F
+ RCX = 0000000000000001
+ RDX = 0000000000000001
+ RSI = 0000000003840F44
+ RDI = 00000000005FF760
+ RBP = 0000000073AA6060 pg90drv64x.dll.2:00003060
+ RSP = 00000000005FF740
+ RIP = 000000007398F966 pg90drv64x.dll.1:0007E966
+ R8  = 7FFFFFFFFFFFFFFC
+ R9  = 00000000014A4E60
+ R10 = 0000000000110000
+ R11 = 0000000000000246
+ R12 = 0000000002BF52B4
+ R13 = 0000000073910000
+ R14 = 0000000002C13438
+ R15 = 0000000073910000
+Содержимое стека
+ 00000000005FF760: 0000000073AE1160 pg90drv64x.dll.3:0003A160
+ 00000000005FF798: 000000007398F76D pg90drv64x.dll.1:0007E76D
+ 00000000005FF7C8: 000000007396AC43 pg90drv64x.dll.1:00059C43
+ 00000000005FF808: 000000007394DCD8 pg90drv64x.dll.1:0003CCD8
+ 00000000005FF828: 000000007394DCA0 pg90drv64x.dll.1:0003CCA0
+ 00000000005FF830: 000000007394DCA0 pg90drv64x.dll.1:0003CCA0
+ 00000000005FF838: 00000001024D1312 atlantis64x.rtl.1:000D0312
+ 00000000005FF858: 000000007394DCA0 pg90drv64x.dll.1:0003CCA0
+ 00000000005FF8A0: 000000007394DCA0 pg90drv64x.dll.1:0003CCA0
+ 00000000005FF908: 000000007394DCA0 pg90drv64x.dll.1:0003CCA0
+Текущее время
+ 22-02-2026 16:18:18.7948567
+Параметры программы
+ "C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\vip64x.exe  C_QRY.prj /r:c_qry.res /c:vip.cfg /u:SUPERVISOR /#user:SUPERVISOR"
+Переменные окружения
+ =::=::\
+ =C:=C:\Galaktika\_git\AptekaDNR\C_QRY
+ ALLUSERSPROFILE=C:\ProgramData
+ APPDATA=C:\Users\─ьшЄЁшщ\AppData\Roaming
+ CommonProgramFiles=C:\Program Files\Common Files
+ CommonProgramFiles(x86)=C:\Program Files (x86)\Common Files
+ CommonProgramW6432=C:\Program Files\Common Files
+ COMPUTERNAME=LAPUS-VICTUS
+ ComSpec=C:\WINDOWS\system32\cmd.exe
+ DD=20260222
+ DriverData=C:\Windows\System32\Drivers\DriverData
+ EFC_13464_1592913036=1
+ exedir=C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe
+ HOMEDRIVE=C:
+ HOMEPATH=\Users\─ьшЄЁшщ
+ LOCALAPPDATA=C:\Users\─ьшЄЁшщ\AppData\Local
+ LOGONSERVER=\\LAPUS-VICTUS
+ NUMBER_OF_PROCESSORS=16
+ OneDrive=C:\Users\─ьшЄЁшщ\OneDrive
+ OPENSSL_CONF=C:\Program Files\PostgreSQL\psqlODBC\etc\openssl.cnf
+ OS=Windows_NT
+ Path=C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Program Files\Microsoft\jdk-11.0.16.101-hotspot\bin;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\;C:\Program Files (x86)\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\150\DTS\Binn\;C:\Program Files (x86)\Microsoft SQL Server\150\DTS\Binn\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\dotnet\;C:\Program Files (x86)\dotnet\;C:\Program Files\PuTTY\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\130\Tools\Binn\;C:\Galaktika\ATL6\Libs\;C:\Galaktika\ATL6\Libs\x64;C:\Program Files (x86)\Microsoft SQL Server\160\DTS\Binn\;C:\Program Files\GitExtensions\;C:\Program Files\Git\cmd;C:\Users\─ьшЄЁшщ\AppData\Local\Programs\Python\Python311\Scripts\;C:\Users\─ьшЄЁшщ\AppData\Local\Programs\Python\Python311\;C:\Users\─ьшЄЁшщ\AppData\Local\Microsoft\WindowsApps;C:\Program Files\Azure Data Studio\bin;C:\Users\─ьшЄЁшщ\.dotnet\tools;C:\SRCFlutter\flutter\bin;;C:\Users\─ьшЄЁшщ\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\─ьшЄЁшщ\AppData\Local\JetBrains\PyCharm Community Edition 2022.3.2\bin;
+ PATHEXT=.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC
+ PROCESSOR_ARCHITECTURE=AMD64
+ PROCESSOR_IDENTIFIER=AMD64 Family 25 Model 80 Stepping 0, AuthenticAMD
+ PROCESSOR_LEVEL=25
+ PROCESSOR_REVISION=5000
+ ProgramData=C:\ProgramData
+ ProgramFiles=C:\Program Files
+ ProgramFiles(x86)=C:\Program Files (x86)
+ ProgramW6432=C:\Program Files
+ PROMPT=$P$G
+ PSModulePath=C:\Program Files\WindowsPowerShell\Modules;C:\WINDOWS\system32\WindowsPowerShell\v1.0\Modules;C:\Program Files (x86)\Microsoft SQL Server\150\Tools\PowerShell\Modules\
+ PUBLIC=C:\Users\Public
+ PyCharm Community Edition=C:\Users\─ьшЄЁшщ\AppData\Local\JetBrains\PyCharm Community Edition 2022.3.2\bin;
+ SESSIONNAME=Console
+ SystemDrive=C:
+ SystemRoot=C:\WINDOWS
+ TEMP=C:\Users\AACE~1\AppData\Local\Temp
+ TMP=C:\Users\AACE~1\AppData\Local\Temp
+ USERDOMAIN=LAPUS-VICTUS
+ USERDOMAIN_ROAMINGPROFILE=LAPUS-VICTUS
+ USERNAME=─ьшЄЁшщ
+ USERPROFILE=C:\Users\─ьшЄЁшщ
+ windir=C:\WINDOWS
+ _ExceptModuleDesc=Borland Component Package
+ _ExceptModuleName=vcl60.bpl
+ _ExceptModuleVer=6.0.6.240
+ _ExceptMsg=Out of system resources.
+ _LineBreak=
+
+ _MainModuleDesc=
+ _MainModuleName=Frigate3.exe
+ _MainModuleVer=3.36.0.9
+ __PSLockDownPolicy=0
+Список загруженных модулей
+ vip64x.exe           0000000100000000 00000000005A0000 65535/65535 19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\vip64x.exe *6.0.9.0
+ ntdll.dll            00007FFE03440000 0000000000269000 65535/65535 30/авг/2025 07:55:58 C:\WINDOWS\SYSTEM32\ntdll.dll *10.0.26100.5074
+ KERNEL32.DLL         00007FFE01EC0000 00000000000C9000 65535/65535 30/авг/2025 07:55:55 C:\WINDOWS\System32\KERNEL32.DLL *10.0.26100.5074
+ KERNELBASE.dll       00007FFE005D0000 00000000003F3000 65535/65535 30/авг/2025 07:55:55 C:\WINDOWS\System32\KERNELBASE.dll *10.0.26100.5074
+ ole32.dll            00007FFE025B0000 0000000000198000     1/1     30/авг/2025 07:55:50 C:\WINDOWS\System32\ole32.dll *10.0.26100.5074
+ msvcp_win.dll        00007FFE01030000 00000000000A3000     3/3     30/авг/2025 07:56:06 C:\WINDOWS\System32\msvcp_win.dll *10.0.26100.5074
+ atlantis64x.rtl      0000000102400000 0000000000184000    14/14    19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\atlantis64x.rtl *6.0.9.0
+ ADVAPI32.dll         00007FFE02AD0000 00000000000B4000     3/3     30/авг/2025 07:55:47 C:\WINDOWS\System32\ADVAPI32.dll *10.0.26100.5074
+ ucrtbase.dll         00007FFE009D0000 000000000014B000     9/9     30/авг/2025 07:56:06 C:\WINDOWS\System32\ucrtbase.dll *10.0.26100.5074
+ msvcrt.dll           00007FFE01E10000 00000000000A9000     5/5     30/авг/2025 07:55:57 C:\WINDOWS\System32\msvcrt.dll *7.0.26100.5074/10.0.26100.5074
+ GDI32.dll            00007FFE02C00000 000000000002B000     7/7     30/авг/2025 07:55:53 C:\WINDOWS\System32\GDI32.dll *10.0.26100.5074
+ sechost.dll          00007FFE01FD0000 00000000000A6000     1/1     30/авг/2025 07:56:00 C:\WINDOWS\System32\sechost.dll *10.0.26100.5074
+ win32u.dll           00007FFE00DC0000 0000000000027000     1/1     30/авг/2025 07:56:08 C:\WINDOWS\System32\win32u.dll *10.0.26100.5074
+ RPCRT4.dll           00007FFE02120000 0000000000118000     6/6     30/авг/2025 07:55:59 C:\WINDOWS\System32\RPCRT4.dll *10.0.26100.5074
+ gdi32full.dll        00007FFE010E0000 000000000012D000     7/7     30/авг/2025 07:55:53 C:\WINDOWS\System32\gdi32full.dll *10.0.26100.5074
+ USER32.dll           00007FFE01210000 00000000001C4000     7/7     30/авг/2025 07:56:06 C:\WINDOWS\System32\USER32.dll *10.0.26100.5074
+ OLEAUT32.dll         00007FFE01790000 00000000000D7000     3/3     30/авг/2025 07:55:58 C:\WINDOWS\System32\OLEAUT32.dll *10.0.26100.5074
+ combase.dll          00007FFE02750000 000000000037B000     4/4     30/авг/2025 07:55:50 C:\WINDOWS\System32\combase.dll *10.0.26100.5074
+ atllib_64x.dll       0000000110000000 0000000000047000    13/13    19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\atllib_64x.dll *6.0.9.0
+ _cfg64x.dll          0000000062580000 000000000003A000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\_cfg64x.dll *6.0.9.0
+ libxml264x.dll       0000000065100000 0000000000442000     2/2     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\libxml264x.dll *2.9.7.0
+ WS2_32.dll           00007FFE02C30000 0000000000074000     2/2     30/авг/2025 07:56:08 C:\WINDOWS\System32\WS2_32.dll *10.0.26100.5074
+ winspool.drv         00007FFDE30D0000 00000000000B2000     1/1     30/авг/2025 07:55:59 C:\WINDOWS\SYSTEM32\winspool.drv *10.0.26100.5074
+ shcore.dll           00007FFE024B0000 00000000000F0000     1/1     30/авг/2025 07:56:02 C:\WINDOWS\System32\shcore.dll *10.0.26100.5074
+ cfgmgr32.dll         00007FFE00280000 0000000000057000     1/1     29/авг/2025 18:53:21 C:\WINDOWS\SYSTEM32\cfgmgr32.dll *10.0.26100.4202
+ WSOCK32.dll          00007FFDE9940000 000000000000A000     2/2     01/апр/2024 10:22:14 C:\WINDOWS\SYSTEM32\WSOCK32.dll *10.0.26100.1
+ streams_64x.dll      0000000000E70000 000000000015D000    12/12    19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\streams_64x.dll *6.0.9.0
+ ecc_64x.dll          00000000006E0000 000000000003D000     4/4     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\ecc_64x.dll *6.0.9.0
+ base64x.dll          0000000000FD0000 000000000009A000     4/4     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\base64x.dll *6.0.9.0
+ forms_64x.dll        0000000001070000 00000000000D1000     2/2     30/сен/2025 20:24:00 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\forms_64x.dll *6.0.9.0
+ editor_64x.dll       0000000000720000 0000000000033000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\editor_64x.dll *6.0.9.0
+ lotdll_64x.dll       0000000001150000 0000000000048000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\lotdll_64x.dll *6.0.9.0
+ protect_64x.dll      00000000001D0000 0000000000017000     4/4     29/сен/2025 16:58:29 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\protect_64x.dll *6.0.9.0
+ atvipobj64x.dll      00000000011A0000 0000000000021000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\atvipobj64x.dll *6.0.9.0
+ ifcobjs_64x.dll      00000000011D0000 0000000000014000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\ifcobjs_64x.dll *6.0.9.0
+ jitvip64x.dll        00000000011F0000 0000000000027000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\jitvip64x.dll *6.0.9.0
+ atlpop64x.dll        0000000001220000 000000000008B000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\atlpop64x.dll *6.0.9.0
+ nation_64x.dll       00000000001F0000 000000000000B000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\nation_64x.dll *6.0.9.0
+ IMM32.DLL            00007FFE01F90000 000000000002F000     1/1     29/авг/2025 18:53:19 C:\WINDOWS\System32\IMM32.DLL *10.0.26100.4484
+ SspiCli.dll          00007FFDFF730000 0000000000049000     4/4     29/авг/2025 18:53:33 C:\WINDOWS\SYSTEM32\SspiCli.dll *10.0.26100.4484
+ libeay32.dll         00007FFD86430000 0000000000207000     2/2     23/сен/2025 16:27:09 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\SSL64\libeay32.dll *1.0.2.14
+ VCRUNTIME140.dll     00007FFDE37B0000 000000000001E000 65535/65535 03/июн/2025 06:00:00 C:\WINDOWS\SYSTEM32\VCRUNTIME140.dll *14.42.34438.0
+ ssleay32.dll         00007FFDCB440000 000000000005B000     1/1     23/сен/2025 16:27:09 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\SSL64\ssleay32.dll *1.0.2.14
+ CRYPTSP.dll          00007FFDFFDC0000 000000000001B000     1/1     30/авг/2025 07:55:50 C:\WINDOWS\SYSTEM32\CRYPTSP.dll *10.0.26100.5074
+ rsaenh.dll           00007FFDFF410000 000000000003B000     2/2     30/авг/2025 07:55:59 C:\WINDOWS\system32\rsaenh.dll *10.0.26100.5074
+ CRYPTBASE.dll        00007FFDFFC20000 000000000000C000     2/2     30/авг/2025 07:55:50 C:\WINDOWS\SYSTEM32\CRYPTBASE.dll *10.0.26100.5074
+ bcryptPrimitives.dll 00007FFE00B20000 0000000000099000 65535/65535 30/авг/2025 07:55:49 C:\WINDOWS\System32\bcryptPrimitives.dll *10.0.26100.5074
+ asmuser64x.dll       0000000001390000 0000000000023000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\asmuser64x.dll *6.0.9.0
+ mpr.dll              00007FFDF8470000 0000000000021000     1/1     29/авг/2025 18:53:19 C:\WINDOWS\SYSTEM32\mpr.dll *10.0.26100.1882
+ vision_w64x.dll      000000006A880000 0000000000332000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\vision_w64x.dll *6.0.9.0
+ SHELL32.dll          00007FFE02CB0000 000000000074D000     3/3     30/авг/2025 07:56:03 C:\WINDOWS\System32\SHELL32.dll *10.0.26100.5074
+ gdesk64x.dll         000000006DB40000 0000000000042000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\gdesk64x.dll *6.0.9.0
+ wintypes.dll         00007FFE00C50000 000000000016C000     1/1     30/авг/2025 07:55:50 C:\WINDOWS\System32\wintypes.dll *10.0.26100.5074
+ uxtheme.dll          00007FFDFD7E0000 00000000000A8000     3/3     30/авг/2025 07:56:07 C:\WINDOWS\SYSTEM32\uxtheme.dll *10.0.26100.5074
+ dwmapi.dll           00007FFDFDAF0000 000000000002B000     1/1     30/авг/2025 07:55:51 C:\WINDOWS\SYSTEM32\dwmapi.dll *10.0.26100.5074
+ MSCTF.dll            00007FFE02340000 0000000000158000     1/1     30/авг/2025 07:56:05 C:\WINDOWS\System32\MSCTF.dll *10.0.26100.5074
+ zprint_w64x.dll      000000006C700000 0000000000048000     2/2     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\zprint_w64x.dll *6.0.9.0
+ pg90drv64x.dll       0000000073910000 0000000000224000     1/1     02/окт/2025 14:51:31 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\pg90drv64x.dll *6.0.9.0
+ ODBC32.dll           00007FFDF42E0000 00000000000C4000     2/2     30/авг/2025 07:55:57 C:\WINDOWS\SYSTEM32\ODBC32.dll *10.0.26100.5074
+ CRYPT32.dll          00007FFE00EB0000 0000000000177000 65535/65535 30/авг/2025 07:55:50 C:\WINDOWS\System32\CRYPT32.dll *10.0.26100.5074
+ DPAPI.DLL            00007FFE00300000 000000000000A000     1/1     01/апр/2024 10:22:15 C:\WINDOWS\SYSTEM32\DPAPI.DLL *10.0.26100.1
+ bcrypt.dll           00007FFE004C0000 0000000000026000 65535/65535 30/авг/2025 07:55:49 C:\WINDOWS\SYSTEM32\bcrypt.dll *10.0.26100.5074
+ podbc35w.dll         00007FFDC12C0000 00000000000ED000     1/1     11/июн/2025 16:40:38 C:\WINDOWS\system32\podbc35w.dll *17.0.0.6
+ VCRUNTIME140_1.dll   00007FFDE3050000 000000000000C000     2/2     27/апр/2024 23:20:22 C:\WINDOWS\system32\VCRUNTIME140_1.dll *14.40.33810.0
+ libpq.dll            00007FFDCD0D0000 000000000005A000     1/1     10/июн/2025 12:34:12 C:\WINDOWS\system32\libpq.dll *17.0.5.0
+ MSVCP140.dll         00007FFDE31D0000 000000000008D000     1/1     03/июн/2025 06:00:00 C:\WINDOWS\system32\MSVCP140.dll *14.42.34438.0
+ WINMM.dll            00007FFDF6540000 0000000000035000     1/1     30/авг/2025 07:55:48 C:\WINDOWS\system32\WINMM.dll *10.0.26100.5074
+ WLDAP32.dll          00007FFE01D00000 0000000000075000     1/1     30/авг/2025 07:55:55 C:\WINDOWS\System32\WLDAP32.dll *10.0.26100.5074
+ Secur32.dll          00007FFDFD6D0000 000000000000D000     1/1     01/апр/2024 10:22:11 C:\WINDOWS\system32\Secur32.dll *10.0.26100.1
+ libcrypto-3-x64.dll  00007FFD7A6F0000 0000000000625000 65535/65535 11/фев/2025 16:05:16 C:\WINDOWS\system32\libcrypto-3-x64.dll *3.3.3.0
+ libssl-3-x64.dll     00007FFD9C230000 0000000000136000     1/1     11/фев/2025 16:05:16 C:\WINDOWS\system32\libssl-3-x64.dll *3.3.3.0
+ odbccp32.dll         00007FFDEE6F0000 0000000000025000     1/1     30/авг/2025 07:55:56 C:\WINDOWS\SYSTEM32\odbccp32.dll *10.0.26100.5074
+ VERSION.dll          00007FFDF9530000 000000000000B000     1/1     29/авг/2025 18:53:19 C:\WINDOWS\SYSTEM32\VERSION.dll *10.0.26100.1150
+ mswsock.dll          00007FFDFF9F0000 000000000006B000     6/6     30/авг/2025 07:56:08 C:\WINDOWS\system32\mswsock.dll *10.0.26100.5074
+ DNSAPI.dll           00007FFDFEEF0000 0000000000126000 65535/65535 30/авг/2025 07:55:52 C:\WINDOWS\SYSTEM32\DNSAPI.dll *10.0.26100.5074
+ IPHLPAPI.DLL         00007FFDFEE00000 0000000000034000 65535/65535 30/авг/2025 07:56:05 C:\WINDOWS\SYSTEM32\IPHLPAPI.DLL *10.0.26100.5074
+ NSI.dll              00007FFE024A0000 000000000000A000 65535/65535 30/авг/2025 07:56:07 C:\WINDOWS\System32\NSI.dll *10.0.26100.5074
+ rasadhlp.dll         00007FFDF8660000 000000000000B000     1/1     29/авг/2025 18:53:34 C:\Windows\System32\rasadhlp.dll *10.0.26100.1150
+ fwpuclnt.dll         00007FFDF7E80000 0000000000086000     1/1     30/авг/2025 07:55:57 C:\WINDOWS\System32\fwpuclnt.dll *10.0.26100.5074
+ dhcpcsvc.DLL         00007FFDF9260000 0000000000023000     1/1     30/авг/2025 07:55:51 C:\WINDOWS\SYSTEM32\dhcpcsvc.DLL *10.0.26100.5074
+ atlsock64x.dll       000000006DC80000 000000000002C000     2/2     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\atlsock64x.dll *6.0.9.0
+ NETAPI32.DLL         00007FFDF7100000 000000000001A000     1/1     29/авг/2025 18:53:17 C:\WINDOWS\SYSTEM32\NETAPI32.DLL *10.0.26100.1150
+ SRVCLI.DLL           00007FFDF8420000 0000000000029000     1/1     29/авг/2025 18:53:22 C:\WINDOWS\SYSTEM32\SRVCLI.DLL *10.0.26100.1150
+ NETUTILS.DLL         00007FFDFEDC0000 000000000000D000     1/1     29/авг/2025 18:53:22 C:\WINDOWS\SYSTEM32\NETUTILS.DLL *10.0.26100.1882
+ SAMCLI.DLL           00007FFDFEDA0000 000000000001B000     1/1     29/авг/2025 18:53:22 C:\WINDOWS\SYSTEM32\SAMCLI.DLL *10.0.26100.4768
+ napinsp.dll          00007FFDF8C30000 0000000000018000     1/1     29/авг/2025 18:53:18 C:\WINDOWS\system32\napinsp.dll *10.0.26100.1150
+ winrnr.dll           00007FFDF8C10000 0000000000012000     1/1     29/авг/2025 18:53:21 C:\WINDOWS\System32\winrnr.dll *10.0.26100.1882
+ nlansp_c.dll         00007FFDFA7B0000 0000000000028000     1/1     30/авг/2025 07:55:58 C:\WINDOWS\system32\nlansp_c.dll *10.0.26100.5074
+ wshbth.dll           00007FFDF9220000 0000000000016000     1/1     30/авг/2025 07:55:47 C:\WINDOWS\system32\wshbth.dll *10.0.26100.5074
+ mt_drv64x.dll        0000000012B70000 0000000000111000     1/1     19/сен/2025 10:45:13 C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\mt_drv64x.dll *6.0.9.0
+
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+
+
+

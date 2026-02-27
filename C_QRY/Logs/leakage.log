@@ -86,3 +86,125 @@
 Менеджер динамической памяти ".SysUserHeap(.SysUser)"
 Потеряно блоков: 440, байтов: 9852
 
+
+▓ Программа: "vip.exe"  Время запуска: 14:25:47 22/02/2026
+▓ Исполняемый модуль: "C:\Galaktika\ATL6\Update_11400\support\exe\vip.exe"
+▓ Система: Windows NT  Логин: "Дмитрий"  Станция: "LAPUS-VICTUS"
+
+Класс окна "Atlantis Font Window" не был разрегистрирован: 1411
+(Класс не существует)
+ 0D0BFC8C: 03B957BF vision_w.dll.1:000047BF
+ 0D0BFC90: 03C70AD4 vision_w.dll.2:00000AD4
+ 0D0BFCA0: 03B94F5F vision_w.dll.1:00003F5F
+ 0D0BFCA4: 013D1EF6 atlantis.rtl.1:00030EF6
+ 0D0BFCB0: 03B91000 vision_w.dll.1:00000000
+ 0D0BFCBC: 03B910BE vision_w.dll.1:000000BE
+ 0D0BFCC4: 03B91020 vision_w.dll.1:00000020
+ 0D0BFCCC: 03B91000 vision_w.dll.1:00000000
+ 0D0BFCEC: 03B91000 vision_w.dll.1:00000000
+ 0D0BFCFC: 03B91000 vision_w.dll.1:00000000
+ 0D0BFD0C: 03B91000 vision_w.dll.1:00000000
+
+Контекст исполнения ".SysUser"
+Потеряно хип-контекстов: 1
+Потеряно серверных потоков: 1
+
+Менеджер динамической памяти ".SysUserHeap(.SysUser)"
+Потеряно блоков: 75659, байтов: 4704344
+
+
+▓ Программа: "vip.exe"  Время запуска: 14:27:16 22/02/2026
+▓ Исполняемый модуль: "C:\Galaktika\ATL6\Update_11400\support\exe\vip.exe"
+▓ Система: Windows NT  Логин: "Дмитрий"  Станция: "LAPUS-VICTUS"
+
+Класс окна "Atlantis Font Window" не был разрегистрирован: 1411
+(Класс не существует)
+ 0E6DFC8C: 03B957BF vision_w.dll.1:000047BF
+ 0E6DFC90: 03C70AD4 vision_w.dll.2:00000AD4
+ 0E6DFCA0: 03B94F5F vision_w.dll.1:00003F5F
+ 0E6DFCA4: 01001EF6 atlantis.rtl.1:00030EF6
+ 0E6DFCB0: 03B91000 vision_w.dll.1:00000000
+ 0E6DFCBC: 03B910BE vision_w.dll.1:000000BE
+ 0E6DFCC4: 03B91020 vision_w.dll.1:00000020
+ 0E6DFCCC: 03B91000 vision_w.dll.1:00000000
+ 0E6DFCEC: 03B91000 vision_w.dll.1:00000000
+ 0E6DFCFC: 03B91000 vision_w.dll.1:00000000
+ 0E6DFD0C: 03B91000 vision_w.dll.1:00000000
+
+Контекст исполнения ".SysUser"
+Потеряно хип-контекстов: 1
+Потеряно серверных потоков: 1
+
+Менеджер динамической памяти ".SysUserHeap(.SysUser)"
+Потеряно блоков: 74874, байтов: 4671044
+
+
+▓ Программа: "vip.exe"  Время запуска: 14:28:16 22/02/2026
+▓ Исполняемый модуль: "C:\Galaktika\ATL6\Update_11400\support\exe\vip.exe"
+▓ Система: Windows NT  Логин: "Дмитрий"  Станция: "LAPUS-VICTUS"
+
+Класс окна "Atlantis Font Window" не был разрегистрирован: 1411
+(Класс не существует)
+ 0E41FC8C: 03B557BF vision_w.dll.1:000047BF
+ 0E41FC90: 03C30AD4 vision_w.dll.2:00000AD4
+ 0E41FCA0: 03B54F5F vision_w.dll.1:00003F5F
+ 0E41FCA4: 00FF1EF6 atlantis.rtl.1:00030EF6
+ 0E41FCB0: 03B51000 vision_w.dll.1:00000000
+ 0E41FCBC: 03B510BE vision_w.dll.1:000000BE
+ 0E41FCC4: 03B51020 vision_w.dll.1:00000020
+ 0E41FCCC: 03B51000 vision_w.dll.1:00000000
+ 0E41FCEC: 03B51000 vision_w.dll.1:00000000
+ 0E41FCFC: 03B51000 vision_w.dll.1:00000000
+ 0E41FD0C: 03B51000 vision_w.dll.1:00000000
+
+Контекст исполнения ".SysUser"
+Потеряно хип-контекстов: 1
+Потеряно серверных потоков: 1
+
+Менеджер динамической памяти ".SysUserHeap(.SysUser)"
+Потеряно блоков: 74874, байтов: 4671044
+
+
+▓ Программа: "vip64x.exe"  Время запуска: 14:29:06 22/02/2026
+▓ Исполняемый модуль: "C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\vip64x.exe"
+▓ Система: Windows NT  Логин: "Дмитрий"  Станция: "LAPUS-VICTUS"
+
+Класс окна "Atlantis Font Window" не был разрегистрирован: 1411
+(Класс не существует)
+ 000000001531FB48: 00000001024CDD85 atlantis64x.rtl.1:000CCD85
+ 000000001531FB50: 000000006AA2B030 vision_w64x.dll.3:00028030
+ 000000001531FB98: 000000006A9FFBA8 vision_w64x.dll.2:00018BA8
+ 000000001531FBF0: 000000006A88CBA0 vision_w64x.dll.1:0000BBA0
+ 000000001531FC08: 000000006A88CBF5 vision_w64x.dll.1:0000BBF5
+ 000000001531FCD0: 000000006A88CBA0 vision_w64x.dll.1:0000BBA0
+ 000000001531FD40: 0000000001040102 forms_64x.dll.1:0002F102
+
+Контекст исполнения ".SysUser"
+Потеряно хип-контекстов: 1
+Потеряно серверных потоков: 1
+
+Менеджер динамической памяти ".SysUserHeap(.SysUser)"
+Потеряно блоков: 381983, байтов: 228151708
+
+
+▓ Программа: "vip64x.exe"  Время запуска: 14:29:48 22/02/2026
+▓ Исполняемый модуль: "C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\vip64x.exe"
+▓ Система: Windows NT
+
+Контекст исполнения ".SysUser"
+Потеряно хип-контекстов: 1
+
+Менеджер динамической памяти ".SysUserHeap(.SysUser)"
+Потеряно блоков: 389888, байтов: 229040248
+
+
+▓ Программа: "vip64x.exe"  Время запуска: 16:18:16 22/02/2026
+▓ Исполняемый модуль: "C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe\vip64x.exe"
+▓ Система: Windows NT
+
+Контекст исполнения ".SysUser"
+Потеряно хип-контекстов: 1
+
+Менеджер динамической памяти ".SysUserHeap(.SysUser)"
+Потеряно блоков: 389863, байтов: 229037608
+
