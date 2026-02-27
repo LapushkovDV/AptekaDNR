@@ -47,7 +47,7 @@ LicenseControlInclude=""
 
 #make "vip\QUE_SendMessToExtSys_galaktika.vip"
 
-#include epSystem.vih
-#make "vip\BSIAtl_QUE_EntriesForReview.vip"
-#make "vip\BSIAtl_QUE_OUT.vip"
-#make "vip\BSIAtl_QUE_INCOME.vip"
+//это для крона в 6 атлантисе #include epSystem.vih
+//это для крона в 6 атлантисе #make "vip\BSIAtl_QUE_EntriesForReview.vip"
+//это для крона в 6 атлантисе #make "vip\BSIAtl_QUE_OUT.vip"
+//это для крона в 6 атлантисе #make "vip\BSIAtl_QUE_INCOME.vip"

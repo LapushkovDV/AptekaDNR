@@ -10,9 +10,10 @@ del *.fnc
 del *.log
 del Atlantis*.res
 
-@set exedir=C:\Galaktika\ATL6\Update_11400\support\exe
+@set exedir=C:\Galaktika\AVAZ\chumachenko\6.0.09.0\exe
 
-@%exedir%\vip.EXE C_QUE.prj /r:C_QUE.res /c:vip.cfg /u:lapus /p:Zraeqw123 /def:Atl60
+@%exedir%\vip64x.exe C_QUE.prj /r:C_QUE.res /c:vip.cfg /u:SUPERVISOR /#user:SUPERVISOR
+rem /def:Atl60
 
 rem /c:support_res.cfg
 @echo Компиляция завершена
@@ -22,3 +23,4 @@ rem /c:support_res.cfg
 
 pause
 @exit
+
