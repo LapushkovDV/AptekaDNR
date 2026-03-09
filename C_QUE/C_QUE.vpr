@@ -92,8 +92,8 @@
 			</ConfigurationList>
 		</DatabaseConfiguration>
 		<FileList>
-			<File Name="C_QUE.prj" PosX="23" PosY="48" OpenEditor="True" Active="True"/>
-			<File Name="vip\QUE_SendMessToExtSys_galaktika.vip" PosX="16" PosY="203" OpenEditor="True"/>
+			<File Name="C_QUE.prj" PosX="29" PosY="48" OpenEditor="True"/>
+			<File Name="vip\QUE_SendMessToExtSys_galaktika.vip" PosX="35" PosY="37" OpenEditor="True" Active="True"/>
 			<File Name="inc\C_QUE.inc" PosX="29" PosY="27" OpenEditor="True"/>
 			<File Name="..\..\sng\SNG_QUE\vip\QUE_Base.vip" PosX="26" PosY="118" OpenEditor="True"/>
 			<File Name="vip\QUE_BASE.vip" PosX="40" PosY="1137" OpenEditor="True"/>

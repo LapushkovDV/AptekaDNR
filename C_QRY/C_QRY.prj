@@ -27,6 +27,6 @@ end;
 #make "vip\QRY_TEMPLATES.vip"
 #make "vip\QRY_INSTANCE.vip"
 #make "vip\QRY_OUT.vip"
-#make "vip\LoadDeclension.vip"
+//#make "vip\LoadDeclension.vip"
 #make "vip\QRY_INSTANCE_TEST.vip"
 #make "vip\QRY_ALG_USER_TEST.vip"

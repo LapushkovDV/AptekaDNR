@@ -40,4 +40,3 @@ Function Calc(_Parameter:string):string; {
 function GetDescription : string; { Result:='Тестовый алгоритм - возвращает 1';
 }
 end.
-

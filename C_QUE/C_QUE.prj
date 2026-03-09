@@ -1,6 +1,10 @@
 //------------------------------------------------------------------------------
 // C_QUE
 //------------------------------------------------------------------------------
+#params
+[vip]
+LicenseControlInclude=""
+#end
 
 #statusline "statgal"
 
@@ -12,10 +16,6 @@
 #define CompTitle ЋзҐаҐ¤м Ёбе®¤пйЁе б®®ЎйҐ­Ё©
 #doc
   #CompTitle
-#end
-#params
-[vip]
-LicenseControlInclude=""
 #end
 
 #include C_QUE.ver
@@ -46,6 +46,7 @@ LicenseControlInclude=""
 //#make "vip\QUE_Process_QRY_INSTANCE.vip"
 
 #make "vip\QUE_SendMessToExtSys_galaktika.vip"
+#make "vip\QUE_SendMessToExtSys_solvo.vip"
 
 //это для крона в 6 атлантисе #include epSystem.vih
 //это для крона в 6 атлантисе #make "vip\BSIAtl_QUE_EntriesForReview.vip"
