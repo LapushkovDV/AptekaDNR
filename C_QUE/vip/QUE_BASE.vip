@@ -517,7 +517,7 @@ Procedure SetPoolRecordsCopiedToQueue(_cMainParent : comp); {
 
 Function InsertEntriesForReview_Single(_TypeEvent : string[20]; _InstanceCode : string; _AddWhereStr : string = ''; _nrecRootTable : comp= 0h) : comp; {
   if _nrecRootTable <> 0h {
-     _AddWhereStr := 'and ' + getRootTableNameByInstanceCode(_InstanceCode) + '.nrec = ' + string(_nrecRootTable);
+     _AddWhereStr := 'and ' + getRootTableNameByInstanceCode(_InstanceCode) + '.nrec = #comp(' + string(_nrecRootTable,0,0)+')';
     }
 
   result := InsertEntriesForReview(0h, coPreQUE_AwaitProcessJSONgenerate, _TypeEvent, _InstanceCode, _AddWhereStr);

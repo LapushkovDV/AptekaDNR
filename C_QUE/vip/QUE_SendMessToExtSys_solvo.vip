@@ -65,7 +65,7 @@ function decrypt(_str:string):string;{
    result := _strres;
 }
 
-function AuthenficateGetToken(address: string; _usr, _pswd: string; var _logfile, _retStatus : string): tptr;
+function AuthenficateGetToken(address, _endpoint: string; _usr, _pswd: string; var _logfile, _retStatus : string): tptr;
 {
 
   var httpCon: TPtr = 0;
@@ -81,8 +81,9 @@ function AuthenficateGetToken(address: string; _usr, _pswd: string; var _logfile
     HttpConnect_AddValueToLongString(httpCon, 'Content-Type: application/json' + chr(13), lHeader);
     HttpConnect_AddValueToLongString(httpCon, 'Accept: */*' + chr(13), lHeader);
 
+
     var lAddUrl: TPtr = HttpConnect_CreateLongString(httpCon);
-    //HttpConnect_AddValueToLongString(httpCon, '/api/login', lAddUrl);
+    HttpConnect_AddValueToLongString(httpCon, _endpoint, lAddUrl);
 
       var lRequest: TPtr = HttpConnect_CreateLongString(httpCon);
       var _strValue : string = '{"login":"' + _usr + '","password":"' + _pswd +'"}';
@@ -107,7 +108,7 @@ function AuthenficateGetToken(address: string; _usr, _pswd: string; var _logfile
         var jsonResponse: TPtr = HttpConnect_JSONObjectByLongString(httpCon, lResponse);
         var lToken: TPtr = 0;
 
-          lToken := HttpConnect_JsonObjectLongValueByName(httpCon, jsonResponse, 'token');
+          lToken := HttpConnect_JsonObjectLongValueByName(httpCon, jsonResponse, 'access_token');
 
           if logenable {
             var _lTokenFile : string = iQUE_BASE.GenerateNewFile +'_lToken00.log' ;
@@ -128,7 +129,7 @@ function AuthenficateGetToken(address: string; _usr, _pswd: string; var _logfile
 
 }
 
-function DoRequest(address: string; token: tptr; _JSONBODYlongstring : tptr; var _logfile: string; var _response : tptr) : boolean;
+function DoRequest(address, _endpoint: string; token: tptr; _JSONBODYlongstring : tptr; var _logfile: string; var _response : tptr) : boolean;
 {
   result := false;
    var _lTokenFile0 : string = iQUE_BASE.GenerateNewFile +'_lToken0.log' ;
@@ -174,7 +175,7 @@ function DoRequest(address: string; token: tptr; _JSONBODYlongstring : tptr; var
       }
 
     var lAddUrl: TPtr = HttpConnect_CreateLongString(httpCon);
-    //HttpConnect_AddValueToLongString(httpCon, '/api', lAddUrl);
+    HttpConnect_AddValueToLongString(httpCon, _endpoint, lAddUrl);
 
     _try
     {
@@ -217,9 +218,16 @@ function SendMessage(_cQueue : comp; _bodyMessage : TpTr; _InstanceCode: string;
     _retStatus  := 'Не найдена настройка QUE_Handler_tune.nrec=' + string(_cQUE_Handler_tune);
     exit;
  }
+
+ if trim(Handler_tune.VALUESTRING[5]) = '' {
+    _retFileLog := '';
+    _retStatus  := 'В настройке не указан API URL';
+    exit;
+ }
+
  if trim(Handler_tune.VALUESTRING[1]) = '' {
     _retFileLog := '';
-    _retStatus  := 'В настройке не указан URL для авторизации';
+    _retStatus  := 'В настройке не указан ENDPOINT для авторизации';
     exit;
  }
 
@@ -237,16 +245,16 @@ function SendMessage(_cQueue : comp; _bodyMessage : TpTr; _InstanceCode: string;
 
  if trim(Handler_tune.VALUESTRING[4]) = '' {
     _retFileLog := '';
-    _retStatus  := 'В настройке не указан URL для запросов';
+    _retStatus  := 'В настройке не указан ENDPOINT для запросов';
     exit;
  }
+ var _URLAPI        : string = Handler_tune.VALUESTRING[5];
+ var _ENDPOINT_auth : string = Handler_tune.VALUESTRING[1];
+ var _login         : string = Handler_tune.VALUESTRING[2];
+ var _pswrd         : string = decrypt(Handler_tune.VALUESTRING[3]);
+ var _ENDPOINT_POST : string = Handler_tune.VALUESTRING[4];
 
- var _URL_auth : string = Handler_tune.VALUESTRING[1];
- var _login    : string = Handler_tune.VALUESTRING[2];
- var _pswrd    : string = decrypt(Handler_tune.VALUESTRING[3]);
- var _URL      : string = Handler_tune.VALUESTRING[4];
-
- var httpCon: TPtr = HttpConnect_CreateEx(_URL, '', '', True);
+ var httpCon: TPtr = HttpConnect_CreateEx(_URLAPI, '', '', True);
 
  var _JSON_from_message : tptr;
   _JSON_from_message := HttpConnect_JSONObjectByLongString(httpCon, _bodyMessage);
@@ -279,7 +287,7 @@ function SendMessage(_cQueue : comp; _bodyMessage : TpTr; _InstanceCode: string;
    coQUE_TypeEvent_Delete
 */
 
- var _token : tptr = AuthenficateGetToken(_URL_auth, _login, _pswrd, _retFileLog, _retStatus);
+ var _token : tptr = AuthenficateGetToken(_URLAPI, _ENDPOINT_auth, _login, _pswrd, _retFileLog, _retStatus);
 // message('after AuthenficateGetToken _token = ' + string(_token));
 
  if HttpConnect_GetLongStringLength(httpCon,_token) = 0 then  {
@@ -290,7 +298,7 @@ function SendMessage(_cQueue : comp; _bodyMessage : TpTr; _InstanceCode: string;
 // message('after HttpConnect_GetLongStringLength');
  var _lresponse : tptr;
 
- if not DoRequest(_URL, _token, _JSONBODYlongstring, _retStatus, _lresponse){
+ if not DoRequest(_URLAPI, _ENDPOINT_POST, _token, _JSONBODYlongstring, _retStatus, _lresponse){
      _retStatus := 'Ошибка выполнения POST-запроса';
       exit;
  }
@@ -322,22 +330,26 @@ Window winGalaktikaTune 'Настройки интерфейса передачи JSON-сообщений в WMS SOLV
     Table Handler_tune;
     Fields
      Handler_tune.NAME           : NoProtect, {Font={BackColor=if(trim(Handler_tune.name) = '',ColorNeed,0)}};
+     Handler_tune.VALUESTRING[5] : NoProtect, {Font={BackColor=if(trim(Handler_tune.VALUESTRING[4]) = '',ColorNeed,0)}};
      Handler_tune.VALUESTRING[1] : NoProtect, {Font={BackColor=if(trim(Handler_tune.VALUESTRING[1]) = '',ColorNeed,0)}};
      Handler_tune.VALUESTRING[2] : NoProtect, {Font={BackColor=if(trim(Handler_tune.VALUESTRING[2]) = '',ColorNeed,0)}};
      Handler_tune.VALUESTRING[3] : NoProtect, {Font={BackColor=if(trim(Handler_tune.VALUESTRING[3]) = '',ColorNeed,0)}};
      Handler_tune.VALUESTRING[4] : NoProtect, {Font={BackColor=if(trim(Handler_tune.VALUESTRING[4]) = '',ColorNeed,0)}};
+
     buttons
      cmValue1,[singleLine],,;
 <<
 `Наименование настройки`.@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
+ `API URL`.@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ (например http://192.168.240.30:52045)
+
 `Авторизация (получение токена)`
-         `URL`.@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ (например http://192.168.240.30:52045/api/auth/)
+    `ENDPOINT`.@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ (например /login )
        `Логин`.@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
       `Пароль`.@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ (после изменения будет зашифрован)
 
 `POST запросы`
-         `URL`.@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ (например http://192.168.240.30:52045/api/v1)
+    `ENDPOINT`.@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ (например /api/v1)
 
 
                            <.Сохранить и закрыть.>
