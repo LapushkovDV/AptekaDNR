@@ -86,24 +86,31 @@ function AuthenficateGetToken(address, _endpoint: string; _usr, _pswd: string; v
     HttpConnect_AddValueToLongString(httpCon, _endpoint, lAddUrl);
 
       var lRequest: TPtr = HttpConnect_CreateLongString(httpCon);
-      var _strValue : string = '{"login":"' + _usr + '","password":"' + _pswd +'"}';
+      var _strValue : string = '{"username":"' + _usr + '","password":"' + _pswd +'"}';
       HttpConnect_AddValueToLongString(httpCon, _strValue, lRequest);
+
+      HttpConnect_SaveToFileEx(httpCon, lHeader,  iQUE_BASE.GenerateNewFile +'_requestTokenHeader.json', cpUTF8, false);
+      HttpConnect_SaveToFileEx(httpCon, lRequest, iQUE_BASE.GenerateNewFile +'_requestTokenBody.json',   cpUTF8, false);
+
       //message('_strValue ='+_strValue);
         var lResponse: TPtr = HttpConnect_SendRequestPostJSON(httpCon, lAddUrl, lHeader, lRequest, false);
 
+      HttpConnect_SaveToFileEx(httpCon, lResponse, iQUE_BASE.GenerateNewFile +'_lResponse.json',   cpUTF8, false);
 
-     if (HttpConnect_LastError(httpCon) <> 0) {
+     if (HttpConnect_LastError(httpCon) <> 0)
+      {
        var _logHttpConnect : string = iQUE_BASE.GenerateNewFile;
        _logHttpConnect := _logHttpConnect + '_logHttpConnect_error.log';
        HttpConnect_ResponseLogToFile(httpCon, _logHttpConnect);
        _retStatus  := HttpConnect_LastErrorText(httpCon);
        _logfile := _logHttpConnect;
        HttpConnect_Free(httpCon);
+
        Exit;
       }
 
 
-
+!      message('Ошибок нет',0);
 
         var jsonResponse: TPtr = HttpConnect_JSONObjectByLongString(httpCon, lResponse);
         var lToken: TPtr = 0;
