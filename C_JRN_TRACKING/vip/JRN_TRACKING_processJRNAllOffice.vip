@@ -1,0 +1,23 @@
+/*************************************************************************************************\
+* Наименование: Базовый объект работы очереди                                                     *
+* Контур/Модуль: Очередь исходящих сообщений                                                      *
+* Примечание:                                                                                     *
+*                                                                                                 *
+* Вид работы  |Номер         |Дата    |Исполнитель              |Проект                           *
+* ----------------------------------------------------------------------------------------------- *
+*/
+
+
+#include JRN_TRACKING_BASE.vih
+
+interface JRN_TRACKING_processJRNAllOffice;
+create view
+;
+handleevent
+cminit: {
+  var iJRN_TRACKING_BASE : JRN_TRACKING_BASE new;
+  iJRN_TRACKING_BASE.processJRNAllOffice(100000);
+  freevipinterface(iJRN_TRACKING_BASE);
+ };
+end;
+end.

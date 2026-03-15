@@ -1,0 +1,21 @@
+/*************************************************************************************************\
+* Наименование: Базовый объект работы очереди                                                     *
+* Контур/Модуль: Очередь исходящих сообщений                                                      *
+* Примечание:                                                                                     *
+*                                                                                                 *
+* Вид работы  |Номер         |Дата    |Исполнитель              |Проект                           *
+* ----------------------------------------------------------------------------------------------- *
+*/
+#include QUE_INCOME_BASE.vih
+
+interface C_QUE_ProcessQUE_INCOME;
+create view
+;
+handleevent
+cminit: {
+   var iQUE_INCOME_BASE : QUE_INCOME_BASE new;
+    iQUE_INCOME_BASE.ProcessQueueIncome;
+    freevipinterface(iQUE_INCOME_BASE);
+  };
+end;
+end.

@@ -22,7 +22,8 @@ LicenseControlInclude=""
 #make "vip\JRN_TRACKING_BASE.vip"
 #make "vip\JRN_TRACKING_PUBLICATION_TERMS.vip"
 #make "vip\JRN_TRACKING_TEST.vip"
-#make "vip\BSIAtl_JRN_TRACKING.vip"
+#make "vip\JRN_TRACKING_processJRNAllOffice.vip"
+//#make "vip\BSIAtl_JRN_TRACKING.vip"
 
 /*
 

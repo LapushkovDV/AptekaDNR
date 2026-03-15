@@ -1,0 +1,25 @@
+/*************************************************************************************************\
+* Наименование: Базовый объект работы очереди                                                     *
+* Контур/Модуль: Очередь исходящих сообщений                                                      *
+* Примечание:                                                                                     *
+*                                                                                                 *
+* Вид работы  |Номер         |Дата    |Исполнитель              |Проект                           *
+* ----------------------------------------------------------------------------------------------- *
+*/
+
+#include QUE_BASE.vih
+
+interface C_QUE_ProcessEntriesForReview;
+create view
+;
+handleevent
+cminit: {
+   var iQUE_BASE : QUE_BASE new;
+    // генерация JSON
+    iQUE_BASE.ProcessEntriesForReview;
+    // копирование в очередь
+    iQUE_BASE.CopyEntriesForReviewToQueue;
+    freevipinterface(iQUE_BASE);
+  };
+end;
+end.
