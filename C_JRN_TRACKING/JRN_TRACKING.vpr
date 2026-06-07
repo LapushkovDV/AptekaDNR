@@ -91,9 +91,10 @@
 			</ConfigurationList>
 		</DatabaseConfiguration>
 		<FileList>
-			<File Name="JRN_TRACKING.prj" PosX="22" PosY="22" OpenEditor="True"/>
-			<File Name="vip\BSIAtl_JRN_TRACKING.vip" PosX="23" PosY="25" OpenEditor="True"/>
-			<File Name="vip\JRN_TRACKING_BASE.vip" PosX="15" PosY="372" OpenEditor="True" Active="True"/>
+			<File Name="JRN_TRACKING.prj" PosX="14" PosY="25" OpenEditor="True"/>
+			<File Name="vip\BSIAtl_JRN_TRACKING.vip" PosX="28" PosY="69" OpenEditor="True"/>
+			<File Name="vip\JRN_TRACKING_BASE.vip" PosX="15" PosY="372" OpenEditor="True"/>
+			<File Name="vip\JRN_TRACKING_processJRNAllOffice.vip" PosX="1" PosY="18" OpenEditor="True" Active="True"/>
 		</FileList>
 		<DebugOptions StopOnStartup="False"/>
 		<MarkerList>
