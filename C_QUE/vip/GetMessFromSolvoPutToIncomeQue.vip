@@ -208,7 +208,7 @@ Procedure GetMessagesPutToIncomeQue; {
              continue;
           }
 
-          if iQUE_INCOME_BASE.PutMessageToQueueIncome(_SystemCodeSolvo, true, iQUE_INCOME_BASE.longstring_to_widestring(HttpConnect_JSONObjectToJSON(httpCon, _JSON_Element_Body)), '') {
+          if iQUE_INCOME_BASE.PutMessageToQueueIncome(_SystemCodeSolvo, false, iQUE_INCOME_BASE.longstring_to_widestring(HttpConnect_JSONObjectToJSON(httpCon, _JSON_Element_Body)), '') {
             logstrtofile(_log, ' элемент № "'+string(_i)+'" успешно добавлен во входящую очередь');
           } else {
             logstrtofile(_log, 'ОШИБКА! элемент № "'+string(_i)+'" НЕ добавлен во входящую очередь');
