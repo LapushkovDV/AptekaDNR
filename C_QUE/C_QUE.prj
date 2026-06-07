@@ -51,6 +51,8 @@ LicenseControlInclude=""
 #make "vip\C_QUE_ProcessEntriesForReview.vip"
 #make "vip\C_QUE_ProcessQUE_INCOME.vip"
 #make "vip\C_QUE_ProcessQUE_OUT.vip"
+#make "vip\GetMessFromSolvoPutToIncomeQue.vip"
+
 
 //это для крона в 6 атлантисе #include epSystem.vih
 //это для крона в 6 атлантисе #make "vip\BSIAtl_QUE_EntriesForReview.vip"

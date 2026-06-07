@@ -1,0 +1,265 @@
+//------------------------------------------------------------------------------
+//                                                      (c) корпорация Галактика
+// Галактика 9.1 - Управление персоналом
+// CreatePersonnelOrder
+//------------------------------------------------------------------------------
+
+#include QUE_BASE.vih
+#include QUE_INCOME_BASE.vih
+
+#component "C_QUE"
+
+interface GetMessFromSolvoPutToIncomeQue 'Получить сообщения из сервиса СОЛВО и положить во вход. очередь' (,,), EscClose, gray;
+
+Create view
+var
+    _log : string = '';
+    _SystemCodeSolvo : string = '';
+    _cQUE_Handler_tune : comp;
+    iQUE_BASE : QUE_BASE;
+    iQUE_INCOME_BASE : QUE_INCOME_BASE;
+    logenable : boolean = false;
+from
+  QUE_Handler_tune Handler_tune
+where ((
+       _cQUE_Handler_tune == Handler_tune.nrec
+      ))
+;
+
+Parameters   _SystemCodeSolvo     // код системы во входящей очереди, равен коду СОЛВО в списке систем-отправителей
+           , _cQUE_Handler_tune  // nrec настройки (QUE_Handler_tune.nrec) в которой указаны все параметры подключения к сервису солво, указывается nrec настройки системы-получателя в исходящей очереди
+;
+
+function AuthenficateGetToken(address, _endpoint: string; _usr, _pswd: string): tptr;
+{
+
+  var httpCon: TPtr = 0;
+  var lHeader: TPtr = 0;
+
+  httpCon := HttpConnect_CreateEx(address, '', '', True);
+  result := HttpConnect_CreateLongString(httpCon);
+  HttpConnect_SetUserAgent(httpCon, 'Mozilla/5.0');
+
+  HttpConnect_ResponseLogEnable(httpCon);
+
+    lHeader := HttpConnect_CreateLongString(httpCon);
+    HttpConnect_AddValueToLongString(httpCon, 'Content-Type: application/json' + chr(13), lHeader);
+    HttpConnect_AddValueToLongString(httpCon, 'Accept: */*' + chr(13), lHeader);
+
+
+    var lAddUrl: TPtr = HttpConnect_CreateLongString(httpCon);
+    HttpConnect_AddValueToLongString(httpCon, _endpoint, lAddUrl);
+
+      var lRequest: TPtr = HttpConnect_CreateLongString(httpCon);
+      var _strValue : string = '{"username":"' + _usr + '","password":"' + _pswd +'"}';
+      HttpConnect_AddValueToLongString(httpCon, _strValue, lRequest);
+
+      HttpConnect_SaveToFileEx(httpCon, lHeader,  iQUE_BASE.GenerateNewFile +'_requestTokenHeader.json', cpUTF8, false);
+      HttpConnect_SaveToFileEx(httpCon, lRequest, iQUE_BASE.GenerateNewFile +'_requestTokenBody.json',   cpUTF8, false);
+
+      //message('_strValue ='+_strValue);
+        var lResponse: TPtr = HttpConnect_SendRequestPostJSON(httpCon, lAddUrl, lHeader, lRequest, false);
+
+      HttpConnect_SaveToFileEx(httpCon, lResponse, iQUE_BASE.GenerateNewFile +'_lResponse.json',   cpUTF8, false);
+
+     if (HttpConnect_LastError(httpCon) <> 0)
+      {
+       var _logHttpConnect : string = iQUE_BASE.GenerateNewFile;
+       _logHttpConnect := _logHttpConnect + '_logHttpConnect_error.log';
+       HttpConnect_ResponseLogToFile(httpCon, _logHttpConnect);
+       logstrtofile(_log, HttpConnect_LastErrorText(httpCon));
+       HttpConnect_Free(httpCon);
+
+       Exit;
+      }
+
+
+!      message('Ошибок нет',0);
+
+        var jsonResponse: TPtr = HttpConnect_JSONObjectByLongString(httpCon, lResponse);
+        var lToken: TPtr = 0;
+
+          lToken := HttpConnect_JsonObjectLongValueByName(httpCon, jsonResponse, 'access_token');
+
+          if logenable {
+            var _lTokenFile : string = iQUE_BASE.GenerateNewFile +'_lToken00.log' ;
+            HttpConnect_SaveToFileEx(httpCon, lToken, _lTokenFile, cpUTF8, false);
+           }
+          if ( (jsonResponse > 0) and (lToken > 0) ) {
+            result := lToken;
+          }
+
+      var _file : string = iQUE_BASE.GenerateNewFile +'_logLogin.log';
+      HttpConnect_ResponseLogToFile(httpCon, _file);
+    //putfiletoclient(_file, false);
+    // HttpConnect_Free(httpCon);
+
+}
+
+function decrypt(_str:string):string;{
+  var _strres : string = '' ;
+  var _i : byte = 1;
+  while _i <= length(_str)
+   {
+     _strres := _strres + chr(ord(char(substr(_str,_i,1))) - _i - Handler_tune.VALUEWORD[2]);
+     _i++;
+   }
+   result := _strres;
+}
+
+
+Procedure GetMessagesPutToIncomeQue; {
+  set _cQUE_Handler_tune := _cQUE_Handler_tune;
+   if getfirst Handler_tune <> tsOK {
+    logstrtofile(_log, 'Не найдена настройка QUE_Handler_tune.nrec=' + string(_cQUE_Handler_tune));
+    exit;
+ }
+
+ if trim(Handler_tune.VALUESTRING[5]) = '' {
+    logstrtofile(_log, 'В настройке не указан API URL');
+    exit;
+ }
+
+ if trim(Handler_tune.VALUESTRING[1]) = '' {
+    logstrtofile(_log, 'В настройке не указан ENDPOINT для авторизации');
+    exit;
+ }
+
+ if trim(Handler_tune.VALUESTRING[2]) = '' {
+    logstrtofile(_log, 'В настройке не указан логин');
+    exit;
+ }
+
+ if trim(Handler_tune.VALUESTRING[3]) = '' {
+    logstrtofile(_log, 'В настройке не указан пароль');
+    exit;
+ }
+
+ var _URLAPI        : string = Handler_tune.VALUESTRING[5];
+ var _ENDPOINT_auth : string = Handler_tune.VALUESTRING[1];
+ var _login         : string = Handler_tune.VALUESTRING[2];
+ var _pswrd         : string = decrypt(Handler_tune.VALUESTRING[3]);
+
+  var httpCon: TPtr = HttpConnect_CreateEx(_URLAPI, '', '', True);
+
+ var _token : tptr = AuthenficateGetToken(_URLAPI, _ENDPOINT_auth, _login, _pswrd);
+
+  var lHeader: TPtr = 0;
+
+  httpCon := HttpConnect_CreateEx(_URLAPI, '', '', True);
+  HttpConnect_SetUserAgent(httpCon, 'Mozilla/5.0');
+
+  HttpConnect_ResponseLogEnable(httpCon);
+
+    _try
+  {
+    lHeader := HttpConnect_CreateLongString(httpCon);
+    HttpConnect_AddValueToLongString(httpCon, 'Content-Type: application/json' + chr(13), lHeader);
+    HttpConnect_AddValueToLongString(httpCon, 'Accept: application/json' + chr(13), lHeader);
+
+    var lToken: TPtr = HttpConnect_CreateLongString(httpCon);
+
+    HttpConnect_AddValueToLongString(httpCon, 'Authorization: Bearer ', lToken);
+    HttpConnect_AddLongValueToLongString(httpCon, _token, lToken);
+
+    HttpConnect_SolidStringInLongString(httpCon, lToken);
+
+    HttpConnect_AddLongValueToLongString(httpCon, lToken, lHeader);
+
+    if logenable {
+        var _lTokenFile : string = iQUE_BASE.GenerateNewFile +'_lToken.log' ;
+        HttpConnect_SaveToFileEx(httpCon, lToken, _lTokenFile, cpUTF8, false);
+      }
+
+    if logenable {
+        var _lHeaderFile : string = iQUE_BASE.GenerateNewFile +'_lHeader.log' ;
+        HttpConnect_SaveToFileEx(httpCon, lHeader, _lHeaderFile, cpUTF8, false);
+      }
+
+    var lAddUrl: TPtr = HttpConnect_CreateLongString(httpCon);
+    //HttpConnect_AddValueToLongString(httpCon, _endpoint, lAddUrl);
+
+    _try
+    {
+      _try
+      {
+        var lResponse : TPtr =  HttpConnect_EDISendRequest(httpCon, 'message/output-journal/messages?limit=1000', lHeader,'', 'GET');
+        var _lResponseFile : string = iQUE_BASE.GenerateNewFile +'_lResposeFile.log' ;
+        HttpConnect_SaveToFileEx(httpCon, lResponse, _lResponseFile, cpUTF8, false);
+
+        var _JSON_ObjectResponse: TpTr = HttpConnect_JSONObjectByLongString(httpCon, lResponse);
+        if _JSON_ObjectResponse = 0 {
+          logstrtofile(_log, 'не удалось преобразовать ответ СОЛВО в JSON см. ' + _lResponseFile)
+          exit;
+        }
+       var JSON_BODY_ARRCount : longint = HttpConnect_JsonCount(httpCon, _JSON_ObjectResponse);
+       if JSON_BODY_ARRCount =  0 {
+          logstrtofile(_log, 'Пустой массив в ответе СОЛВО');
+         exit;
+        }
+
+       var _i : longint = 0;
+       for (_i := 0; _i  <= JSON_BODY_ARRCount - 1; _i++) {
+          var _JSON_Element_Body : TPtr = HttpConnect_JSONObjectByIndexOfArray(httpCon, _JSON_ObjectResponse, _i);
+
+          var _UUID : string = HttpConnect_JsonObjectValueByName(httpCon, _JSON_Element_Body, 'uuid');
+          if _UUID = '' {
+             logstrtofile(_log, 'Ошибка в полученном массиве элемент № "'+string(_i)+'" не найден элемент uuid');
+             continue;
+          }
+
+          if iQUE_INCOME_BASE.PutMessageToQueueIncome(_SystemCodeSolvo, true, iQUE_INCOME_BASE.longstring_to_widestring(HttpConnect_JSONObjectToJSON(httpCon, _JSON_Element_Body)), '') {
+            logstrtofile(_log, ' элемент № "'+string(_i)+'" успешно добавлен во входящую очередь');
+          } else {
+            logstrtofile(_log, 'ОШИБКА! элемент № "'+string(_i)+'" НЕ добавлен во входящую очередь');
+          }
+
+          var lAddUrl: TPtr = HttpConnect_CreateLongString(httpCon);
+          HttpConnect_AddValueToLongString(httpCon, 'message/output-journal/messagescomplete', lAddUrl);
+
+          var _JSONBODYlongstring : tptr =  HttpConnect_CreateLongString(httpCon);
+          HttpConnect_AddValueToLongString(httpCon, '{"ids":["'+_UUID+'"]}', _JSONBODYlongstring);
+          HttpConnect_SendRequestPostJSON(httpCon, lAddUrl, lHeader, _JSONBODYlongstring, false);
+
+       }
+
+
+
+      }
+      _finally {
+        //HttpConnect_DestroyLongString(httpCon, lResponse);
+      }
+    }
+    _finally
+    {
+      HttpConnect_DestroyLongString(httpCon, lHeader);
+      HttpConnect_DestroyLongString(httpCon, lToken);
+      HttpConnect_DestroyLongString(httpCon, lAddUrl);
+    }
+  }
+  _finally
+  {
+    var _file : string = iQUE_BASE.GenerateNewFile +'_logDorequest.log';
+    HttpConnect_ResponseLogToFile(httpCon, _file);
+    //putfiletoclient(_file, false);
+    //HttpConnect_Free(httpCon);
+  }
+
+}
+
+HandleEvent
+cmInit: {
+   _log := iQUE_BASE.GenerateNewFile + 'GetMessFromSolvoPutToIncomeQue.log';
+  if _cQUE_Handler_tune = 0h {
+    logstrtofile(_log, 'cmInit: Передан пустой входящий параметр _cHandler_tune');
+  }
+
+  if _SystemCodeSolvo = '' {
+    logstrtofile(_log, 'cmInit: Передан пустой входящий параметр _SystemCodeSolvo');
+  }
+  logstrtofile(_log, '_cQUE_Handler_tune = ' + string(_cQUE_Handler_tune,0,0));
+  GetMessagesPutToIncomeQue;
+}
+end; // HandleEvent
+
+end.

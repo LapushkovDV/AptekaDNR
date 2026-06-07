@@ -92,15 +92,11 @@
 			</ConfigurationList>
 		</DatabaseConfiguration>
 		<FileList>
-			<File Name="C_QUE.prj" PosX="32" PosY="53" OpenEditor="True"/>
-			<File Name="vip\QUE_SendMessToExtSys_galaktika.vip" PosX="35" PosY="37" OpenEditor="True"/>
+			<File Name="C_QUE.prj" PosX="30" PosY="49" OpenEditor="True"/>
 			<File Name="inc\C_QUE.inc" PosX="29" PosY="27" OpenEditor="True"/>
-			<File Name="..\..\sng\SNG_QUE\vip\QUE_Base.vip" PosX="26" PosY="118" OpenEditor="True"/>
-			<File Name="vip\QUE_BASE.vip" PosX="40" PosY="1137" OpenEditor="True"/>
-			<File Name="vip\BSIAtl_QUE_EntriesForReview.vip" PosX="1" PosY="1" OpenEditor="True"/>
-			<File Name="vip\C_QUE_ProcessEntriesForReview.vip" PosX="21" PosY="21" OpenEditor="True" Active="True"/>
 			<File Name="vip\C_QUE_ProcessQUE_INCOME.vip" PosX="1" PosY="19" OpenEditor="True"/>
 			<File Name="vip\C_QUE_ProcessQUE_OUT.vip" PosX="26" PosY="17" OpenEditor="True"/>
+			<File Name="vip\QUE_SendMessToExtSys_solvo.vip" PosX="48" PosY="312" OpenEditor="True" Active="True"/>
 		</FileList>
 		<DebugOptions StopOnStartup="False"/>
 		<MarkerList>
