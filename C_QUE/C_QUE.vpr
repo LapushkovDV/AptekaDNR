@@ -92,11 +92,12 @@
 			</ConfigurationList>
 		</DatabaseConfiguration>
 		<FileList>
-			<File Name="C_QUE.prj" PosX="30" PosY="49" OpenEditor="True"/>
+			<File Name="C_QUE.prj" PosX="24" PosY="54" OpenEditor="True"/>
 			<File Name="inc\C_QUE.inc" PosX="29" PosY="27" OpenEditor="True"/>
 			<File Name="vip\C_QUE_ProcessQUE_INCOME.vip" PosX="1" PosY="19" OpenEditor="True"/>
 			<File Name="vip\C_QUE_ProcessQUE_OUT.vip" PosX="26" PosY="17" OpenEditor="True"/>
-			<File Name="vip\QUE_SendMessToExtSys_solvo.vip" PosX="48" PosY="312" OpenEditor="True" Active="True"/>
+			<File Name="vip\QUE_SendMessToExtSys_solvo.vip" PosX="48" PosY="312" OpenEditor="True"/>
+			<File Name="vip\GetMessFromSolvoPutToIncomeQue.vip" PosX="69" PosY="197" OpenEditor="True" Active="True"/>
 		</FileList>
 		<DebugOptions StopOnStartup="False"/>
 		<MarkerList>
@@ -154,6 +155,7 @@
 			<Marker FileName="vip\QUE_ProcessMessIncomeQueue_QRY_TEMPLATE.vip" Caption="Нумерованная закладка 1" Line="285" NumIndex="1" MarkerType="mtNumBookmark" Comment="tQRY_TEMPLATESP.DESCRIPTION :="/>
 			<Marker FileName="vip\QUE_BASE.vip" Caption="Нумерованная закладка 1" Line="974" NumIndex="1" MarkerType="mtNumBookmark"/>
 			<Marker FileName="vip\QUE_SendMessToExtSys_galaktika.vip" Caption="Нумерованная закладка 1" Line="325" NumIndex="1" MarkerType="mtNumBookmark"/>
+			<Marker FileName="vip\GetMessFromSolvoPutToIncomeQue.vip" Caption="Нумерованная закладка 1" Line="206" NumIndex="1" MarkerType="mtNumBookmark" Comment="logstrtofile(_log, 'Результат запроса записали в ' + _lResponseFile);"/>
 		</MarkerList>
 		<BreakPointList>
 			<BreakPoint FileName="Vip.prj" Line="90"/>

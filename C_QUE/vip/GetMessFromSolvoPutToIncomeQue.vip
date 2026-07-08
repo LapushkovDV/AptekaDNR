@@ -146,7 +146,12 @@ Procedure GetMessagesPutToIncomeQue; {
 
   var lHeader: TPtr = 0;
 
-  httpCon := HttpConnect_CreateEx(_URLAPI, '', '', True);
+ logstrtofile(_log, '_URLAPI        = ' + _URLAPI);
+ logstrtofile(_log, '_ENDPOINT_auth = ' + _ENDPOINT_auth);
+ logstrtofile(_log, '_login         = ' + _login);
+ logstrtofile(_log, '_pswrd         = ' + _pswrd);
+
+  //httpCon := HttpConnect_CreateEx(_URLAPI, '', '', True);
   HttpConnect_SetUserAgent(httpCon, 'Mozilla/5.0');
 
   HttpConnect_ResponseLogEnable(httpCon);
@@ -154,8 +159,10 @@ Procedure GetMessagesPutToIncomeQue; {
     _try
   {
     lHeader := HttpConnect_CreateLongString(httpCon);
-    HttpConnect_AddValueToLongString(httpCon, 'Content-Type: application/json' + chr(13), lHeader);
-    HttpConnect_AddValueToLongString(httpCon, 'Accept: application/json' + chr(13), lHeader);
+//    HttpConnect_AddValueToLongString(httpCon, 'Content-Type: application/json' + chr(13), lHeader);
+//    HttpConnect_AddValueToLongString(httpCon, 'Accept: application/json' + chr(13), lHeader);
+    HttpConnect_AddValueToLongString(httpCon, 'Accept: */*' + chr(13), lHeader);
+    HttpConnect_AddValueToLongString(httpCon, 'Accept-Encoding: gzip, deflate, br' + chr(13), lHeader);
 
     var lToken: TPtr = HttpConnect_CreateLongString(httpCon);
 
@@ -176,23 +183,73 @@ Procedure GetMessagesPutToIncomeQue; {
         HttpConnect_SaveToFileEx(httpCon, lHeader, _lHeaderFile, cpUTF8, false);
       }
 
-    var lAddUrl: TPtr = HttpConnect_CreateLongString(httpCon);
+//    var lAddUrl: TPtr = HttpConnect_CreateLongString(httpCon);
     //HttpConnect_AddValueToLongString(httpCon, _endpoint, lAddUrl);
 
     _try
     {
       _try
       {
-        var lResponse : TPtr =  HttpConnect_EDISendRequest(httpCon, 'message/output-journal/messages?limit=1000', lHeader,'', 'GET');
+          logstrtofile(_log, 'Выполняем запрос message/output-journal/messages?limit=10');
+        var lResponse : TPtr;
+//        lResponse := HttpConnect_EDISendRequest(httpCon, 'message/output-journal/messages?limit=10', 0,'', 'GET'); // без lHeader надо попробовать
+         var isHTTPS : boolean = if(instr('HTTPS',upcase(_URLAPI)) = 1, True,false);
+        var _lAddUrl : tptr = HttpConnect_CreateLongString(httpCon);
+
+        HttpConnect_AddValueToLongString(httpCon, 'message/output-journal/messages?limit=10', _lAddUrl);
+        var lToken  : tptr = 0 ; // техподдержка сказала 0 поставить HttpConnect_CreateLongString(m_service);
+        var tmpFileUTF8 : string = '';
+        lResponse := HttpConnect_EDISendRequestEx(httpCon, _lAddUrl, lToken, tmpFileUTF8, 'GET', isHTTPS, 'Content-Type: application/json',0);
         var _lResponseFile : string = iQUE_BASE.GenerateNewFile +'_lResposeFile.log' ;
+
+        logstrtofile(_log, 'Результат запроса записали в ' + _lResponseFile);
         HttpConnect_SaveToFileEx(httpCon, lResponse, _lResponseFile, cpUTF8, false);
 
+           if (HttpConnect_LastError(httpCon) <> 0)
+            {
+             var _logHttpConnect : string = iQUE_BASE.GenerateNewFile;
+             _logHttpConnect := _logHttpConnect + '_logHttpConnect_error.log';
+             logstrtofile(_log, 'ОШИБКА!! смотри ' + _logHttpConnect);
+             HttpConnect_ResponseLogToFile(httpCon, _logHttpConnect);
+             logstrtofile(_log, HttpConnect_LastErrorText(httpCon));
+             HttpConnect_Free(httpCon);
+             Exit;
+            }
+
+       logstrtofile(_log, 'Преобразовываем ответ в JSON ');
         var _JSON_ObjectResponse: TpTr = HttpConnect_JSONObjectByLongString(httpCon, lResponse);
+       logstrtofile(_log, 'Успешно преобразовывали ответ в JSON ');
         if _JSON_ObjectResponse = 0 {
           logstrtofile(_log, 'не удалось преобразовать ответ СОЛВО в JSON см. ' + _lResponseFile)
           exit;
         }
-       var JSON_BODY_ARRCount : longint = HttpConnect_JsonCount(httpCon, _JSON_ObjectResponse);
+
+        var _lResponceLikeJSON : tptr = HttpConnect_JSONObjectToJSON(httpCon, _JSON_ObjectResponse); // в длинную строку с сохранением построчной структуры по умолчанию присваивается имя ARRAY  для массива при переводе в строку
+        _lResponseFile := iQUE_BASE.GenerateNewFile +'_lResposeFileLikeJSON.log' ;
+        HttpConnect_SaveToFileEx(httpCon, _lResponceLikeJSON, _lResponseFile, cpUTF8, false);
+
+        //_JSON_ObjectResponse := HttpConnect_JSONObjectByLongString(httpCon, _lResponceLikeJSON);
+
+
+        var _tmpJsonObject : tptr = HttpConnect_JsonObjectCreate(httpCon);
+        logstrtofile(_log, 'создаем _tmpJsonObject и добавляем в него данные из ответа СОЛВО в массив с именем "ARRAY" ');
+        HttpConnect_JsonObjectAddObject(httpCon, _tmpJsonObject, 'ARRAY', _JSON_ObjectResponse);
+        logstrtofile(_log, 'Успешно создали _tmpJsonObject и добавлил в него данные из ответа СОЛВО в массив с именем "ARRAY" ');
+
+        _lResponceLikeJSON := HttpConnect_JSONObjectToJSON(httpCon, _tmpJsonObject); // в длинную строку с сохранением построчной структуры по умолчанию присваивается имя ARRAY  для массива при переводе в строку
+        _lResponseFile := iQUE_BASE.GenerateNewFile +'__tmpJsonObject.log' ;
+        HttpConnect_SaveToFileEx(httpCon, _tmpJsonObject, _lResponseFile, cpUTF8, false);
+
+
+
+        logstrtofile(_log, 'Получаем массив "ARRAY" по имени из _JSON_ObjectResponse');
+        var _JSON_ObjectResponseArr : tptr = HttpConnect_JSONArrayByName(httpCon, _JSON_ObjectResponse, 'Array');
+        logstrtofile(_log, 'Успешно получили массив "ARRAY" по имени из _JSON_ObjectResponse');
+
+       logstrtofile(_log, 'Получаем количество элементов в JSON ');
+       var JSON_BODY_ARRCount : longint = HttpConnect_JsonCount(httpCon, _JSON_ObjectResponseArr);
+       logstrtofile(_log, 'Усешно получили количество элементов в JSON  = ' + string(JSON_BODY_ARRCount));
+
        if JSON_BODY_ARRCount =  0 {
           logstrtofile(_log, 'Пустой массив в ответе СОЛВО');
          exit;
@@ -200,7 +257,8 @@ Procedure GetMessagesPutToIncomeQue; {
 
        var _i : longint = 0;
        for (_i := 0; _i  <= JSON_BODY_ARRCount - 1; _i++) {
-          var _JSON_Element_Body : TPtr = HttpConnect_JSONObjectByIndexOfArray(httpCon, _JSON_ObjectResponse, _i);
+           logstrtofile(_log, 'Получаем элемент №' + string(_i)+ ' ');
+          var _JSON_Element_Body : TPtr = HttpConnect_JSONObjectByIndexOfArray(httpCon, _JSON_ObjectResponseArr, _i);
 
           var _UUID : string = HttpConnect_JsonObjectValueByName(httpCon, _JSON_Element_Body, 'uuid');
           if _UUID = '' {
@@ -234,7 +292,7 @@ Procedure GetMessagesPutToIncomeQue; {
     {
       HttpConnect_DestroyLongString(httpCon, lHeader);
       HttpConnect_DestroyLongString(httpCon, lToken);
-      HttpConnect_DestroyLongString(httpCon, lAddUrl);
+//      HttpConnect_DestroyLongString(httpCon, lAddUrl);
     }
   }
   _finally
