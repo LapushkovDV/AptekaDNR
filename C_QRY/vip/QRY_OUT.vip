@@ -497,7 +497,7 @@ function GenerateJSONfromtForExportJSON(_cParentJSON, _cLVL : comp; var _fld_jso
                 HttpConnect_JsonObjectAddString(m_service, JSONObj_ArrayOneElement, QRY_INST_FLD_LOOP.FieldJSON, substr(tForExportJSON.value[_i],1,256))
               }
              if (HttpConnect_LastError(m_service) <> 0) then mylog('HttpConnect_LastErrorText = ' + HttpConnect_LastErrorText(m_service));
-             if tForExportJSON.value[_i]) <> '' then _EveryValuesIsEmpty := False;
+             if tForExportJSON.value[_i] <> '' then _EveryValuesIsEmpty := False;
            }
         }
       }
