@@ -468,6 +468,8 @@ function GenerateJSONfromtForExportJSON(_cParentJSON, _cLVL : comp; var _fld_jso
    if (HttpConnect_LastError(m_service) <> 0) then mylog('HttpConnect_LastErrorText = ' + HttpConnect_LastErrorText(m_service));
    JSONObj_ArrayOneElement := HttpConnect_JsonObjectCreate(m_service);
     var _arrNumsOfValue : array[1..1] of word;
+    var _EveryValuesIsEmpty : boolean = true;
+
     _loop QRY_INST_FLD_LOOP where(( _cQRY_INST == QRY_INST_FLD_LOOP.cInstance
                        and tForExportJSON.cLvl == QRY_INST_FLD_LOOP.cLevel)) {
        if pos(coYOUDONTHAVETOSEETHIS,QRY_INST_FLD_LOOP.FieldJSON) <> 0 then { // по сути мы сгенерировали пустые секции по уровням вложенности
@@ -477,7 +479,6 @@ function GenerateJSONfromtForExportJSON(_cParentJSON, _cLVL : comp; var _fld_jso
 
        if (HttpConnect_LastError(m_service) <> 0) then mylog('HttpConnect_LastErrorText = ' + HttpConnect_LastErrorText(m_service));
         var _i : word = 0;
-        var _EveryValuesIsEmpty : boolean = true;
         for (_i := 1; _i<= getlimit(arrAbstrResultFldNames); _i++) {
           if arrAbstrResultFldNames[_i] = QRY_INST_FLD_LOOP.FieldSynonim
            then {
