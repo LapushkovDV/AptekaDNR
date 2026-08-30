@@ -41,6 +41,7 @@ LicenseControlInclude=""
 #make "vip\QUE_INCOME_TEST.vip"
 #make "vip\QUE_ProcessMessIncomeQueue_Galaktika.vip"
 #make "vip\QUE_ProcessMessIncomeQueue_testInsertKAU.vip"
+#make "vip\QUE_ProcessMessIncomeQueue_Solvo.vip"
 
 #make "vip\QUE_Process_QRY_TEMPLATE.vip"
 //#make "vip\QUE_Process_QRY_INSTANCE.vip"

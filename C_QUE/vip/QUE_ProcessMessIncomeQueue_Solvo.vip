@@ -1,0 +1,669 @@
+
+/*************************************************************************************************\
+* Наименование: Тестовый интерфейс обработки сообщения, генерирует польз аналитику и ее значения  *
+*               из сообщения                                                                      *
+* Контур/Модуль: Абстрактный конструктор JSON                                                     *
+* Примечание:                                                                                     *
+*                                                                                                 *
+* Вид работы  |Номер         |Дата    |Исполнитель              |Проект                           *
+* ----------------------------------------------------------------------------------------------- *
+
+\*************************************************************************************************/
+/*
+в структуре JSON нужное нам лежит всегда в uploadResult
+пример:
+
+{
+  "timestamp": 1788003697612,
+  "uploadResult": "{\"serial\" : {\n\"id\":\"1125899907177882\",\"name\":\"4-0335001-SERY-FGTRF\",\"sku_id\":\"5175225022201303694\",\"production_date\":\"2026-07-28
+00:00:00.0\",\"realization_date\":\"2031-01-01 00:00:00.0\",\"manufacturer_id\":\"K-8659859133480042245\",\"vendor_batch\":\"FGTRF\",\"status\":\"G\",\"reg_excise_flag\":\"f\"}}",
+  "uuid": "ad3e00f9
+-359d-450b-8c3d-e06df6d46981"
+}
+
+пока 6 вариантов указано, попробуем обработать именно эти  вариантов
+вот один из них
+"Serial": {
+		"MessageId": "117432166",
+		"id": "26D65444-A8C5-11EF-859B-509A4CAF7E09",
+		"name": "26D65444-A8C5-11EF-859B-509A4CAF7E09",
+		"skuId": "c5d3ffea-befe-11e7-815a-005056827059",
+		"productionDate": "",
+		"realizationDate": "22-11-2027 00:00",
+		"manufacturerId": "0",
+		"vendorBatch": "1127 0722",
+		"status": "B"
+              "regExciseFlag": "f"
+	}
+
+
+*/
+#include QUE_ProcessMessIncomeQueue.vih
+#include QUE_BASE.vih
+
+//************************************************************
+
+vipinterface QUE_ProcessMessIncomeQueue_Solvo implements oQUE_ProcessMessIncomeQueue
+  Licensed(free);
+
+Interface QUE_ProcessMessIncomeQueue_Solvo;
+table struct tSerial (
+    MessageId       : string
+  , id              : string
+  , name            : string
+  , skuId           : string
+  , productionDate  : string
+  , realizationDate : string
+  , manufacturerId  : string
+  , vendorBatch     : string
+  , status          : string
+  , regExciseFlag   : string
+)
+with index (
+ ind0 = MessageId
+);
+
+table struct townerChangeResult (
+    nrec      : comp
+	, MeesageId : string
+  , docId     : string
+)
+with index (
+ ind0 = nrec
+);
+
+table struct townerChangeResDet (
+   ctownerChangeResult : comp
+ , docId  : string
+ , line   : string
+ , skuId  : string
+ , qty    : string
+ , productionDate : string
+ , expirationDate : string
+ , marker         : string
+ , comments       : string
+)
+with index (
+ ind0 = ctownerChangeResult
+);
+
+
+table struct torderStatusChanged (
+   nrec : comp
+ , MessageId        : string
+ , orderId          : string
+ , actionType       : string
+ , type             : string
+ , processingMethod : string
+)
+with index (
+ ind0 = nrec
+);
+
+
+table struct torderStatusChanDet (
+    nrec : comp
+  , corderStatusChanged : comp
+  , orderId        : string
+  , line           : string
+  , skuId          : string
+  , holderId       : string
+  , lot            : string
+  , qty            : string
+  , expirationDate : string
+  , marker         : string
+  , comments       : string
+)
+with index (
+ ind0 = corderStatusChanged
+);
+
+table struct torderLu (
+    corderStatusChanDet : comp
+  , orderId    : string
+  , type       : string
+  , sscc       : string
+  , parentSscc : string
+)
+with index (
+ ind0 = corderStatusChanDet
+);
+table struct torderLuLabel (
+    corderStatusChanDet : comp
+  , sscc  : string
+  , label : string
+  , line  : string
+  , batch : string
+)
+with index (
+ ind0 = corderStatusChanDet
+);
+
+table struct tincomingStatusChan (
+     nrec      : comp
+   , MessageId : string
+   , incId     : string
+   , type      : string
+   , oldStatus : string
+   , newStatus : string
+)
+with index (
+ ind0 = nrec
+);
+
+table struct tincomingStaChanDet (
+     nrec      : comp
+  , cincomingStatusChan : comp
+  , incId    : string
+  , line     : string
+  , skuId    : string
+  , holderId : string
+  , packId   : string
+  , qty      : string
+  , lot      : string
+  , comments : string
+)
+with index (
+ ind0 = cincomingStatusChan
+);
+table struct tincLu (
+    cincomingStaChanDet : comp
+  , rcnId      : string
+  , type       : string
+  , sscc       : string
+  , parentSscc : string
+  , line       : string
+
+)
+with index (
+ ind0 = cincomingStaChanDet
+);
+table struct tincLuLabel (
+    cincomingStaChanDet : comp
+  , sscc  : string
+  , label : string
+  , line  : string
+)
+with index (
+ ind0 = cincomingStaChanDet
+);
+
+
+create view
+var _logQUE_OUT : string = '';
+    _cQUE_Handler_tune : comp;
+from
+    QUE_Handler_tune Handler_tune
+  , tSerial
+  , townerChangeResult
+  , townerChangeResDet
+  , torderStatusChanged
+  , torderStatusChanDet
+  , torderLu
+  , torderLuLabel
+  , tincomingStatusChan
+  , tincomingStaChanDet
+  , tincLu
+  , tincLuLabel
+where ((
+        _cQUE_Handler_tune == Handler_tune.nrec
+      ))
+;
+
+Function GenerateNewFile: string; {
+ result := GetStringParameter('Files','OutputFilesDirectory',0)+ '\QUE_INCOME_SOLVO'+olegenerateguid+'_'+DateToStr(cur_date,'YYYYMMDD')+'_'+timetostr(cur_time,'HHMMSS-SSS');
+}
+
+function GetLogFile : string; {
+  if _logQUE_OUT = '' then _logQUE_OUT := GenerateNewFile+'.log';
+  result := _logQUE_OUT;
+}
+
+Procedure MyLog(_str: string; _needlog : boolean = false); {
+  exit;
+  LogStrToFile(GetLogFile,DateToStr(cur_date,'YYYYMMDD')+'_'+timetostr(cur_time,'HHMMSS') + ': ' + shortstrtowin(_str));
+}
+
+function Proc_remains(_message:TpTr; var _answerLong : tptr; var _answer : string) : boolean; {
+ result := false;
+}
+
+function Proc_inventory_report(_message:TpTr; var _answerLong : tptr; var _answer : string) : boolean; {
+ result := false;
+}
+
+function proc_ownerChangeResult(_message:TpTr; var _answerLong : tptr; var _answer : string) : boolean; {
+/*
+{
+	"ownerChangeResult": {
+	               "MeesageId": "533563463566y6345",
+                  "docId": "509a4caf7e09",
+		"ownerChangeResultDetail": [
+			{
+				"docId": "509a4caf7e09",
+				"line": "1",
+				"skuId": "005056827059",
+				"qty": "9",
+				"productionDate": "2024-12-12",
+				"expirationDate": "2026-12-12",
+				"marker": "-",
+				"comments": "",
+			}
+		]
+	}
+}
+
+
+*/
+
+  var m_service1 : tptr = HttpConnect_CreateEx('http://ya.ru', '', '', true);
+
+ result := false;
+
+  delete all townerChangeResult;
+  delete all townerChangeResDet;
+   townerChangeResult.Nrec      := 1h;
+   townerChangeResult.MeesageId := HttpConnect_JsonObjectValueByName(m_service1, _message, 'MessageId');
+   townerChangeResult.docId     := HttpConnect_JsonObjectValueByName(m_service1, _message, 'docId');
+  insert current townerChangeResult;
+
+
+
+   var JSON_ARR : TPTr = HttpConnect_JSONArrayByName(m_service1, _message,'ownerChangeResultDetail');
+   var JSON_ARRCount : longint = HttpConnect_JsonCount(m_service1, JSON_ARR);
+   MyLog('Идем по массиву ownerChangeResultDetail = ' + JSON_ARRCount);
+      if JSON_ARRCount > 0 {
+      var i_JSON_ARR : longint = 0;
+      for (i_JSON_ARR := 0; i_JSON_ARR  <= JSON_ARRCount - 1; i_JSON_ARR++) {
+          var _JSON_Element_SP : TPtr = HttpConnect_JSONObjectByIndexOfArray(m_service1, JSON_ARR, i_JSON_ARR);
+          MyLog('Идем по массиву ownerChangeResultDetail i_JSON_ARR = ' + string(i_JSON_ARR));
+
+           townerChangeResDet.ctownerChangeResult := townerChangeResult.Nrec;
+           townerChangeResDet.docId               := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP, 'docId');         //": "509a4caf7e09",
+           townerChangeResDet.line                := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP, 'line');          //": "1",
+           townerChangeResDet.skuId               := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP, 'skuId');         //": "005056827059",
+           townerChangeResDet.qty                 := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP, 'qty');           //": "9",
+           townerChangeResDet.productionDate      := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP, 'productionDate');//": "2024-12-12",
+           townerChangeResDet.expirationDate      := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP, 'expirationDate');//": "2026-12-12",
+           townerChangeResDet.marker              := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP, 'marker');        //": "-",
+           townerChangeResDet.comments            := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP, 'comments');      //": "",
+          insert current townerChangeResult;
+      }
+    }
+
+/* тут обработка таблиц townerChangeResult и townerChangeResDet */
+}
+
+function proc_orderStatusChanged(_message:TpTr; var _answerLong : tptr; var _answer : string) : boolean; {
+ result := false;
+/*
+	"orderStatusChanged": {
+		                 "MessageId": "554363563451452345",
+
+                  "orderId": "509a4caf7e09",
+		"actionType": "pick",
+		"type": "A",
+		"processingMethod": "r",
+		" orderStatusChangedDetail": [
+			{
+				"orderId": "509a4caf7e09",
+				"line": "1",
+				"skuId": "005056827059",
+				"holderId": "005056827059",
+				"lot": "03A5A8C07682",
+				"qty": "9",
+				"expirationDate": "2024-12-12",
+				"marker": "-",
+				"comments": "",
+				"orderLu": [
+					{
+						"orderId": "509a4caf7e09",
+						"type": "1",
+						"sscc": "005056827059",
+						"parentSscc": "005056827059"
+					}
+				],
+				"orderLuLabel": [
+					{
+						"sscc": "005056827059",
+						"label": "27059",
+						"line": "509a4caf7e09",
+						"batch": "509a4caf7e09"
+					}
+				]
+			}
+		]
+	}
+*/
+  delete all torderStatusChanged;
+  delete all torderStatusChanDet;
+  delete all torderLu;
+  delete all torderLuLabel;
+  var m_service1 : tptr = HttpConnect_CreateEx('http://ya.ru', '', '', true);
+
+ result := false;
+
+   torderStatusChanged.nrec             := 1h;
+   torderStatusChanged.MessageId        := HttpConnect_JsonObjectValueByName(m_service1, _message, 'MessageId');         //": "509a4caf7e09",
+   torderStatusChanged.orderId          := HttpConnect_JsonObjectValueByName(m_service1, _message, 'orderId');
+   torderStatusChanged.actionType       := HttpConnect_JsonObjectValueByName(m_service1, _message, 'actionType');
+   torderStatusChanged.type             := HttpConnect_JsonObjectValueByName(m_service1, _message, 'type');
+   torderStatusChanged.processingMethod := HttpConnect_JsonObjectValueByName(m_service1, _message, 'processingMethod');
+  insert current torderStatusChanged;
+
+
+   var JSON_ARR : TPTr = HttpConnect_JSONArrayByName(m_service1, _message, 'orderStatusChangedDetail');
+   var JSON_ARRCount : longint = HttpConnect_JsonCount(m_service1, JSON_ARR);
+   MyLog('Идем по массиву orderStatusChangedDetail = ' + JSON_ARRCount);
+      if JSON_ARRCount > 0 {
+      var i_JSON_ARR : longint = 0;
+      for (i_JSON_ARR := 0; i_JSON_ARR  <= JSON_ARRCount - 1; i_JSON_ARR++) {
+          var _JSON_Element_SP : TPtr = HttpConnect_JSONObjectByIndexOfArray(m_service1, JSON_ARR, i_JSON_ARR);
+          MyLog('Идем по массиву ownerChangeResultDetail i_JSON_ARR = ' + string(i_JSON_ARR));
+
+          torderStatusChanDet.nrec := comp(i_JSON_ARR +1);
+          torderStatusChanDet.corderStatusChanged := torderStatusChanged.nrec;
+          torderStatusChanDet.orderId        := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP, 'orderId');
+          torderStatusChanDet.line           := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP, 'line');
+          torderStatusChanDet.skuId          := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP, 'skuId');
+          torderStatusChanDet.holderId       := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP, 'holderId');
+          torderStatusChanDet.lot            := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP, 'lot');
+          torderStatusChanDet.qty            := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP, 'qty');
+          torderStatusChanDet.expirationDate := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP, 'expirationDate');
+          torderStatusChanDet.marker         := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP, 'marker');
+          torderStatusChanDet.comments       := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP, 'comments');
+         insert current torderStatusChanDet;
+
+            var JSON_ARR1 : TPTr = HttpConnect_JSONArrayByName(m_service1, _JSON_Element_SP,'orderLu');
+            var JSON_ARRCount1 : longint = HttpConnect_JsonCount(m_service1, JSON_ARR1);
+               MyLog('Идем по массиву orderLu = ' + JSON_ARRCount1);
+                  if JSON_ARRCount1 > 0 {
+                  var i_JSON_ARR1 : longint = 0;
+                  for (i_JSON_ARR1 := 0; i_JSON_ARR1  <= JSON_ARRCount1 - 1; i_JSON_ARR1++) {
+                      var _JSON_Element_SP1 : TPtr = HttpConnect_JSONObjectByIndexOfArray(m_service1, JSON_ARR1, i_JSON_ARR1);
+                      MyLog('Идем по массиву orderLu i_JSON_ARR1 = ' + string(i_JSON_ARR1));
+                      torderLu.corderStatusChanDet := torderStatusChanDet.nrec
+                      torderLu.orderId    := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP1, 'orderId');
+                      torderLu.type       := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP1, 'type');
+                      torderLu.sscc       := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP1, 'sscc');
+                      torderLu.parentSscc := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP1, 'parentSscc');
+                    insert current torderLu;
+                  }
+                 }
+
+
+            JSON_ARR1 := HttpConnect_JSONArrayByName(m_service1, _JSON_Element_SP,'orderLuLabel');
+            JSON_ARRCount1 := HttpConnect_JsonCount(m_service1, JSON_ARR1);
+               MyLog('Идем по массиву orderLuLabel = ' + JSON_ARRCount1);
+                  if JSON_ARRCount1 > 0 {
+                  var i_JSON_ARR1 : longint = 0;
+                  for (i_JSON_ARR1 := 0; i_JSON_ARR1  <= JSON_ARRCount1 - 1; i_JSON_ARR1++) {
+                      var _JSON_Element_SP1 : TPtr = HttpConnect_JSONObjectByIndexOfArray(m_service1, JSON_ARR1, i_JSON_ARR1);
+                      MyLog('Идем по массиву orderLuLabel i_JSON_ARR1 = ' + string(i_JSON_ARR1));
+                      torderLuLabel.corderStatusChanDet := torderStatusChanDet.nrec
+                      torderLuLabel.sscc  := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP1, 'sscc');
+                      torderLuLabel.label := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP1, 'label');
+                      torderLuLabel.line  := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP1, 'line');
+                      torderLuLabel.batch := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP1, 'batch');
+                    insert current torderLuLabel;
+                  }
+                 }
+          }
+        }
+
+/*
+тут обрабатываем таблицы  orderStatusChanged, orderStatusChangedDetail, orderLu, orderLuLabel
+*/
+
+}
+function proc_incomingStatusChanged(_message:TpTr; var _answerLong : tptr; var _answer : string) : boolean; {
+ result := false;
+ /*
+ 	"incomingStatusChanged": {
+		 "MessageId": "3235234523152",
+                  "incId": "be2a0a9e-d276-11ef-859c-509a4caf7e09",
+		"type": "M",
+		"oldStatus": "G",
+		"newStatus": "D",
+		"incomingStatusChangedDetail": [
+			{
+				"incId": "be2a0a9e-d276-11ef-859c-509a4caf7e09",
+				"line": "3",
+				"skuId": "250c5449-2729-11ef-8599-509a4caf7e09",
+				"holderId": "c8ba3ea3-b891-11e7-815a-005056827059",
+				"packId": "d84fc4df-e248-11ec-858b-509a4caf7e09",
+				"qty": "1350",
+				"lot": "2BBA2013-E2E3-34A1-E063-03A5A8C07682",
+				"comments": "",
+				"incLu": [
+					{
+						"rcnId": "be2a0a9e-d276-11ef-859c-509a4caf7e09",
+						"type": "3",
+						"sscc": "250c5449-2729-11ef-8599-509a4caf7e09",
+						"parentSscc": " 005056827059",
+						"line": "d84fc4df-e248-11ec-858b-509a4caf7e09"
+					},
+				],
+				"incLuLabel": [
+					{
+						"sscc": "250c5449-2729-11ef-8599-509a4caf7e09",
+						"label": "005056827059",
+						"line": "d84fc4df-e248-11ec-858b-509a4caf7e09"
+					},
+				]
+			},
+		]
+	}
+*/
+
+  delete all tincomingStatusChan;
+  delete all tincomingStaChanDet;
+  delete all tincLu;
+  delete all tincLuLabel;
+  var m_service1 : tptr = HttpConnect_CreateEx('http://ya.ru', '', '', true);
+
+ result := false;
+
+   tincomingStatusChan.nrec      := 1h;
+   tincomingStatusChan.MessageId := HttpConnect_JsonObjectValueByName(m_service1, _message, 'MessageId');
+   tincomingStatusChan.incId     := HttpConnect_JsonObjectValueByName(m_service1, _message, 'incId');
+   tincomingStatusChan.type      := HttpConnect_JsonObjectValueByName(m_service1, _message, 'type');
+   tincomingStatusChan.oldStatus := HttpConnect_JsonObjectValueByName(m_service1, _message, 'oldStatus');
+   tincomingStatusChan.newStatus := HttpConnect_JsonObjectValueByName(m_service1, _message, 'newStatus');
+  insert current tincomingStatusChan;
+
+
+   var JSON_ARR : TPTr = HttpConnect_JSONArrayByName(m_service1, _message, 'incomingStatusChangedDetail');
+   var JSON_ARRCount : longint = HttpConnect_JsonCount(m_service1, JSON_ARR);
+   MyLog('Идем по массиву orderStatusChangedDetail = ' + JSON_ARRCount);
+      if JSON_ARRCount > 0 {
+      var i_JSON_ARR : longint = 0;
+      for (i_JSON_ARR := 0; i_JSON_ARR  <= JSON_ARRCount - 1; i_JSON_ARR++) {
+          var _JSON_Element_SP : TPtr = HttpConnect_JSONObjectByIndexOfArray(m_service1, JSON_ARR, i_JSON_ARR);
+          MyLog('Идем по массиву ownerChangeResultDetail i_JSON_ARR = ' + string(i_JSON_ARR));
+
+          tincomingStaChanDet.nrec := comp(i_JSON_ARR +1);
+          tincomingStaChanDet.cincomingStatusChan := torderStatusChanged.nrec;
+          torderStatusChanDet.orderId  := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP, 'orderId');
+          tincomingStaChanDet.incId    := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP, 'incId');
+          tincomingStaChanDet.line     := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP, 'line');
+          tincomingStaChanDet.skuId    := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP, 'skuId');
+          tincomingStaChanDet.holderId := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP, 'holderId');
+          tincomingStaChanDet.packId   := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP, 'packId');
+          tincomingStaChanDet.qty      := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP, 'qty');
+          tincomingStaChanDet.lot      := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP, 'lot');
+          tincomingStaChanDet.comments := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP, 'comments');
+         insert current tincomingStaChanDet;
+
+            var JSON_ARR1 : TPTr = HttpConnect_JSONArrayByName(m_service1, _JSON_Element_SP,'incLu');
+            var JSON_ARRCount1 : longint = HttpConnect_JsonCount(m_service1, JSON_ARR1);
+               MyLog('Идем по массиву orderLu = ' + JSON_ARRCount1);
+                  if JSON_ARRCount1 > 0 {
+                  var i_JSON_ARR1 : longint = 0;
+                  for (i_JSON_ARR1 := 0; i_JSON_ARR1  <= JSON_ARRCount1 - 1; i_JSON_ARR1++) {
+                      var _JSON_Element_SP1 : TPtr = HttpConnect_JSONObjectByIndexOfArray(m_service1, JSON_ARR1, i_JSON_ARR1);
+                      MyLog('Идем по массиву orderLu i_JSON_ARR1 = ' + string(i_JSON_ARR1));
+                      tincLu.cincomingStaChanDet := tincomingStaChanDet.nrec;
+                      tincLu.rcnId      := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP1, 'rcnId');
+                      tincLu.type       := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP1, 'type');
+                      tincLu.sscc       := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP1, 'sscc');
+                      tincLu.parentSscc := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP1, 'parentSscc');
+                      tincLu.line       := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP1, 'line');
+                    insert current tincLu;
+                  }
+                 }
+
+             JSON_ARR1 := HttpConnect_JSONArrayByName(m_service1, _JSON_Element_SP,'incLuLabel');
+             JSON_ARRCount1 := HttpConnect_JsonCount(m_service1, JSON_ARR1);
+               MyLog('Идем по массиву orderLu = ' + JSON_ARRCount1);
+                  if JSON_ARRCount1 > 0 {
+                  var i_JSON_ARR1 : longint = 0;
+                  for (i_JSON_ARR1 := 0; i_JSON_ARR1  <= JSON_ARRCount1 - 1; i_JSON_ARR1++) {
+                      var _JSON_Element_SP1 : TPtr = HttpConnect_JSONObjectByIndexOfArray(m_service1, JSON_ARR1, i_JSON_ARR1);
+                      MyLog('Идем по массиву orderLu i_JSON_ARR1 = ' + string(i_JSON_ARR1));
+                      tincLuLabel.cincomingStaChanDet := tincomingStaChanDet.nrec
+                      tincLuLabel.sscc    := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP1, 'sscc');
+                      tincLuLabel.label   := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP1, 'label');
+                      tincLuLabel.line    := HttpConnect_JsonObjectValueByName(m_service1, _JSON_Element_SP1, 'line');
+                    insert current tincLuLabel;
+                  }
+                 }
+          }
+        }
+/*
+тут обрабатываем таблицы  tincomingStatusChan, tincomingStaChanDet, tincLu и tincLuLabel
+*/
+
+}
+
+function proc_serial(_message:TpTr; var _answerLong : tptr; var _answer : string) : boolean; {
+ result := false;
+ /*
+ "Serial": {
+		"MessageId": "117432166",
+		"id": "26D65444-A8C5-11EF-859B-509A4CAF7E09",
+		"name": "26D65444-A8C5-11EF-859B-509A4CAF7E09",
+		"skuId": "c5d3ffea-befe-11e7-815a-005056827059",
+		"productionDate": "",
+		"realizationDate": "22-11-2027 00:00",
+		"manufacturerId": "0",
+		"vendorBatch": "1127 0722",
+		"status": "B"
+    "regExciseFlag": "f"
+	}
+ */
+
+  var m_service1 : tptr = HttpConnect_CreateEx('http://ya.ru', '', '', true);
+
+ delete all tSerial;
+
+   tSerial.MessageId       := HttpConnect_JsonObjectValueByName(m_service1, _message, 'MessageId');
+   tSerial.id              := HttpConnect_JsonObjectValueByName(m_service1, _message, 'id');// ": "26D65444-A8C5-11EF-859B-509A4CAF7E09",
+   tSerial.name            := HttpConnect_JsonObjectValueByName(m_service1, _message, 'name');//": "26D65444-A8C5-11EF-859B-509A4CAF7E09",
+   tSerial.skuId           := HttpConnect_JsonObjectValueByName(m_service1, _message, 'skuId');//": "c5d3ffea-befe-11e7-815a-005056827059",
+   tSerial.productionDate  := HttpConnect_JsonObjectValueByName(m_service1, _message, 'productionDate');//": "",
+   tSerial.realizationDate := HttpConnect_JsonObjectValueByName(m_service1, _message, 'realizationDate');//": "22-11-2027 00:00",
+   tSerial.manufacturerId  := HttpConnect_JsonObjectValueByName(m_service1, _message, 'manufacturerId');//": "0",
+   tSerial.vendorBatch     := HttpConnect_JsonObjectValueByName(m_service1, _message, 'vendorBatch');//": "1127 0722",
+   tSerial.status          := HttpConnect_JsonObjectValueByName(m_service1, _message, 'status');//": "B"
+   tSerial.regExciseFlag   := HttpConnect_JsonObjectValueByName(m_service1, _message, 'regExciseFlag  ');//": "f"
+  insert current tSerial;
+/*
+   тут обработка tSerial
+*/
+
+}
+
+function ProcessMessage(_message:TpTr; _cQUE_Handler_tune : comp; var _answerLong : tptr; var _answer : string) : boolean; {
+ result := false;
+ var iQUE_BASE : QUE_BASE new;
+ var m_service : tptr = HttpConnect_CreateEx('http://ya.ru', '', '', true);
+
+
+  _answerLong :=  HttpConnect_CreateLongString( m_service);
+
+  var JSON_Object : tptr = HttpConnect_JSONObjectByLongString(m_service, _message);
+   if JSON_Object = 0 {
+      _answer := 'не смогли преобразовать сообщение в JSON';
+      HttpConnect_AddValueToLongString (m_service, _answer,_answerLong);
+      exit;
+    }
+
+
+  var JSON_MESSAGE : TPTr = HttpConnect_JSONObjectByName(m_service,JSON_Object,'uploadResult');
+
+    if JSON_MESSAGE = 0 {
+      _answer := 'Ошибка в структуре сообщения. Не найден объект uploadResult';
+       HttpConnect_AddValueToLongString (m_service, _answer,_answerLong);
+      exit;
+    }
+
+
+
+  var JSON_uploadResult_payload : TPTr = HttpConnect_JSONObjectByName(m_service,JSON_MESSAGE,'Serial');
+    if JSON_uploadResult_payload <> 0 {
+      if not Proc_serial(JSON_uploadResult_payload, _answerLong, _answer) then {
+       if _answer <> '' then _answer := 'ОШИБКА ОБРАБОТКИ Serial';
+       exit;
+      }
+    }
+
+  JSON_uploadResult_payload := HttpConnect_JSONObjectByName(m_service,JSON_MESSAGE,'incomingStatusChanged');
+    if JSON_uploadResult_payload <> 0 {
+      if not Proc_incomingStatusChanged(JSON_uploadResult_payload, _answerLong, _answer) then {
+       if _answer <> '' then _answer := 'ОШИБКА ОБРАБОТКИ incomingStatusChanged';
+       exit;
+      }
+    }
+
+  JSON_uploadResult_payload := HttpConnect_JSONObjectByName(m_service,JSON_MESSAGE,'orderStatusChanged');
+    if JSON_uploadResult_payload <> 0 {
+      if not Proc_incomingStatusChanged(JSON_uploadResult_payload, _answerLong, _answer) then {
+       if _answer <> '' then _answer := 'ОШИБКА ОБРАБОТКИ orderStatusChanged';
+       exit;
+      }
+    }
+
+  JSON_uploadResult_payload := HttpConnect_JSONObjectByName(m_service,JSON_MESSAGE,'ownerChangeResult');
+    if JSON_uploadResult_payload <> 0 {
+      if not Proc_ownerChangeResult(JSON_uploadResult_payload, _answerLong, _answer) then {
+       if _answer <> '' then _answer := 'ОШИБКА ОБРАБОТКИ ownerChangeResult';
+       exit;
+      }
+    }
+
+  JSON_uploadResult_payload := HttpConnect_JSONObjectByName(m_service,JSON_MESSAGE,'remains');
+    if JSON_uploadResult_payload <> 0 {
+      if not Proc_remains(JSON_uploadResult_payload, _answerLong, _answer) then {
+       if _answer <> '' then _answer := 'ОШИБКА ОБРАБОТКИ remains';
+       exit;
+      }
+    }
+
+  JSON_uploadResult_payload := HttpConnect_JSONObjectByName(m_service,JSON_MESSAGE,'inventory_report');
+    if JSON_uploadResult_payload <> 0 {
+      if not Proc_inventory_report(JSON_uploadResult_payload, _answerLong, _answer) then {
+       if _answer <> '' then _answer := 'ОШИБКА ОБРАБОТКИ inventory_report';
+       exit;
+      }
+    }
+
+   result := true;
+   _answer := 'Сообщение успешно обработано';
+   HttpConnect_AddValueToLongString (m_service, _answer,_answerLong);
+
+//   putfiletoclient(_logQUE_OUT,false);
+}
+
+function GetDescription : string; {
+  result := 'Обработка сообщений из SOLVO'
+}
+procedure Setup(__cQUE_Handler_tune : comp);{
+  set _cQUE_Handler_tune := __cQUE_Handler_tune;
+  if getfirst Handler_tune = tsOK {
+    update current Handler_tune set Handler_tune.name = 'Настроек не предусмотрено';
+  }
+  message('Настроек не предусмотрено',error);
+}
+
+end.

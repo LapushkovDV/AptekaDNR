@@ -97,7 +97,7 @@
 			<File Name="vip\C_QUE_ProcessQUE_INCOME.vip" PosX="1" PosY="19" OpenEditor="True"/>
 			<File Name="vip\C_QUE_ProcessQUE_OUT.vip" PosX="26" PosY="17" OpenEditor="True"/>
 			<File Name="vip\QUE_SendMessToExtSys_solvo.vip" PosX="48" PosY="312" OpenEditor="True"/>
-			<File Name="vip\GetMessFromSolvoPutToIncomeQue.vip" PosX="69" PosY="197" OpenEditor="True" Active="True"/>
+			<File Name="vip\GetMessFromSolvoPutToIncomeQue.vip" PosX="93" PosY="276" OpenEditor="True" Active="True"/>
 		</FileList>
 		<DebugOptions StopOnStartup="False"/>
 		<MarkerList>
