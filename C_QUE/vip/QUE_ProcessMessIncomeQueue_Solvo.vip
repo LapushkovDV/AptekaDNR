@@ -591,10 +591,14 @@ function ProcessMessage(_message:TpTr; _cQUE_Handler_tune : comp; var _answerLon
     }
   MyLog(' успешно преобразовали сообщение в JSON' );
 
+  MyLog(' Попытка взять из JSON длинную строку uploadResult' );
+  var JSON_MESSAGE_longString : TPTr = HttpConnect_JsonObjectLongValueByName(m_service,JSON_Object, 'uploadResult'); // криво ребята из солво хранят вложенный JSON
+  MyLog(' Успешно взяли из JSON длинную строку uploadResult' );
 
-  MyLog(' Попытка взять из JSON объект uploadResult' );
-  var JSON_MESSAGE : TPTr = HttpConnect_JSONObjectByName(m_service,JSON_Object,'uploadResult');
-  MyLog(' Успешно взяли из JSON объект uploadResult' );
+  MyLog(' Попытка преобразовать длинную строку uploadResult в JSON' );
+  var JSON_MESSAGE : TPTr = HttpConnect_JSONObjectByLongString(m_service,JSON_MESSAGE_longString);
+  MyLog(' Успешно преобразовали длинную строку uploadResult в JSON' );
+
     if JSON_MESSAGE = 0 {
       _answer := 'Ошибка в структуре сообщения. Не найден объект uploadResult';
        HttpConnect_AddValueToLongString (m_service, _answer,_answerLong);
