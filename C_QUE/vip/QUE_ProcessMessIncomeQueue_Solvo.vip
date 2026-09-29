@@ -576,31 +576,34 @@ function proc_serial(_message:TpTr; var _answerLong : tptr; var _answer : string
 
 function ProcessMessage(_message:TpTr; _cQUE_Handler_tune : comp; var _answerLong : tptr; var _answer : string) : boolean; {
  result := false;
+  MyLog(' QUE_ProcessMessIncomeQueue_Solvo ProcessMessage start' );
  var iQUE_BASE : QUE_BASE new;
  var m_service : tptr = HttpConnect_CreateEx('http://ya.ru', '', '', true);
 
 
   _answerLong :=  HttpConnect_CreateLongString( m_service);
-
+  MyLog(' пытаемся преобразовать сообщение в JSON' );
   var JSON_Object : tptr = HttpConnect_JSONObjectByLongString(m_service, _message);
    if JSON_Object = 0 {
       _answer := 'не смогли преобразовать сообщение в JSON';
       HttpConnect_AddValueToLongString (m_service, _answer,_answerLong);
       exit;
     }
+  MyLog(' успешно преобразовали сообщение в JSON' );
 
 
+  MyLog(' Попытка взять из JSON объект uploadResult' );
   var JSON_MESSAGE : TPTr = HttpConnect_JSONObjectByName(m_service,JSON_Object,'uploadResult');
-
+  MyLog(' Успешно взяли из JSON объект uploadResult' );
     if JSON_MESSAGE = 0 {
       _answer := 'Ошибка в структуре сообщения. Не найден объект uploadResult';
        HttpConnect_AddValueToLongString (m_service, _answer,_answerLong);
       exit;
     }
 
-
-
+  MyLog(' попытка взять из объекта uploadResult объект Serial' );
   var JSON_uploadResult_payload : TPTr = HttpConnect_JSONObjectByName(m_service,JSON_MESSAGE,'Serial');
+  MyLog(' успешно взяли из объекта uploadResult объект Serial' );
     if JSON_uploadResult_payload <> 0 {
       if not Proc_serial(JSON_uploadResult_payload, _answerLong, _answer) then {
        if _answer <> '' then _answer := 'ОШИБКА ОБРАБОТКИ Serial';
@@ -608,7 +611,10 @@ function ProcessMessage(_message:TpTr; _cQUE_Handler_tune : comp; var _answerLon
       }
     }
 
+
+  MyLog(' попытка взять из объекта uploadResult объект incomingStatusChanged' );
   JSON_uploadResult_payload := HttpConnect_JSONObjectByName(m_service,JSON_MESSAGE,'incomingStatusChanged');
+  MyLog(' успешно взяли из объекта uploadResult объект incomingStatusChanged' );
     if JSON_uploadResult_payload <> 0 {
       if not Proc_incomingStatusChanged(JSON_uploadResult_payload, _answerLong, _answer) then {
        if _answer <> '' then _answer := 'ОШИБКА ОБРАБОТКИ incomingStatusChanged';
@@ -616,7 +622,10 @@ function ProcessMessage(_message:TpTr; _cQUE_Handler_tune : comp; var _answerLon
       }
     }
 
+
+  MyLog(' попытка взять из объекта uploadResult объект orderStatusChanged' );
   JSON_uploadResult_payload := HttpConnect_JSONObjectByName(m_service,JSON_MESSAGE,'orderStatusChanged');
+  MyLog(' успешно взяли из объекта uploadResult объект orderStatusChanged' );
     if JSON_uploadResult_payload <> 0 {
       if not Proc_incomingStatusChanged(JSON_uploadResult_payload, _answerLong, _answer) then {
        if _answer <> '' then _answer := 'ОШИБКА ОБРАБОТКИ orderStatusChanged';
@@ -624,7 +633,9 @@ function ProcessMessage(_message:TpTr; _cQUE_Handler_tune : comp; var _answerLon
       }
     }
 
+  MyLog(' попытка взять из объекта uploadResult объект ownerChangeResult' );
   JSON_uploadResult_payload := HttpConnect_JSONObjectByName(m_service,JSON_MESSAGE,'ownerChangeResult');
+  MyLog(' успешно взяли из объекта uploadResult объект ownerChangeResult' );
     if JSON_uploadResult_payload <> 0 {
       if not Proc_ownerChangeResult(JSON_uploadResult_payload, _answerLong, _answer) then {
        if _answer <> '' then _answer := 'ОШИБКА ОБРАБОТКИ ownerChangeResult';
@@ -632,7 +643,10 @@ function ProcessMessage(_message:TpTr; _cQUE_Handler_tune : comp; var _answerLon
       }
     }
 
+
+  MyLog(' попытка взять из объекта uploadResult объект remains' );
   JSON_uploadResult_payload := HttpConnect_JSONObjectByName(m_service,JSON_MESSAGE,'remains');
+  MyLog(' успешно взяли из объекта uploadResult объект remains' );
     if JSON_uploadResult_payload <> 0 {
       if not Proc_remains(JSON_uploadResult_payload, _answerLong, _answer) then {
        if _answer <> '' then _answer := 'ОШИБКА ОБРАБОТКИ remains';
@@ -640,7 +654,10 @@ function ProcessMessage(_message:TpTr; _cQUE_Handler_tune : comp; var _answerLon
       }
     }
 
+
+  MyLog(' попытка взять из объекта uploadResult объект inventory_report' );
   JSON_uploadResult_payload := HttpConnect_JSONObjectByName(m_service,JSON_MESSAGE,'inventory_report');
+  MyLog(' успешно взяли из объекта uploadResult объект inventory_report' );
     if JSON_uploadResult_payload <> 0 {
       if not Proc_inventory_report(JSON_uploadResult_payload, _answerLong, _answer) then {
        if _answer <> '' then _answer := 'ОШИБКА ОБРАБОТКИ inventory_report';
